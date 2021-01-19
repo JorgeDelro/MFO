@@ -1,11 +1,13 @@
 
+<!-- badges: start -->
+
+[![Travis build
+status](https://travis-ci.com/JorgeDelro/MFO.svg?branch=master)](https://travis-ci.com/JorgeDelro/MFO)
+<!-- badges: end -->
+
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 # MFO
-
-<!-- badges: start -->
-
-<!-- badges: end -->
 
 The goal of MFO is to …
 
