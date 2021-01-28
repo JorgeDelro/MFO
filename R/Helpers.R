@@ -7,6 +7,8 @@
 #' @param db
 #' @param cv_var
 #'
+#' @importFrom dplyr pull
+#'
 #' @return
 #'
 #' @examples
@@ -32,21 +34,21 @@ met_basal <- function(step_time, db, cv_var) {
   ############ VO2
   j <- 1
   for (i in n_row:length(pull(db["VO2"]))) {
-    cv_VO2_2[j] <- sd(pull(db[j:i, "VO2"])) / mean(pull(db[j:i, "VO2"]))
+    cv_VO2_2[j] <- sd(as.vector(db[j:i, "VO2"])) / mean(as.vector(db[j:i, "VO2"]))
     j <- j + 1
   }
 
   ############ VCO2
   j <- 1
   for (i in n_row:length(pull(db["VCO2"]))) {
-    cv_VCO2_2[j] <- sd(pull(db[j:i, "VCO2"])) / mean(pull(db[j:i, "VCO2"]))
+    cv_VCO2_2[j] <- sd(as.vector(db[j:i, "VCO2"])) / mean(as.vector(db[j:i, "VCO2"]))
     j <- j + 1
   }
 
   ############ RER
   j <- 1
   for (i in n_row:length(pull(db["RER"]))) {
-    cv_RER_2[j] <- sd(pull(db[j:i, "RER"])) / mean(pull(db[j:i, "RER"]))
+    cv_RER_2[j] <- sd(as.vector(db[j:i, "RER"])) / mean(as.vector(db[j:i, "RER"]))
     j <- j + 1
   }
 
@@ -72,7 +74,7 @@ met_basal <- function(step_time, db, cv_var) {
   # mean VO2
   x_VO2 <- mean(pull(db_5min["VO2"]))
   # mean HR
-  x_HR <- mean(pull(db_5min["HR"]))
+  #x_HR <- mean(pull(db_5min["HR"]))
   # mean RER
   x_RER <- mean(pull(db_5min["RER"]))
   # mean CHO
@@ -85,7 +87,7 @@ met_basal <- function(step_time, db, cv_var) {
   return(list(db = db,
               db_5min = db_5min,
               x_VO2 = x_VO2,
-              x_HR = x_HR,
+              #x_HR = x_HR,
               x_RER = x_RER,
               x_CHO = x_CHO,
               x_FAT = x_FAT,
@@ -211,8 +213,8 @@ calculate_vars <- function(step_time, db_MFO, VO2max, author) {
 #' @examples
 get_5min <- function(db, cv_var, n_row) {
 
-  pos_final <- which.min(pull(db[,cv_var]))
-  pos_ini <- which.min(pull(db[,cv_var])) - n_row
+  pos_final <- which.min(as.vector(db[,cv_var]))
+  pos_ini <- which.min(as.vector(db[,cv_var])) - n_row
 
   db_5min <- db[pos_ini:pos_final,]
 
@@ -250,3 +252,112 @@ calculate_steps <- function(step_time, db, db_type) {
                 lower_bound = lower_bound))
   }
 }
+
+
+#' Title
+#'
+#' @param from
+#' @param path
+#' @param db_basal_name
+#' @param db_MFO_name
+#' @param db_graded_name
+#'
+#' @return
+#'
+#' @importFrom dplyr rename
+#'
+#' @examples
+read_MFO_databases <- function(from = c("folder", "files"),
+                               path,
+                               db_basal_name,
+                               db_MFO_name,
+                               db_graded_name,
+                               col_name_VO2,
+                               col_name_VCO2,
+                               col_name_RER,
+                               remove_rows = NULL) {
+
+
+  if(from == "folder"){
+
+    participant_db_graded <- read_xlsx(paste(path, "/", db_graded_name,".xlsx", sep = ""))
+    participant_db_basal <- read_xlsx(paste(path, "/", db_basal_name,".xlsx", sep = ""))
+    participant_db_MFO <- read_xlsx(paste(path, "/", db_MFO_name,".xlsx", sep = ""))
+
+  } else if(from == "files"){
+
+    participant_db_graded <- read_xlsx(path = path,
+                                       sheet = db_graded_name)
+    participant_db_basal <- read_xlsx(path = path,
+                                      sheet = db_basal_name)
+    participant_db_MFO <- read_xlsx(path = path,
+                                    sheet = db_MFO_name)
+
+  }
+
+  # Variables to select from databases
+  vars_to_select <- c(col_name_VO2, col_name_VCO2, col_name_RER)
+
+  # Change columns names to VO2 and VCO2
+  if(col_name_VO2 != "VO2" | col_name_VCO2 != "VCO2" | col_name_RER != "RER") {
+
+    # First - select variables and rename for next functions
+    # Second - remove rows
+    # Third - Convert columns form char to num
+
+
+    # db_graded
+    participant_db_graded <- participant_db_graded %>%
+                                  select(all_of(vars_to_select)) %>%
+                                  rename(VO2 = col_name_VO2,
+                                         VCO2 = col_name_VCO2,
+                                         RER = col_name_RER)
+    if(!is.null(remove_rows)) {
+    participant_db_graded <- participant_db_graded[-c(remove_rows),]
+}
+    participant_db_graded <- transform(participant_db_graded,
+                                       VO2 = as.numeric(VO2),
+                                       VCO2 = as.numeric(VCO2),
+                                       RER = as.numeric(RER))
+
+
+    # db_basal
+    participant_db_basal <- participant_db_basal %>%
+                                  select(all_of(vars_to_select)) %>%
+                                  rename(VO2 = col_name_VO2,
+                                  VCO2 = col_name_VCO2,
+                                  RER = col_name_RER)
+
+    if(!is.null(remove_rows)) {
+    participant_db_basal <- participant_db_basal[-c(remove_rows),]
+    }
+
+    participant_db_basal <- transform(participant_db_basal,
+                                       VO2 = as.numeric(VO2),
+                                       VCO2 = as.numeric(VCO2),
+                                       RER = as.numeric(RER))
+
+    # db MFO
+    participant_db_MFO <- participant_db_MFO %>%
+                                  select(all_of(vars_to_select)) %>%
+                                  rename(VO2 = col_name_VO2,
+                                          VCO2 = col_name_VCO2,
+                                          RER = col_name_RER)
+
+    if(!is.null(remove_rows)) {
+    participant_db_MFO <- participant_db_MFO[-c(remove_rows),]
+    }
+
+    participant_db_MFO <- transform(participant_db_MFO,
+                                       VO2 = as.numeric(VO2),
+                                       VCO2 = as.numeric(VCO2),
+                                       RER = as.numeric(RER))
+
+  }
+
+  return(list(participant_db_graded = participant_db_graded,
+              participant_db_basal = participant_db_basal,
+              participant_db_MFO = participant_db_MFO))
+}
+
+

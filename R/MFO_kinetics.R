@@ -4,6 +4,8 @@
 #'
 #' @param MFO_data A dataframe estimated from MFO function
 #'
+#' @importFrom minpack.lm nlsLM
+#' @importFrom ggplot2 ggplot
 #' @export
 #'
 #' @examples

@@ -8,6 +8,9 @@
 #' @param VO2max VO2max can be passed directly using this argument instead of use db_graded argument. Default set to NULL.
 #' @param save_plot to save the plot or not.Default set to True.
 #'
+#' @importFrom readxl read_xlsx
+#' @importFrom tibble tibble
+#' @importFrom openxlsx write.xlsx
 #' @export
 #'
 #' @examples
@@ -19,29 +22,54 @@
 #'     VO2max = NULL,
 #'     save_plot = T)
 #'}
-MFOs <- function(folders_path, step_time, cv_var, author, VO2max = NULL, save_plot = T){
+MFOs <- function(from = c("folder", "files"),
+                 path,
+                 db_basal_name,
+                 db_MFO_name,
+                 db_graded_name,
+                 step_time,
+                 cv_var,
+                 author,
+                 VO2max = NULL,
+                 remove_rows = NULL,
+                 col_name_VO2 = "VO2",
+                 col_name_VCO2 = "VCO2",
+                 col_name_RER = "RER",
+                 save_plot = T){
 
-  participants <- list.files(folders_path)
+  participants <- list.files(path)
+
+
 
   for(i in 1:length(participants)) {
     # Get the participant ID
-    participant_db_graded <- read_xlsx(paste(folders_path,"/",participants[i], "/db_graded.xlsx", sep = ""))
-    participant_db_basal <- read_xlsx(paste(folders_path,"/",participants[i], "/db_basal.xlsx", sep = ""))
-    participant_db_MFO <- read_xlsx(paste(folders_path,"/",participants[i], "/db_MFO.xlsx", sep = ""))
+    participant_dbs <- read_MFO_databases(from = from,
+                                          path = paste(path,"/",participants[1], sep = ""),
+                                          db_basal_name = db_basal_name,
+                                          db_MFO_name = db_MFO_name,
+                                          db_graded_name = db_graded_name,
+                                          remove_rows = remove_rows,
+                                          col_name_VO2 = col_name_VO2,
+                                          col_name_VCO2 = col_name_VCO2,
+                                          col_name_RER = col_name_RER)
 
     participant_result_MFO <- MFO(step_time = step_time,
-                                  db_MFO = participant_db_MFO,
-                                  db_basal = participant_db_basal,
-                                  db_graded = participant_db_graded,
+                                  db_MFO = participant_dbs$participant_db_MFO,
+                                  db_basal = participant_dbs$participant_db_basal,
+                                  db_graded = participant_dbs$participant_db_graded,
                                   cv_var = cv_var,
                                   author = author,
                                   VO2max = VO2max)
 
     # MFO plot
     if(save_plot == T){
+
+      # Create a folder to store plots
+      dir.create(paste(path,"/MFO_plots", sep = ""))
+
       ggsave(paste(participants[i],".png", sep = ""),
              plot = participant_result_MFO$MFO_plot,
-             path = folders_path,
+             path = paste(path,"/MFO_plots", sep = ""),
              height=5,
              width=7,
              units='in',
@@ -54,7 +82,7 @@ MFOs <- function(folders_path, step_time, cv_var, author, VO2max = NULL, save_pl
     if(save_plot == T){
       ggsave(paste(participants[i],"kinetics_.png", sep = ""),
              plot = participant_result_MFO_kinetics$MFO_kinetics_plot,
-             path = folders_path,
+             path = paste(path,"/MFO_plots", sep = ""),
              height=5,
              width=7,
              units='in',

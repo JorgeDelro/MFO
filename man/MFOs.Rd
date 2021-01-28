@@ -4,11 +4,24 @@
 \alias{MFOs}
 \title{Maximal Fat Oxidation calculation of multiple databases}
 \usage{
-MFOs(folders_path, step_time, cv_var, author, VO2max = NULL, save_plot = T)
+MFOs(
+  from = c("folder", "files"),
+  path,
+  db_basal_name,
+  db_MFO_name,
+  db_graded_name,
+  step_time,
+  cv_var,
+  author,
+  VO2max = NULL,
+  remove_rows = NULL,
+  col_name_VO2 = "VO2",
+  col_name_VCO2 = "VCO2",
+  col_name_RER = "RER",
+  save_plot = T
+)
 }
 \arguments{
-\item{folders_path}{path to the folder with the databases}
-
 \item{step_time}{every few seconds the data was collected}
 
 \item{cv_var}{variable to estimate coefficient of variation. Can be: VO2, VCO2 or RER.}
@@ -18,6 +31,8 @@ MFOs(folders_path, step_time, cv_var, author, VO2max = NULL, save_plot = T)
 \item{VO2max}{VO2max can be passed directly using this argument instead of use db_graded argument. Default set to NULL.}
 
 \item{save_plot}{to save the plot or not.Default set to True.}
+
+\item{folders_path}{path to the folder with the databases}
 }
 \description{
 Maximal Fat Oxidation calculation of multiple databases

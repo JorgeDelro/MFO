@@ -69,6 +69,9 @@ MFO <- function(step_time, db_MFO, db_basal, db_graded, cv_var, author, VO2max =
                    FAT = FAT) %>%
     mutate(porc_VO2 = (VO2 * 100) /  VO2max)
 
+  # Remove NA´s
+  MFO_db <- na.omit(MFO_db)
+
   # Polynomial regression
   MFO_mod <- lm(MFO_db$FAT ~ MFO_db$porc_VO2 + I(MFO_db$porc_VO2^2))
 
