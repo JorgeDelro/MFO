@@ -17,7 +17,8 @@ BugReports: https://github.com/JorgeDelro/MFO/issues
 Suggests: 
     knitr,
     rmarkdown,
-    covr
+    covr,
+    testthat (>= 3.0.0)
 VignetteBuilder: knitr
 Imports: 
     readxl,
@@ -26,3 +27,4 @@ Imports:
     dplyr,
     minpack.lm,
     openxlsx
+Config/testthat/edition: 3
