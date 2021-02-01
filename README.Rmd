@@ -4,6 +4,7 @@ output: github_document
 
 <!-- badges: start -->
 [![Travis build status](https://travis-ci.com/JorgeDelro/MFO.svg?branch=master)](https://travis-ci.com/JorgeDelro/MFO)
+[![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/JorgeDelro/MFO?branch=master&svg=true)](https://ci.appveyor.com/project/JorgeDelro/MFO)
 <!-- badges: end -->
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
