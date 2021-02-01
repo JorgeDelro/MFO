@@ -13,6 +13,7 @@ read_MFO_databases(
   col_name_VO2,
   col_name_VCO2,
   col_name_RER,
+  col_name_HR,
   remove_rows = NULL
 )
 }

@@ -7,7 +7,8 @@
 #' @param db
 #' @param cv_var
 #'
-#' @importFrom dplyr pull
+#' @importFrom dplyr pull mutate
+#' @importFrom tibble add_column
 #'
 #' @return
 #'
@@ -74,7 +75,7 @@ met_basal <- function(step_time, db, cv_var) {
   # mean VO2
   x_VO2 <- mean(pull(db_5min["VO2"]))
   # mean HR
-  #x_HR <- mean(pull(db_5min["HR"]))
+  x_HR <- mean(pull(db_5min["HR"]))
   # mean RER
   x_RER <- mean(pull(db_5min["RER"]))
   # mean CHO
@@ -128,15 +129,15 @@ calculate_vars <- function(step_time, db_MFO, VO2max, author) {
     for (i in seq(1:steps$n_steps)) {
 
       # mean VO2
-      db_vars[i, "VO2"] <- mean(pull(db_MFO[steps$lower_bound:steps$upper_bound, "VO2"]))
+      db_vars[i, "VO2"] <- mean(as.vector(db_MFO[steps$lower_bound:steps$upper_bound, "VO2"]))
       # mean HR
-      db_vars[i, "HR"] <- mean(pull(db_MFO[steps$lower_bound:steps$upper_bound, "HR"]))
+      db_vars[i, "HR"] <- mean(as.vector(db_MFO[steps$lower_bound:steps$upper_bound, "HR"]))
       # mean CHO
-      db_vars[i, "CHO"] <- mean(pull(db_MFO[steps$lower_bound:steps$upper_bound, "CHO_Frayn"]))
+      db_vars[i, "CHO"] <- mean(as.vector(db_MFO[steps$lower_bound:steps$upper_bound, "CHO_Frayn"]))
       # mean FAT
-      db_vars[i, "FAT"] <- mean(pull(db_MFO[steps$lower_bound:steps$upper_bound, "FAT_Frayn"]))
+      db_vars[i, "FAT"] <- mean(as.vector(db_MFO[steps$lower_bound:steps$upper_bound, "FAT_Frayn"]))
       # mean Kcal
-      db_vars[i, "Kcal"] <- mean(pull(db_MFO[steps$lower_bound:steps$upper_bound, "Kcal_total_Frayn"]))
+      db_vars[i, "Kcal"] <- mean(as.vector(db_MFO[steps$lower_bound:steps$upper_bound, "Kcal_total_Frayn"]))
 
       # next bounds
       if(step_time == 20){
@@ -264,7 +265,9 @@ calculate_steps <- function(step_time, db, db_type) {
 #'
 #' @return
 #'
-#' @importFrom dplyr rename
+#' @importFrom dplyr rename select
+#' @importFrom magrittr %>%
+#' @export
 #'
 #' @examples
 read_MFO_databases <- function(from = c("folder", "files"),
@@ -275,6 +278,7 @@ read_MFO_databases <- function(from = c("folder", "files"),
                                col_name_VO2,
                                col_name_VCO2,
                                col_name_RER,
+                               col_name_HR,
                                remove_rows = NULL) {
 
 
@@ -296,7 +300,7 @@ read_MFO_databases <- function(from = c("folder", "files"),
   }
 
   # Variables to select from databases
-  vars_to_select <- c(col_name_VO2, col_name_VCO2, col_name_RER)
+  vars_to_select <- c(col_name_VO2, col_name_VCO2, col_name_RER, col_name_HR)
 
   # Change columns names to VO2 and VCO2
   if(col_name_VO2 != "VO2" | col_name_VCO2 != "VCO2" | col_name_RER != "RER") {
@@ -309,49 +313,48 @@ read_MFO_databases <- function(from = c("folder", "files"),
     # db_graded
     participant_db_graded <- participant_db_graded %>%
                                   select(all_of(vars_to_select)) %>%
-                                  rename(VO2 = col_name_VO2,
-                                         VCO2 = col_name_VCO2,
-                                         RER = col_name_RER)
+                                  rename(VO2 = all_of(col_name_VO2),
+                                         VCO2 = all_of(col_name_VCO2),
+                                         RER = all_of(col_name_RER))
+
+
     if(!is.null(remove_rows)) {
     participant_db_graded <- participant_db_graded[-c(remove_rows),]
 }
-    participant_db_graded <- transform(participant_db_graded,
-                                       VO2 = as.numeric(VO2),
-                                       VCO2 = as.numeric(VCO2),
-                                       RER = as.numeric(RER))
+    participant_db_graded <- apply(participant_db_graded, 2, as.numeric)
 
+    participant_db_graded <- as.data.frame(na.omit(participant_db_graded))
 
     # db_basal
     participant_db_basal <- participant_db_basal %>%
                                   select(all_of(vars_to_select)) %>%
-                                  rename(VO2 = col_name_VO2,
-                                  VCO2 = col_name_VCO2,
-                                  RER = col_name_RER)
+                                  rename(VO2 = all_of(col_name_VO2),
+                                          VCO2 = all_of(col_name_VCO2),
+                                          RER = all_of(col_name_RER),
+                                          HR = all_of(col_name_HR))
 
     if(!is.null(remove_rows)) {
     participant_db_basal <- participant_db_basal[-c(remove_rows),]
     }
 
-    participant_db_basal <- transform(participant_db_basal,
-                                       VO2 = as.numeric(VO2),
-                                       VCO2 = as.numeric(VCO2),
-                                       RER = as.numeric(RER))
+    participant_db_basal <- apply(participant_db_basal, 2, as.numeric)
+
+    participant_db_basal <- as.data.frame(na.omit(participant_db_basal))
 
     # db MFO
     participant_db_MFO <- participant_db_MFO %>%
                                   select(all_of(vars_to_select)) %>%
-                                  rename(VO2 = col_name_VO2,
-                                          VCO2 = col_name_VCO2,
-                                          RER = col_name_RER)
+                                  rename(VO2 = all_of(col_name_VO2),
+                                          VCO2 = all_of(col_name_VCO2),
+                                          RER = all_of(col_name_RER))
 
     if(!is.null(remove_rows)) {
     participant_db_MFO <- participant_db_MFO[-c(remove_rows),]
     }
 
-    participant_db_MFO <- transform(participant_db_MFO,
-                                       VO2 = as.numeric(VO2),
-                                       VCO2 = as.numeric(VCO2),
-                                       RER = as.numeric(RER))
+    participant_db_MFO <- apply(participant_db_MFO, 2, as.numeric)
+
+    participant_db_MFO <- as.data.frame(na.omit(participant_db_MFO))
 
   }
 

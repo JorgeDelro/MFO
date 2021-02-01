@@ -2,26 +2,16 @@
 % Please edit documentation in R/MFO_kinetics.R
 \name{MFO_kinetics}
 \alias{MFO_kinetics}
-\title{Maximal Fat Oxidation Kinetics Estimation}
+\title{Maximal Fat Oxidation Kinetics}
 \usage{
 MFO_kinetics(MFO_data)
 }
 \arguments{
-\item{MFO_data}{A dataframe estimated from MFO function}
+\item{MFO_data}{a data frame obtained from MFO function}
+}
+\value{
+
 }
 \description{
-Maximal Fat Oxidation Kinetics Estimation
-}
-\examples{
-\dontrun{
-MFO_result <- MFO(step_time = 20,
-    db_MFO = db_MFO,
-    db_basal = db_basal,
-    db_graded = db_graded,
-    cv_var = "RER",
-    author = "Frayn",
-    VO2max = NULL)
-
-MFO_kinetics(MFO_result$MFO_db)
-}
+Maximal Fat Oxidation Kinetics
 }

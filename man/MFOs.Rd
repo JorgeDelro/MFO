@@ -18,6 +18,7 @@ MFOs(
   col_name_VO2 = "VO2",
   col_name_VCO2 = "VCO2",
   col_name_RER = "RER",
+  col_name_HR = "HR",
   save_plot = T
 )
 }

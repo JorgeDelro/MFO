@@ -9,6 +9,7 @@
 #' @param author author to estimate MFO. Can be: Frayn or Jeukendrup.
 #' @param VO2max VO2max can be passed directly using this argument instead of use db_graded argument.
 #'
+#' @import ggplot2
 #' @export
 #'
 #' @examples
@@ -71,6 +72,10 @@ MFO <- function(step_time, db_MFO, db_basal, db_graded, cv_var, author, VO2max =
 
   # Remove NA´s
   MFO_db <- na.omit(MFO_db)
+  # Convert negative number to positive
+  load <- MFO_db$Load
+  MFO_db <- abs(MFO_db[, -1])
+  MFO_db <- add_column(MFO_db, load_column, .before = T)
 
   # Polynomial regression
   MFO_mod <- lm(MFO_db$FAT ~ MFO_db$porc_VO2 + I(MFO_db$porc_VO2^2))

@@ -35,23 +35,30 @@ MFOs <- function(from = c("folder", "files"),
                  col_name_VO2 = "VO2",
                  col_name_VCO2 = "VCO2",
                  col_name_RER = "RER",
+                 col_name_HR = "HR",
                  save_plot = T){
 
   participants <- list.files(path)
 
-
+  #print(participants)
 
   for(i in 1:length(participants)) {
+
     # Get the participant ID
+    ID_participant <- str_subset(participants[i], ".xlsx")
+
+    print(paste("Working in ", participants[i], sep = ""))
+
     participant_dbs <- read_MFO_databases(from = from,
-                                          path = paste(path,"/",participants[1], sep = ""),
+                                          path = paste(path,"/",participants[i], sep = ""),
                                           db_basal_name = db_basal_name,
                                           db_MFO_name = db_MFO_name,
                                           db_graded_name = db_graded_name,
                                           remove_rows = remove_rows,
                                           col_name_VO2 = col_name_VO2,
                                           col_name_VCO2 = col_name_VCO2,
-                                          col_name_RER = col_name_RER)
+                                          col_name_RER = col_name_RER,
+                                          col_name_HR = col_name_HR)
 
     participant_result_MFO <- MFO(step_time = step_time,
                                   db_MFO = participant_dbs$participant_db_MFO,
@@ -67,7 +74,7 @@ MFOs <- function(from = c("folder", "files"),
       # Create a folder to store plots
       dir.create(paste(path,"/MFO_plots", sep = ""))
 
-      ggsave(paste(participants[i],".png", sep = ""),
+      ggsave(paste(ID_participant,".png", sep = ""),
              plot = participant_result_MFO$MFO_plot,
              path = paste(path,"/MFO_plots", sep = ""),
              height=5,
@@ -80,7 +87,7 @@ MFOs <- function(from = c("folder", "files"),
 
     # Kinetics plot
     if(save_plot == T){
-      ggsave(paste(participants[i],"kinetics_.png", sep = ""),
+      ggsave(paste(ID_participant,"kinetics_.png", sep = ""),
              plot = participant_result_MFO_kinetics$MFO_kinetics_plot,
              path = paste(path,"/MFO_plots", sep = ""),
              height=5,
@@ -91,7 +98,7 @@ MFOs <- function(from = c("folder", "files"),
 
     # Data Frame
     if(i == 1){
-      dF_result <- tibble(ID = participants[i],
+      dF_result <- tibble(ID = ID_participant,
                           MFO_g_min = round(participant_result_MFO$MFO,2),
                           FAT_MAX_perVO2max = round(participant_result_MFO$FAT_MAX,2),
                           d = round(participant_result_MFO_kinetics$d, 2),
@@ -101,7 +108,7 @@ MFOs <- function(from = c("folder", "files"),
                           FAT_g_basal = round(participant_result_MFO$x_FAT, 2),
                           Kcal_g_basal = round(participant_result_MFO$x_Kcal, 2))
     } else {
-      vector_result <- c(ID = participants[i],
+      vector_result <- c(ID = ID_participant,
                          MFO_g_min = round(participant_result_MFO$MFO,2),
                          FAT_MAX_perVO2max = round(participant_result_MFO$FAT_MAX,2),
                          d = round(participant_result_MFO_kinetics$d, 2),
