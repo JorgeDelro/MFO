@@ -5,8 +5,10 @@ library(tidyverse)
 library(minpack.lm)
 library(openxlsx)
 
-path = "/Users/jorge/Documents/Paquetes_R/MFO/NUTAF_xlsx"
+path = "/Users/jorge/Documents/Paquetes_R/MFO antiguo/NUTAF_xlsx"
 participants <- list.files(path)
+
+readxl::read_xlsx()
 
 prueba_read <- read_MFO_databases(from = "files",
                                   path = paste(path,"/",participants[2], sep = ""),
@@ -19,6 +21,11 @@ prueba_read <- read_MFO_databases(from = "files",
                                   col_name_HR = "HR",
                                remove_rows = 1)
 
+sample_data <- prueba_read
+usethis::use_data(sample_data, compress = "xz")
+rm(list = ls())
+
+system.file("extdata", "sample_data.xlsx", package = "MFO")
 
 prueba_result_MFO <- MFO(step_time = 20,
                               db_MFO = prueba_read$participant_db_MFO,

@@ -364,3 +364,30 @@ read_MFO_databases <- function(from = c("folder", "files"),
 }
 
 
+
+#' Read smaple data
+#'
+#' @param path path to sample data
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' path <- system.file("extdata", "sample_data.xlsx", package = "MFO")
+#' sample_data <- sample_read(path)
+sample_read <- function(path){
+
+  sample_data <- read_MFO_databases(from = "files",
+                                    path = paste(path),
+                                    db_basal_name = "M.BASAL",
+                                    db_MFO_name = "MFO",
+                                    db_graded_name = "V02máx.",
+                                    col_name_VO2 = "V'O2",
+                                    col_name_VCO2 = "V'CO2",
+                                    col_name_RER = "RER",
+                                    col_name_HR = "HR",
+                                    remove_rows = NULL)
+
+  return(sample_data)
+}
+

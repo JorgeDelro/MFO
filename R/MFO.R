@@ -75,7 +75,7 @@ MFO <- function(step_time, db_MFO, db_basal, db_graded, cv_var, author, VO2max =
   # Convert negative number to positive
   load <- MFO_db$Load
   MFO_db <- abs(MFO_db[, -1])
-  MFO_db <- add_column(MFO_db, load_column, .before = T)
+  MFO_db <- add_column(MFO_db, load, .before = T)
 
   # Polynomial regression
   MFO_mod <- lm(MFO_db$FAT ~ MFO_db$porc_VO2 + I(MFO_db$porc_VO2^2))
