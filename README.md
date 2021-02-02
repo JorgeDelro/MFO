@@ -1,4 +1,8 @@
 
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+# MFO
+
 <!-- badges: start -->
 
 [![Travis build
@@ -9,16 +13,25 @@ status](https://ci.appveyor.com/api/projects/status/github/JorgeDelro/MFO?branch
 coverage](https://codecov.io/gh/JorgeDelro/MFO/branch/master/graph/badge.svg)](https://codecov.io/gh/JorgeDelro/MFO?branch=master)
 <!-- badges: end -->
 
-<!-- README.md is generated from README.Rmd. Please edit that file -->
+## Overview
 
-# MFO
+The **MFO** package have been designed to calculate the Maximal Fat
+Oxidation (MFO), the exercise intensity that elicits MFO (Fatmax) and
+the SIN model to represent the fat oxidation kinetics. Three variables
+can be obtained from the SIN model: dilatation (d), symmetry (s) and
+traslation (t).Additionally, the package allows to calculate MFO and
+Fatmax of multiple subjects.
 
-The goal of MFO is to …
+## Resources
 
-## Installation
+  - [Application of MFO and
+    Fatmax](https://www.tandfonline.com/doi/abs/10.1080/17461391.2020.1788650?journalCode=tejs20)
+    (European Journal of Sport Science)
+  - [MFO kinetics
+    basis](https://journals.lww.com/acsm-msse/Fulltext/2009/08000/A_Mathematical_Model_to_Describe_Fat_Oxidation.11.aspx)
+    (Medicine & Science in Sport & Exercise)
 
-You can install the released version of MFO from
-[CRAN](https://CRAN.R-project.org) with:
+<!-- end list -->
 
 ``` r
 install.packages("MFO")
@@ -26,36 +39,71 @@ install.packages("MFO")
 
 ## Example
 
-This is a basic example which shows you how to solve a common problem:
+This is a basic example which shows you how to use the MFO package:
 
 ``` r
 library(MFO)
-## basic example code
 ```
 
-What is special about using `README.Rmd` instead of just `README.md`?
-You can include R chunks like so:
+First, we have to read the data in **xlsx** format by using the function
+read\_MFO\_databases. Two databases and four variables are necessary to
+use the package: - Basal metabolism database (participant\_db\_basal). -
+MFO test database (participant\_db\_MFO). - Variable: oxygen uptake
+(VO2), carbon dioxide output (VCO2), heart rate (HR) and the respiratory
+exchange ratio (RER). An optional database is one with the results of a
+graded exercise test of which the VO2max of the subject is going to be
+extracted (participant\_db\_graded).
 
 ``` r
-summary(cars)
-#>      speed           dist       
-#>  Min.   : 4.0   Min.   :  2.00  
-#>  1st Qu.:12.0   1st Qu.: 26.00  
-#>  Median :15.0   Median : 36.00  
-#>  Mean   :15.4   Mean   : 42.98  
-#>  3rd Qu.:19.0   3rd Qu.: 56.00  
-#>  Max.   :25.0   Max.   :120.00
+
+# Path to the MFO package sample data
+path <- system.file("extdata", "sample_data.xlsx", package = "MFO")
+
+# Read databases 
+sample_data <- read_MFO_databases(from = "files",
+                                    path = paste(path),
+                                    db_basal_name = "M.BASAL",
+                                    db_MFO_name = "MFO",
+                                    db_graded_name = "V02máx.",
+                                    col_name_VO2 = "V'O2",
+                                    col_name_VCO2 = "V'CO2",
+                                    col_name_RER = "RER",
+                                    col_name_HR = "HR",
+                                    remove_rows = NULL)
 ```
 
-You’ll still need to render `README.Rmd` regularly, to keep `README.md`
-up-to-date. `devtools::build_readme()` is handy for this. You could also
-use GitHub Actions to re-render `README.Rmd` every time you push. An
-example workflow can be found here:
-<https://github.com/r-lib/actions/tree/master/examples>.
+Then, we can used the function MFO
 
-You can also embed plots, for example:
+``` r
+result_MFO <- MFO(step_time = 20,
+                  db_MFO = sample_data$participant_db_MFO,
+                  db_basal = sample_data$participant_db_basal,
+                  db_graded = sample_data$participant_db_graded,
+                  cv_var = "RER",
+                  author = "Frayn",
+                  VO2max = NULL)
+```
 
-<img src="man/figures/README-pressure-1.png" width="100%" />
+and the MFO can be plotted
 
-In that case, don’t forget to commit and push the resulting figure
-files, so they display on GitHub and CRAN.
+``` r
+print(result_MFO$MFO_plot)
+```
+
+<img src="man/figures/README-unnamed-chunk-4-1.png" width="100%" />
+
+MFO kinetics are calculated using a database returned from MFO function
+called MFO\_db.
+
+``` r
+result_MFO_kinetics <- MFO_kinetics(result_MFO$MFO_db)
+```
+
+And again the function returns a plot with the results calculated
+
+``` r
+print(result_MFO_kinetics$MFO_kinetics_plot)
+#> Warning: Removed 8 row(s) containing missing values (geom_path).
+```
+
+<img src="man/figures/README-unnamed-chunk-6-1.png" width="100%" />

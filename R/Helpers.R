@@ -211,7 +211,6 @@ calculate_vars <- function(step_time, db_MFO, VO2max, author) {
 #'
 #' @return
 #'
-#' @examples
 get_5min <- function(db, cv_var, n_row) {
 
   pos_final <- which.min(as.vector(db[,cv_var]))
@@ -255,7 +254,7 @@ calculate_steps <- function(step_time, db, db_type) {
 }
 
 
-#' Title
+#' Read .xlsx databases for MFO package
 #'
 #' @param from
 #' @param path
@@ -263,13 +262,27 @@ calculate_steps <- function(step_time, db, db_type) {
 #' @param db_MFO_name
 #' @param db_graded_name
 #'
-#' @return
 #'
 #' @importFrom dplyr rename select
 #' @importFrom magrittr %>%
 #' @export
 #'
 #' @examples
+#'
+#'  \dontrun{
+#' #' # Read databases
+#' sample_data <- read_MFO_databases(from = "files",
+#'                                  path = paste(path),
+#'                                  db_basal_name = "M.BASAL",
+#'                                  db_MFO_name = "MFO",
+#'                                  db_graded_name = "V02máx.",
+#'                                  col_name_VO2 = "V'O2",
+#'                                  col_name_VCO2 = "V'CO2",
+#'                                  col_name_RER = "RER",
+#'                                  col_name_HR = "HR",
+#'                                  remove_rows = NULL)
+#'  }
+#'
 read_MFO_databases <- function(from = c("folder", "files"),
                                path,
                                db_basal_name,
@@ -363,31 +376,4 @@ read_MFO_databases <- function(from = c("folder", "files"),
               participant_db_MFO = participant_db_MFO))
 }
 
-
-
-#' Read smaple data
-#'
-#' @param path path to sample data
-#'
-#' @return
-#' @export
-#'
-#' @examples
-#' path <- system.file("extdata", "sample_data.xlsx", package = "MFO")
-#' sample_data <- sample_read(path)
-sample_read <- function(path){
-
-  sample_data <- read_MFO_databases(from = "files",
-                                    path = paste(path),
-                                    db_basal_name = "M.BASAL",
-                                    db_MFO_name = "MFO",
-                                    db_graded_name = "V02máx.",
-                                    col_name_VO2 = "V'O2",
-                                    col_name_VCO2 = "V'CO2",
-                                    col_name_RER = "RER",
-                                    col_name_HR = "HR",
-                                    remove_rows = NULL)
-
-  return(sample_data)
-}
 

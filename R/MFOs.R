@@ -15,7 +15,12 @@
 #'
 #' @examples
 #' \dontrun{
-#' MFOs(folders_path = /Users/username/Documents/R_packages/MFO
+#'
+#' # Path to the MFO package sample data FOLDER
+#' path <- system.file("extdata", package = "MFO")
+#'
+#' # Calculate MFO and Fatmax
+#' MFOs(folders_path = path
 #'     step_time = 20,
 #'     cv_var = "RER",
 #'     author = "Frayn",

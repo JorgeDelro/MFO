@@ -11,7 +11,7 @@ participants <- list.files(path)
 readxl::read_xlsx()
 
 prueba_read <- read_MFO_databases(from = "files",
-                                  path = paste(path,"/",participants[2], sep = ""),
+                                  path = paste(path,"/",participants[1], sep = ""),
                                   db_basal_name = "M.BASAL",
                                   db_MFO_name = "MFO",
                                   db_graded_name = "V02máx.",

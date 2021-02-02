@@ -2,10 +2,30 @@ Package: MFO
 Type: Package
 Title: Maximal Fat Oxidation And Kinetics Calculation
 Version: 0.1.0
-Author: Jorge R Fernandez-Santos <jorgedelrosario.fernandez@uca.es>
+Date: 2021-02-02
+Authors@R: 
+    c(person("Jorge R",
+             "Fernandez-Santos",
+             role = c("aut", "cre"),
+             email = "jorgedelrosario.fernandez@uca.es"),
+      person("Jesus G",
+             "Ponce-Gonzalez",
+             role = "ctb"),
+      person("Cristina",
+             "Casals",
+             role = "ctb"),
+      person("Jose L",
+             "Gonzalez-Montesinos",
+             role = "ctb"),
+      person("Juan",
+             "Corral",
+             role = "ctb"),
+      person("Alejandro",
+             "Perez",
+             role = "ctb"))
 Maintainer: Jorge R Fernandez-Santos <jorgedelrosario.fernandez@uca.es>
 Description: Provides functions to calculate the maximal fat oxidation (MFO), 
-              the exercise intensity that elicits MFO (FatMax) and the SIN model to represent
+              the exercise intensity that elicits MFO (Fatmax) and the SIN model to represent
               the fat oxidation kinetics. Three variables can be obtained from the SIN model:
               dilatation, symmetry and traslation.
 License: GPL-3
