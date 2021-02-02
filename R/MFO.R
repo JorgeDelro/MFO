@@ -1,7 +1,7 @@
 
 #' Maximal Fat Oxidation Function
 #'
-#' @param step_time every few seconds the data was collected.
+#' @param step_time how often the data was collected (in seconds).
 #' @param db_MFO database containing MFO test.
 #' @param db_basal database containing basal test.
 #' @param db_graded database containing incremental exercise test.

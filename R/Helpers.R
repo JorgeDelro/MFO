@@ -3,16 +3,13 @@
 #
 #' Basal metabolic rate
 #'
-#' @param step_time
-#' @param db
-#' @param cv_var
+#' @param step_time how often the data was collected (in seconds).
+#' @param db a database
+#' @param cv_var variable to calculate coefficient of variation
 #'
 #' @importFrom dplyr pull mutate
 #' @importFrom tibble add_column
 #'
-#' @return
-#'
-#' @examples
 met_basal <- function(step_time, db, cv_var) {
 
   n_row <- calculate_steps(step_time = step_time,
@@ -99,14 +96,12 @@ met_basal <- function(step_time, db, cv_var) {
 #
 #' Calculation of CHO, FAT and Kcal
 #'
-#' @param step_time
-#' @param db_MFO
-#' @param VO2max
-#' @param author
+#' @param step_time how often the data was collected (in seconds).
+#' @param db_MFO dtabase with MFO test
+#' @param VO2max maximum oxygen uptake
+#' @param author eithe "Frayn" or "Jeukendrup"
 #'
-#' @return
 #'
-#' @examples
 calculate_vars <- function(step_time, db_MFO, VO2max, author) {
 
   steps <- calculate_steps(step_time = step_time,
@@ -205,11 +200,10 @@ calculate_vars <- function(step_time, db_MFO, VO2max, author) {
 
 #' Get a 5 minutes database
 #'
-#' @param db
-#' @param cv_var
-#' @param n_row
+#' @param db a database
+#' @param cv_var variable to calculate coefficient of variation
+#' @param n_row number of rows
 #'
-#' @return
 #'
 get_5min <- function(db, cv_var, n_row) {
 
@@ -225,11 +219,10 @@ get_5min <- function(db, cv_var, n_row) {
 
 #' Calculate steps
 #'
-#' @param step_time
-#' @param db
-#' @param db_type
+#' @param step_time how often the data was collected (in seconds).
+#' @param db a database
+#' @param db_type either "basal" or "MFO"
 #'
-#' @return
 #'
 #' @examples
 calculate_steps <- function(step_time, db, db_type) {
@@ -254,13 +247,13 @@ calculate_steps <- function(step_time, db, db_type) {
 }
 
 
-#' Read .xlsx databases for MFO package
+#' Read databases for MFO package
 #'
-#' @param from
-#' @param path
-#' @param db_basal_name
-#' @param db_MFO_name
-#' @param db_graded_name
+#' @param from select either from folder or files
+#' @param path path to the  the databases
+#' @param db_basal_name name of the database with the basal metabolic rate test
+#' @param db_MFO_name name of the database of MFO test
+#' @param db_graded_name name of the database of the graded exercise test
 #'
 #'
 #' @importFrom dplyr rename select
@@ -268,7 +261,6 @@ calculate_steps <- function(step_time, db, db_type) {
 #' @export
 #'
 #' @examples
-#'
 #'  \dontrun{
 #' #' # Read databases
 #' sample_data <- read_MFO_databases(from = "files",

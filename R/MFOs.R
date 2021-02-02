@@ -2,7 +2,7 @@
 #' Maximal Fat Oxidation calculation of multiple databases
 #'
 #' @param folders_path path to the folder with the databases
-#' @param step_time every few seconds the data was collected
+#' @param step_time how often the data was collected (in seconds).
 #' @param cv_var variable to estimate coefficient of variation. Can be: VO2, VCO2 or RER.
 #' @param author author to estimate MFO. Can be: Frayn or Jeukendrup.
 #' @param VO2max VO2max can be passed directly using this argument instead of use db_graded argument. Default set to NULL.

@@ -8,7 +8,6 @@
 #' @importFrom dplyr mutate
 #' @import ggplot2
 #'
-#' @return
 #' @export
 #'
 #' @examples
