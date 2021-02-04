@@ -7,10 +7,11 @@
 get_5min(db, cv_var, n_row)
 }
 \arguments{
-\item{n_row}{}
-}
-\value{
+\item{db}{a database}
 
+\item{cv_var}{variable to calculate coefficient of variation}
+
+\item{n_row}{number of rows}
 }
 \description{
 Get a 5 minutes database

@@ -4,10 +4,18 @@
 \alias{MFO}
 \title{Maximal Fat Oxidation Function}
 \usage{
-MFO(step_time, db_MFO, db_basal, db_graded, cv_var, author, VO2max = NULL)
+MFO(
+  step_time,
+  db_MFO,
+  db_basal,
+  db_graded = NULL,
+  cv_var,
+  author,
+  VO2max = NULL
+)
 }
 \arguments{
-\item{step_time}{every few seconds the data was collected.}
+\item{step_time}{how often the data was collected (in seconds).}
 
 \item{db_MFO}{database containing MFO test.}
 
@@ -26,12 +34,28 @@ Maximal Fat Oxidation Function
 }
 \examples{
 \dontrun{
-MFO(step_time = 20,
-    db_MFO = db_MFO,
-    db_basal = db_basal,
-    db_graded = db_graded,
-    cv_var = "RER",
-    author = "Frayn",
-    VO2max = NULL)
+# Path to the MFO package sample data
+path <- system.file("extdata", "sample_data.xlsx", package = "MFO")
+
+# Read databases
+sample_data <- read_MFO_databases(from = "files",
+                                 path = paste(path),
+                                 db_basal_name = "M.BASAL",
+                                 db_MFO_name = "MFO",
+                                 db_graded_name = "V02máx.",
+                                 col_name_VO2 = "V'O2",
+                                 col_name_VCO2 = "V'CO2",
+                                 col_name_RER = "RER",
+                                 col_name_HR = "HR",
+                                 remove_rows = NULL)
+# Calculate MFO and Fatmax
+result_MFO <- MFO(step_time = 20,
+                 db_MFO = sample_data$participant_db_MFO,
+                 db_basal = sample_data$participant_db_basal,
+                 db_graded = sample_data$participant_db_graded,
+                 cv_var = "RER",
+                 author = "Frayn",
+                 VO2max = NULL)
+
 }
 }

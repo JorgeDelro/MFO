@@ -7,10 +7,13 @@
 calculate_vars(step_time, db_MFO, VO2max, author)
 }
 \arguments{
-\item{author}{}
-}
-\value{
+\item{step_time}{how often the data was collected (in seconds).}
 
+\item{db_MFO}{dtabase with MFO test}
+
+\item{VO2max}{maximum oxygen uptake}
+
+\item{author}{eithe "Frayn" or "Jeukendrup"}
 }
 \description{
 Calculation of CHO, FAT and Kcal

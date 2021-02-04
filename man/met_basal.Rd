@@ -7,10 +7,11 @@
 met_basal(step_time, db, cv_var)
 }
 \arguments{
-\item{cv_var}{}
-}
-\value{
+\item{step_time}{how often the data was collected (in seconds).}
 
+\item{db}{a database}
+
+\item{cv_var}{variable to calculate coefficient of variation}
 }
 \description{
 Basal metabolic rate

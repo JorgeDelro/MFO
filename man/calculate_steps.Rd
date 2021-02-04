@@ -7,10 +7,11 @@
 calculate_steps(step_time, db, db_type)
 }
 \arguments{
-\item{db_type}{}
-}
-\value{
+\item{step_time}{how often the data was collected (in seconds).}
 
+\item{db}{a database}
+
+\item{db_type}{either "basal" or "MFO"}
 }
 \description{
 Calculate steps

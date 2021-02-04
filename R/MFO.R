@@ -38,7 +38,7 @@
 #'                  VO2max = NULL)
 #'
 #' }
-MFO <- function(step_time, db_MFO, db_basal, db_graded, cv_var, author, VO2max = NULL) {
+MFO <- function(step_time, db_MFO, db_basal, db_graded = NULL, cv_var, author, VO2max = NULL) {
 
   # Get VO2max
   if(!is.null(db_graded)) {
@@ -88,10 +88,8 @@ MFO <- function(step_time, db_MFO, db_basal, db_graded, cv_var, author, VO2max =
 
   # Remove NA´s
   MFO_db <- na.omit(MFO_db)
-  # Convert negative number to positive
-  load <- MFO_db$Load
-  MFO_db <- abs(MFO_db[, -1])
-  MFO_db <- add_column(MFO_db, load, .before = T)
+  # Convert negative number to 0
+  MFO_db[MFO_db$FAT <= 0, 3] <- 0
 
   # Polynomial regression
   MFO_mod <- lm(MFO_db$FAT ~ MFO_db$porc_VO2 + I(MFO_db$porc_VO2^2))
@@ -116,13 +114,21 @@ MFO <- function(step_time, db_MFO, db_basal, db_graded, cv_var, author, VO2max =
           axis.text.y = element_text(size=11),
           axis.title = element_text(size=12)) +
     annotate("label",
-             x = min(MFO_db$porc_VO2) + 5,
-             y = max(MFO_db$FAT),
+             #x = min(MFO_db$porc_VO2) + 5,
+             #y = max(MFO_db$FAT),
+             x=Inf,
+             y = Inf,
+             vjust=1.5,
+             hjust=1.25,
              label = VO2_MFO_text,
              parse = T) +
     annotate("label",
-             x = min(MFO_db$porc_VO2) + 5,
-             y = max(MFO_db$FAT) - 0.05,
+             #x = min(MFO_db$porc_VO2) + 5,
+             #y = max(MFO_db$FAT) - 0.05,
+             x=Inf,
+             y = Inf,
+             vjust=3.5,
+             hjust=1.25,
              label = VAR_MFO_text,
              parse = T)
 

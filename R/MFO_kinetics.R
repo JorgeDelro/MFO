@@ -45,8 +45,13 @@ MFO_kinetics <- function(MFO_data) {
   # Fit cubic polynomial model# mod <- lm(porc_MFO ~ porc_VO2 + I(porc_VO2^2), data = MFO_kinetics_data)
   mod <- lm(porc_MFO ~ poly(porc_VO2, 3), data = MFO_kinetics_data)
 
-  # Create new data
+  # Extract the last load step
+  last_step <- as.numeric(pull(MFO_data[nrow(MFO_data),"Load"]))
+
+  # Create new data to predict
   data_nls <- data.frame(porc_VO2 = seq(from = 0, to = 100, length.out = 100))
+  # Create a vector of percentage VO2 for MFO basic
+  porc_VO2 = seq(from = 0, to = 100, length.out = 100)
 
   # Get fitted values
   err <- predict(mod, newdata = data_nls, se.fit = F)
@@ -56,7 +61,8 @@ MFO_kinetics <- function(MFO_data) {
     mutate(porc_MFO_kinetics = ((err * 100) /  max(err))/100) %>%
     rename(porc_VO2_kinetics = porc_VO2)
 
-  porc_MFO_basic <- sin((( (pi^(1/1) / pi + 2*0) * ((pi/100)*data_nls$porc_VO2_kinetics + 0 + 0) )^1))
+  # Use porc_VO2 form 0 to 100
+  porc_MFO_basic <- sin((( (pi^(1/1) / pi + 2*0) * ((pi/100)*porc_VO2 + 0 + 0) )^1))
 
   # %MFO = sin((( (pi^1/s / pi + 2*d) * (K*porc_VO2 + d + t) )^s))
 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/Helpers.R
 \name{read_MFO_databases}
 \alias{read_MFO_databases}
-\title{Title}
+\title{Read databases for MFO package}
 \usage{
 read_MFO_databases(
   from = c("folder", "files"),
@@ -18,11 +18,32 @@ read_MFO_databases(
 )
 }
 \arguments{
-\item{db_graded_name}{}
-}
-\value{
+\item{from}{select either from folder or files}
 
+\item{path}{path to the  the databases}
+
+\item{db_basal_name}{name of the database with the basal metabolic rate test}
+
+\item{db_MFO_name}{name of the database of MFO test}
+
+\item{db_graded_name}{name of the database of the graded exercise test}
 }
 \description{
-Title
+Read databases for MFO package
+}
+\examples{
+ \dontrun{
+#' # Read databases
+sample_data <- read_MFO_databases(from = "files",
+                                 path = paste(path),
+                                 db_basal_name = "M.BASAL",
+                                 db_MFO_name = "MFO",
+                                 db_graded_name = "V02máx.",
+                                 col_name_VO2 = "V'O2",
+                                 col_name_VCO2 = "V'CO2",
+                                 col_name_RER = "RER",
+                                 col_name_HR = "HR",
+                                 remove_rows = NULL)
+ }
+
 }
