@@ -1,5 +1,5 @@
 
-test_that("output of MFO function", {
+test_that("output of MFO Kinetics function", {
 
   # Simulate MFO databases
   # Basal Metabolism; rows = 48, HR, VO2, VCO2 and RER
@@ -39,10 +39,5 @@ test_that("output of MFO function", {
                                 VO2max = VO2max)
 
   expect_equal(ncol(prueba_result_MFO$MFO_db), 4)
-  expect_equal(class(prueba_result_MFO$MFO), "numeric")
-  expect_equal(class(prueba_result_MFO$FAT_MAX), "numeric")
-  expect_equal(class(prueba_result_MFO$x_CHO), "numeric")
-  expect_equal(class(prueba_result_MFO$x_FAT), "numeric")
-  expect_equal(class(prueba_result_MFO$x_Kcal), "numeric")
 
 })
