@@ -5,7 +5,7 @@
 #'
 #' @importFrom minpack.lm nlsLM
 #' @importFrom tidyr pivot_longer
-#' @importFrom dplyr mutate
+#' @importFrom dplyr mutate pull
 #' @import ggplot2
 #'
 #' @export
@@ -42,14 +42,15 @@ MFO_kinetics <- function(MFO_data) {
   MFO_kinetics_data <- MFO_data %>%
     mutate(porc_MFO = (FAT * 100) /  max(FAT))
 
-  # Fit cubic polynomial model# mod <- lm(porc_MFO ~ porc_VO2 + I(porc_VO2^2), data = MFO_kinetics_data)
+  # Fit cubic polynomial model
   mod <- lm(porc_MFO ~ poly(porc_VO2, 3), data = MFO_kinetics_data)
 
   # Extract the last load step
   last_step <- as.numeric(pull(MFO_data[nrow(MFO_data),"Load"]))
 
   # Create new data to predict
-  data_nls <- data.frame(porc_VO2 = seq(from = 0, to = 100, length.out = 100))
+  data_nls <- data.frame(porc_VO2 = seq(from = 0, to = last_step, length.out = last_step))
+
   # Create a vector of percentage VO2 for MFO basic
   porc_VO2 = seq(from = 0, to = 100, length.out = 100)
 
@@ -79,7 +80,17 @@ MFO_kinetics <- function(MFO_data) {
   t_text <- paste("t == ~",round(t, 2))
   s_text <- paste("s == ~",round(s, 2))
 
+  # Add NAs at the end of data_nls
+  n_NAs <- 100 - nrow(data_nls)
+  data_nls <- data.frame(porc_MFO_kinetics = c(data_nls$porc_MFO_kinetics, rep(NA, n_NAs)),
+                         porc_VO2_kinetics = c(data_nls$porc_VO2_kinetics, rep(NA, n_NAs)))
+
+
+  # Dataset for plotting
   data_nls <- cbind(data_nls, porc_MFO_basic)
+
+  #
+  data_nls$porc_VO2_kinetics <- seq(from = 0, to = 100, length.out = 100)
 
   data_nls <- data_nls %>%
     pivot_longer(!porc_VO2_kinetics, names_to = "variables", values_to = "values")  %>%
@@ -90,6 +101,7 @@ MFO_kinetics <- function(MFO_data) {
     ggplot(aes(x=porc_VO2_kinetics, y=values, group = variables, colour = variables)) +
     geom_line() +
     ylim(0,1.01) +
+    xlim(0, 100) +
     ylab("Fat oxidation (%MFO)") +
     xlab(expression("Exercise " *"intensity " *"("*VO["2max"]*")")) +
     theme_bw() +

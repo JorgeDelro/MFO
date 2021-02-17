@@ -30,7 +30,7 @@ test_that("output of MFO function", {
   # Random author
   author <- sample(c("Frayn", "Jeukendrup"), 1)
 
-  prueba_result_MFO <- MFO::MFO(step_time = 20,
+  test_result_MFO <- MFO(step_time = 20,
                                 db_MFO = MFO_test,
                                 db_basal = M_basal,
                                 db_graded = NULL,
@@ -38,11 +38,11 @@ test_that("output of MFO function", {
                                 author = author,
                                 VO2max = VO2max)
 
-  expect_equal(ncol(prueba_result_MFO$MFO_db), 4)
-  expect_equal(class(prueba_result_MFO$MFO), "numeric")
-  expect_equal(class(prueba_result_MFO$FAT_MAX), "numeric")
-  expect_equal(class(prueba_result_MFO$x_CHO), "numeric")
-  expect_equal(class(prueba_result_MFO$x_FAT), "numeric")
-  expect_equal(class(prueba_result_MFO$x_Kcal), "numeric")
+  expect_equal(ncol(test_result_MFO$MFO_db), 4)
+  expect_equal(class(test_result_MFO$MFO), "numeric")
+  expect_equal(class(test_result_MFO$FAT_MAX), "numeric")
+  expect_equal(class(test_result_MFO$x_CHO), "numeric")
+  expect_equal(class(test_result_MFO$x_FAT), "numeric")
+  expect_equal(class(test_result_MFO$x_Kcal), "numeric")
 
 })

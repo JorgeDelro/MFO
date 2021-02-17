@@ -30,7 +30,7 @@ test_that("output of MFO Kinetics function", {
   # Random author
   author <- sample(c("Frayn", "Jeukendrup"), 1)
 
-  prueba_result_MFO <- MFO::MFO(step_time = 20,
+  test_result_MFO <- MFO(step_time = 20,
                                 db_MFO = MFO_test,
                                 db_basal = M_basal,
                                 db_graded = NULL,
@@ -38,6 +38,11 @@ test_that("output of MFO Kinetics function", {
                                 author = author,
                                 VO2max = VO2max)
 
-  expect_equal(ncol(prueba_result_MFO$MFO_db), 4)
+  test_result_MFO_kinetics <- MFO_kinetics(test_result_MFO$MFO_db)
+
+  expect_equal(ncol(test_result_MFO_kinetics$MFO_kinetics_data), 5)
+  expect_equal(class(test_result_MFO_kinetics$d), "numeric")
+  expect_equal(class(test_result_MFO_kinetics$s), "numeric")
+  expect_equal(class(test_result_MFO_kinetics$t), "numeric")
 
 })
