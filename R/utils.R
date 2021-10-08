@@ -30,21 +30,21 @@ met_basal <- function(step_time, db, cv_var) {
   ############ VO2
   j <- 1
   for (i in n_row:length(pull(db["VO2"]))) {
-    cv_VO2_2[j] <- sd(as.vector(db[j:i, "VO2"])) / mean(as.vector(db[j:i, "VO2"]))
+    cv_VO2_2[j] <- sd(pull(db[j:i, "VO2"])) / mean(pull(db[j:i, "VO2"]))
     j <- j + 1
   }
 
   ############ VCO2
   j <- 1
   for (i in n_row:length(pull(db["VCO2"]))) {
-    cv_VCO2_2[j] <- sd(as.vector(db[j:i, "VCO2"])) / mean(as.vector(db[j:i, "VCO2"]))
+    cv_VCO2_2[j] <- sd(pull(db[j:i, "VCO2"])) / mean(pull(db[j:i, "VCO2"]))
     j <- j + 1
   }
 
   ############ RER
   j <- 1
   for (i in n_row:length(pull(db["RER"]))) {
-    cv_RER_2[j] <- sd(as.vector(db[j:i, "RER"])) / mean(as.vector(db[j:i, "RER"]))
+    cv_RER_2[j] <- sd(pull(db[j:i, "RER"])) / mean(pull(db[j:i, "RER"]))
     j <- j + 1
   }
 
