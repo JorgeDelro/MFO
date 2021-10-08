@@ -10,6 +10,7 @@
 #' @param VO2max VO2max can be passed directly using this argument instead of use db_graded argument.
 #'
 #' @import ggplot2
+#' @importFrom tibble tibble
 #' @export
 #'
 #' @examples

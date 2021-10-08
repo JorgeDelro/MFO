@@ -7,6 +7,7 @@
 #'
 #' @importFrom dplyr pull mutate
 #' @importFrom tibble add_column
+#' @importFrom magrittr %>%
 #'
 met_basal <- function(step_time, db, cv_var) {
 
@@ -99,6 +100,8 @@ met_basal <- function(step_time, db, cv_var) {
 #' @param VO2max maximum oxygen uptake
 #' @param author eithe "Frayn" or "Jeukendrup"
 #'
+#' @importFrom dplyr mutate
+#' @importFrom magrittr %>%
 #'
 calculate_vars <- function(step_time, db_MFO, VO2max, author) {
 
@@ -229,11 +232,12 @@ calculate_steps <- function(step_time, db, db_type) {
 #' @param cv_var variable to calculate coefficient of variation
 #' @param n_row number of rows
 #'
+#' @importFrom dplyr pull
 #'
 get_5min <- function(db, cv_var, n_row) {
 
-  pos_final <- which.min(as.vector(db[,cv_var]))
-  pos_ini <- which.min(as.vector(db[,cv_var])) - n_row
+  pos_final <- which.min(pull(db[,cv_var]))
+  pos_ini <- which.min(pull(db[,cv_var])) - n_row
 
   db_5min <- db[pos_ini:pos_final,]
 
