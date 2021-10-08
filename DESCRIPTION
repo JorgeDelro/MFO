@@ -1,18 +1,42 @@
 Package: MFO
-Title: What the Package Does (One Line, Title Case)
+Title: Maximal Fat Oxidation And Kinetics Calculation
 Version: 0.0.0.9000
 Authors@R: 
-    person(given = "First",
-           family = "Last",
-           role = c("aut", "cre"),
-           email = "first.last@example.com",
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+    c(person("Jorge R",
+             "Fernandez-Santos",
+             role = c("aut", "cre"),
+             email = "jorgedelrosario.fernandez@uca.es",
+             comment = c(ORCID = "https://orcid.org/0000-0002-5047-2976")),
+      person("Jesus G",
+             "Ponce-Gonzalez",
+             role = "ctb",
+             comment = c(ORCID = )),
+      person("Cristina",
+             "Casals",
+             role = "ctb",
+             comment = c(ORCID = )),
+      person("Jose L",
+             "Gonzalez-Montesinos",
+             role = "ctb",
+             comment = c(ORCID = )),
+      person("Juan",
+             "Corral-Pérez",
+             role = "ctb",
+             comment = c(ORCID = )),
+      person("Alejandro",
+             "Perez",
+             role = "ctb",
+             comment = c(ORCID = )))
+Description: The package provides functions to calculate the maximal fat oxidation (MFO), 
+              the exercise intensity that elicits MFO (Fatmax) and the SIN model to represent
+              the fat oxidation kinetics. Three variables can be obtained from the SIN model:
+              dilatation, symmetry and traslation.
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
 URL: https://github.com/JorgeDelro/MFO
 BugReports: https://github.com/JorgeDelro/MFO/issues
+Depends: 
+    R (>= 2.10)
