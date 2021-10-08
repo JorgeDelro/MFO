@@ -145,3 +145,5 @@ MFO <- function(step_time,
               x_CHO = basal$x_CHO,
               x_FAT = basal$x_FAT,
               x_Kcal = basal$x_Kcal))
+
+}
