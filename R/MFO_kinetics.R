@@ -45,13 +45,13 @@ MFO_kinetics <- function(MFO_data) {
   mod <- lm(porc_MFO ~ poly(porc_VO2, 3), data = MFO_kinetics_data)
 
   # Extract the last load step
-  last_step <- as.numeric(pull(MFO_data[nrow(MFO_data),"Load"]))
+  last_step <- as.numeric(pull(MFO_data[nrow(MFO_data),"porc_VO2"]))
 
   # Create new data to predict
   data_nls <- data.frame(porc_VO2 = seq(from = 0, to = last_step, length.out = last_step))
 
   # Create a vector of percentage VO2 for MFO basic
-  porc_VO2 = seq(from = 0, to = 100, length.out = 100)
+  porc_VO2 <- seq(from = 0, to = 100, length.out = 100)
 
   # Get fitted values
   err <- predict(mod, newdata = data_nls, se.fit = F)
@@ -80,10 +80,9 @@ MFO_kinetics <- function(MFO_data) {
   s_text <- paste("s == ~",round(s, 2))
 
   # Add NAs at the end of data_nls
-  n_NAs <- 100 - nrow(data_nls)
-  data_nls <- data.frame(porc_MFO_kinetics = c(data_nls$porc_MFO_kinetics, rep(NA, n_NAs)),
-                         porc_VO2_kinetics = c(data_nls$porc_VO2_kinetics, rep(NA, n_NAs)))
-
+    n_NAs <- 100 - nrow(data_nls)
+    data_nls <- data.frame(porc_MFO_kinetics = c(data_nls$porc_MFO_kinetics, rep(NA, n_NAs)),
+                          porc_VO2_kinetics = c(data_nls$porc_VO2_kinetics, rep(NA, n_NAs)))
 
   # Dataset for plotting
   data_nls <- cbind(data_nls, porc_MFO_basic)
