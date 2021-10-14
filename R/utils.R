@@ -100,7 +100,7 @@ met_basal <- function(step_time, db, cv_var) {
 #' @param VO2max maximum oxygen uptake
 #' @param author eithe "Frayn" or "Jeukendrup"
 #'
-#' @importFrom dplyr mutate
+#' @importFrom dplyr pull mutate
 #' @importFrom magrittr %>%
 #'
 calculate_vars <- function(step_time, db_MFO, VO2max, author) {
@@ -125,15 +125,15 @@ calculate_vars <- function(step_time, db_MFO, VO2max, author) {
     for (i in seq(1:steps$n_steps)) {
 
       # mean VO2
-      db_vars[i, "VO2"] <- mean(as.vector(db_MFO[steps$lower_bound:steps$upper_bound, "VO2"]))
+      db_vars[i, "VO2"] <- mean(pull(db_MFO[steps$lower_bound:steps$upper_bound, "VO2"]))
       # mean HR
-      db_vars[i, "HR"] <- mean(as.vector(db_MFO[steps$lower_bound:steps$upper_bound, "HR"]))
+      db_vars[i, "HR"] <- mean(pull(db_MFO[steps$lower_bound:steps$upper_bound, "HR"]))
       # mean CHO
-      db_vars[i, "CHO"] <- mean(as.vector(db_MFO[steps$lower_bound:steps$upper_bound, "CHO_Frayn"]))
+      db_vars[i, "CHO"] <- mean(pull(db_MFO[steps$lower_bound:steps$upper_bound, "CHO_Frayn"]))
       # mean FAT
-      db_vars[i, "FAT"] <- mean(as.vector(db_MFO[steps$lower_bound:steps$upper_bound, "FAT_Frayn"]))
+      db_vars[i, "FAT"] <- mean(pull(db_MFO[steps$lower_bound:steps$upper_bound, "FAT_Frayn"]))
       # mean Kcal
-      db_vars[i, "Kcal"] <- mean(as.vector(db_MFO[steps$lower_bound:steps$upper_bound, "Kcal_total_Frayn"]))
+      db_vars[i, "Kcal"] <- mean(pull(db_MFO[steps$lower_bound:steps$upper_bound, "Kcal_total_Frayn"]))
 
       # next bounds
       if(step_time == 20){
@@ -164,24 +164,24 @@ calculate_vars <- function(step_time, db_MFO, VO2max, author) {
     for (i in seq(1:steps$n_steps)) {
 
       # mean VO2
-      db_vars[i, "VO2"] <- mean(as.vector(db_MFO[steps$lower_bound:steps$upper_bound, "VO2"]))
+      db_vars[i, "VO2"] <- mean(pull(db_MFO[steps$lower_bound:steps$upper_bound, "VO2"]))
       # mean HR
-      db_vars[i, "HR"] <- mean(as.vector(db_MFO[steps$lower_bound:steps$upper_bound, "HR"]))
+      db_vars[i, "HR"] <- mean(pull(db_MFO[steps$lower_bound:steps$upper_bound, "HR"]))
 
       if((db_vars[i, "VO2"] / VO2max) < 50) {
         # mean CHO
-        db_vars[i, "CHO"] <- mean(as.vector(db_MFO[steps$lower_bound:steps$upper_bound, "CHO_Jeukendrup_40_50_VO2"]))
+        db_vars[i, "CHO"] <- mean(pull(db_MFO[steps$lower_bound:steps$upper_bound, "CHO_Jeukendrup_40_50_VO2"]))
         # mean FAT
-        db_vars[i, "FAT"] <- mean(as.vector(db_MFO[steps$lower_bound:steps$upper_bound, "FAT_Jeukendrup_40_50_VO2"]))
+        db_vars[i, "FAT"] <- mean(pull(db_MFO[steps$lower_bound:steps$upper_bound, "FAT_Jeukendrup_40_50_VO2"]))
         # mean Kcal
-        db_vars[i, "Kcal"] <- mean(as.vector(db_MFO[steps$lower_bound:steps$upper_bound, "Kcal_total_Jeukendrup_40_50_VO2"]))
+        db_vars[i, "Kcal"] <- mean(pull(db_MFO[steps$lower_bound:steps$upper_bound, "Kcal_total_Jeukendrup_40_50_VO2"]))
       } else {
         # mean CHO
-        db_vars[i, "CHO"] <- mean(as.vector(db_MFO[steps$lower_bound:steps$upper_bound, "CHO_Jeukendrup_50_75_VO2"]))
+        db_vars[i, "CHO"] <- mean(pull(db_MFO[steps$lower_bound:steps$upper_bound, "CHO_Jeukendrup_50_75_VO2"]))
         # mean FAT
-        db_vars[i, "FAT"] <- mean(as.vector(db_MFO[steps$lower_bound:steps$upper_bound, "FAT_Jeukendrup_50_75_VO2"]))
+        db_vars[i, "FAT"] <- mean(pull(db_MFO[steps$lower_bound:steps$upper_bound, "FAT_Jeukendrup_50_75_VO2"]))
         # mean Kcal
-        db_vars[i, "Kcal"] <- mean(as.vector(db_MFO[steps$lower_bound:steps$upper_bound, "Kcal_total_Jeukendrup_50_75_VO2"]))
+        db_vars[i, "Kcal"] <- mean(pull(db_MFO[steps$lower_bound:steps$upper_bound, "Kcal_total_Jeukendrup_50_75_VO2"]))
       }
 
       # next bounds

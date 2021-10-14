@@ -11,6 +11,7 @@
 #'
 #' @import ggplot2
 #' @importFrom tibble tibble
+#' @importFrom stats lm na.omit sd
 #' @export
 #'
 #' @examples
