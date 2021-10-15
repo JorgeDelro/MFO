@@ -244,3 +244,126 @@ get_5min <- function(db, cv_var, n_row) {
   return(db_5min)
 
 }
+
+#' Read databases for MFO package
+#'
+#' @param from select either from folder or files
+#' @param path path to the  the databases
+#' @param db_basal_name name of the database with the basal metabolic rate test
+#' @param db_MFO_name name of the database of MFO test
+#' @param db_graded_name name of the database of the graded exercise test
+#'
+#'
+#' @importFrom dplyr rename select
+#' @importFrom magrittr %>%
+#' @importFrom readxl read_xlsx
+#' @export
+#'
+#' @examples
+#'  \dontrun{
+#' #' # Read databases
+#' sample_data <- read_MFO_databases(from = "files",
+#'                                  path = paste(path),
+#'                                  db_basal_name = "M.BASAL",
+#'                                  db_MFO_name = "MFO",
+#'                                  db_graded_name = "V02máx.",
+#'                                  col_name_VO2 = "V'O2",
+#'                                  col_name_VCO2 = "V'CO2",
+#'                                  col_name_RER = "RER",
+#'                                  col_name_HR = "HR",
+#'                                  remove_rows = NULL)
+#'  }
+#'
+read_MFO_databases <- function(from = c("folder", "files"),
+                               path,
+                               db_basal_name,
+                               db_MFO_name,
+                               db_graded_name,
+                               col_name_VO2,
+                               col_name_VCO2,
+                               col_name_RER,
+                               col_name_HR,
+                               remove_rows = NULL) {
+
+
+  if(from == "folder"){
+
+    participant_db_graded <- read_xlsx(paste(path, "/", db_graded_name,".xlsx", sep = ""))
+    participant_db_basal <- read_xlsx(paste(path, "/", db_basal_name,".xlsx", sep = ""))
+    participant_db_MFO <- read_xlsx(paste(path, "/", db_MFO_name,".xlsx", sep = ""))
+
+  } else if(from == "files"){
+
+    participant_db_graded <- read_xlsx(path = path,
+                                       sheet = db_graded_name)
+    participant_db_basal <- read_xlsx(path = path,
+                                      sheet = db_basal_name)
+    participant_db_MFO <- read_xlsx(path = path,
+                                    sheet = db_MFO_name)
+
+  }
+
+  # Variables to select from databases
+  vars_to_select <- c(col_name_VO2, col_name_VCO2, col_name_RER, col_name_HR)
+
+  # Change columns names to VO2 and VCO2
+  if(col_name_VO2 != "VO2" | col_name_VCO2 != "VCO2" | col_name_RER != "RER") {
+
+    # First - select variables and rename for next functions
+    # Second - remove rows
+    # Third - Convert columns form char to num
+
+
+    # db_graded
+    participant_db_graded <- participant_db_graded %>%
+      select(all_of(vars_to_select)) %>%
+      rename(VO2 = all_of(col_name_VO2),
+             VCO2 = all_of(col_name_VCO2),
+             RER = all_of(col_name_RER))
+
+
+    if(!is.null(remove_rows)) {
+      participant_db_graded <- participant_db_graded[-c(remove_rows),]
+    }
+    participant_db_graded <- apply(participant_db_graded, 2, as.numeric)
+
+    participant_db_graded <- as.data.frame(na.omit(participant_db_graded))
+
+    # db_basal
+    participant_db_basal <- participant_db_basal %>%
+      select(all_of(vars_to_select)) %>%
+      rename(VO2 = all_of(col_name_VO2),
+             VCO2 = all_of(col_name_VCO2),
+             RER = all_of(col_name_RER),
+             HR = all_of(col_name_HR))
+
+    if(!is.null(remove_rows)) {
+      participant_db_basal <- participant_db_basal[-c(remove_rows),]
+    }
+
+    participant_db_basal <- apply(participant_db_basal, 2, as.numeric)
+
+    participant_db_basal <- as.data.frame(na.omit(participant_db_basal))
+
+    # db MFO
+    participant_db_MFO <- participant_db_MFO %>%
+      select(all_of(vars_to_select)) %>%
+      rename(VO2 = all_of(col_name_VO2),
+             VCO2 = all_of(col_name_VCO2),
+             RER = all_of(col_name_RER))
+
+    if(!is.null(remove_rows)) {
+      participant_db_MFO <- participant_db_MFO[-c(remove_rows),]
+    }
+
+    participant_db_MFO <- apply(participant_db_MFO, 2, as.numeric)
+
+    participant_db_MFO <- as.data.frame(na.omit(participant_db_MFO))
+
+  }
+
+  return(list(participant_db_graded = participant_db_graded,
+              participant_db_basal = participant_db_basal,
+              participant_db_MFO = participant_db_MFO))
+}
+

@@ -9,6 +9,7 @@
 #'
 #' @importFrom readxl read_xlsx
 #' @importFrom tibble tibble
+#' @importFrom stringr str_subset
 #' @importFrom openxlsx write.xlsx
 #' @export
 #'
@@ -49,6 +50,7 @@ MFOs <- function(from = c("folder", "files"),
   for(i in 1:length(participants)) {
 
     # Get the participant ID
+    # Need to be fixed
     ID_participant <- str_subset(participants[i], ".xlsx")
 
     print(paste("Working in ", participants[i], sep = ""))
@@ -76,7 +78,9 @@ MFOs <- function(from = c("folder", "files"),
     if(save_plot == T){
 
       # Create a folder to store plots
+      if(i == 1){
       dir.create(paste(path,"/MFO_plots", sep = ""))
+      }
 
       ggsave(paste(ID_participant,".png", sep = ""),
              plot = participant_result_MFO$MFO_plot,
