@@ -23,6 +23,18 @@ MFOs(
 )
 }
 \arguments{
+\item{from}{select or folder (basal, MFO and graded databases of the same participant are store in
+different files but in the same folder) or files (basal, MFO and graded databases of the
+same participant are store in one file but in different sheets)}
+
+\item{path}{path to the folder with the databases}
+
+\item{db_basal_name}{name given to the basal database, eg: basal_df}
+
+\item{db_MFO_name}{name given to the MFO database, eg: MFO_df}
+
+\item{db_graded_name}{name given to the graded database, eg: VO2max_df}
+
 \item{step_time}{how often the data was collected (in seconds).}
 
 \item{cv_var}{variable to estimate coefficient of variation. Can be: VO2, VCO2 or RER.}
@@ -31,9 +43,17 @@ MFOs(
 
 \item{VO2max}{VO2max can be passed directly using this argument instead of use db_graded argument. Default set to NULL.}
 
-\item{save_plot}{to save the plot or not.Default set to True.}
+\item{remove_rows}{An integer (or a vector of integers) representing the position of the rows to delete}
 
-\item{folders_path}{path to the folder with the databases}
+\item{col_name_VO2}{name given to the variable VO2 in the databases. Must be the same for all databases. Default set to "VO2"}
+
+\item{col_name_VCO2}{name given to the variable VCO2 in the databases. Must be the same for all databases. Default set to "VCO2"}
+
+\item{col_name_RER}{name given to the variable RER in the databases. Must be the same for all databases. Default set to "RER"}
+
+\item{col_name_HR}{name given to the variable HR in the databases. Must be the same for all databases. Default set to "HR"}
+
+\item{save_plot}{to save the plot or not.Default set to True.}
 }
 \description{
 Maximal Fat Oxidation calculation of multiple databases

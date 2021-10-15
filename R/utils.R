@@ -252,6 +252,11 @@ get_5min <- function(db, cv_var, n_row) {
 #' @param db_basal_name name of the database with the basal metabolic rate test
 #' @param db_MFO_name name of the database of MFO test
 #' @param db_graded_name name of the database of the graded exercise test
+#' @param remove_rows An integer (or a vector of integers) representing the position of the rows to delete
+#' @param col_name_VO2 name given to the variable VO2 in the databases. Must be the same for all databases. Default set to "VO2"
+#' @param col_name_VCO2 name given to the variable VCO2 in the databases. Must be the same for all databases. Default set to "VCO2"
+#' @param col_name_RER name given to the variable RER in the databases. Must be the same for all databases. Default set to "RER"
+#' @param col_name_HR name given to the variable HR in the databases. Must be the same for all databases. Default set to "HR"
 #'
 #'
 #' @importFrom dplyr rename select

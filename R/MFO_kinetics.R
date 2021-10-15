@@ -5,6 +5,7 @@
 #' @importFrom minpack.lm nlsLM
 #' @importFrom tidyr pivot_longer
 #' @importFrom dplyr rename mutate pull
+#' @importFrom stats predict
 #' @import ggplot2
 #'
 #' @export
