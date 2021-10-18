@@ -27,10 +27,9 @@ Authors@R:
              "Perez-Bey",
              role = "ctb",
              comment = c(ORCID = "https://orcid.org/0000-0002-9849-5544")))
-Description: The package provides functions to calculate the maximal fat oxidation, 
-              the exercise intensity that elicits the maximal fat oxidation and the SIN model to represent
-              the fat oxidation kinetics. Three variables can be obtained from the SIN model:
-              dilatation, symmetry and translation.
+Description: Calculate the maximal fat oxidation, the exercise intensity that elicits the 
+              maximal fat oxidation and the SIN model to represent the fat oxidation kinetics. 
+              Three variables can be obtained from the SIN model: dilatation, symmetry and translation.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
