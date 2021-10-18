@@ -7,7 +7,7 @@
 #'
 #' @usage data(MFO_df)
 #'
-#' @format A data frame with 46 rows and 8 variables:
+#' @section Variables:
 #' \describe{
 #'   \item{Time}{time test, in minutess}
 #'   \item{HR}{heart rate, in beats/min}

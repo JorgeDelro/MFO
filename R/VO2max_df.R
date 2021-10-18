@@ -7,7 +7,7 @@
 #'
 #' @usage data(VO2max_df)
 #'
-#' @format A data frame with 31 rows and 9 variables:
+#' @section Variables:
 #' \describe{
 #'   \item{Time}{time test, in minutess}
 #'   \item{HR}{heart rate, in beats/min}
