@@ -28,15 +28,13 @@ The **MFO** package have been designed to calculate the Maximal Fat Oxidation (M
 
 
 
-``` r
-install.packages("MFO")
-```
-
 ## Example
 
 This is a basic example which shows you how to use the MFO package:
 
 ```{r load, message=FALSE}
+library(devtools)
+install_github("JorgeDelro/MFO")
 library(MFO)
 ```
 

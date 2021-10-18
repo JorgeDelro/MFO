@@ -23,17 +23,35 @@ Fatmax of multiple subjects.
     basis](https://journals.lww.com/acsm-msse/Fulltext/2009/08000/A_Mathematical_Model_to_Describe_Fat_Oxidation.11.aspx)
     (Medicine & Science in Sport & Exercise)
 
-<!-- end list -->
-
-``` r
-install.packages("MFO")
-```
-
 ## Example
 
 This is a basic example which shows you how to use the MFO package:
 
 ``` r
+library(devtools)
+install_github("JorgeDelro/MFO")
+#> pillar     (1.6.2  -> 1.6.3 ) [CRAN]
+#> tidyselect (1.1.0  -> 1.1.1 ) [CRAN]
+#> R6         (2.5.0  -> 2.5.1 ) [CRAN]
+#> lifecycle  (1.0.0  -> 1.0.1 ) [CRAN]
+#> hms        (0.5.3  -> 1.1.1 ) [CRAN]
+#> colorspace (2.0-1  -> 2.0-2 ) [CRAN]
+#> stringi    (1.6.1  -> 1.7.5 ) [CRAN]
+#> zip        (2.1.1  -> 2.2.0 ) [CRAN]
+#> isoband    (0.2.4  -> 0.2.5 ) [CRAN]
+#> digest     (0.6.27 -> 0.6.28) [CRAN]
+#> openxlsx   (4.2.3  -> 4.2.4 ) [CRAN]
+#> 
+#> The downloaded binary packages are in
+#>  /var/folders/3w/gywwbpd90t3crnvscmqlzf5h0000gn/T//RtmpDvFErC/downloaded_packages
+#>      checking for file ‘/private/var/folders/3w/gywwbpd90t3crnvscmqlzf5h0000gn/T/RtmpDvFErC/remotes26242988e605/JorgeDelro-MFO-b54abb9/DESCRIPTION’ ...  ✓  checking for file ‘/private/var/folders/3w/gywwbpd90t3crnvscmqlzf5h0000gn/T/RtmpDvFErC/remotes26242988e605/JorgeDelro-MFO-b54abb9/DESCRIPTION’
+#>   ─  preparing ‘MFO’:
+#>      checking DESCRIPTION meta-information ...  ✓  checking DESCRIPTION meta-information
+#>   ─  checking for LF line-endings in source and make files and shell scripts
+#>   ─  checking for empty or unneeded directories
+#>   ─  building ‘MFO_0.0.0.9000.tar.gz’
+#>      
+#> 
 library(MFO)
 ```
 
