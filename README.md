@@ -5,6 +5,8 @@
 
 [![License:
 MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Travis build
+status](https://travis-ci.com/JorgeDelro/MFO.svg?branch=master)](https://travis-ci.com/JorgeDelro/MFO)
 <!-- badges: end -->
 
 ## Overview
