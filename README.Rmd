@@ -32,7 +32,7 @@ The **MFO** package have been designed to calculate the Maximal Fat Oxidation (M
 
 This is a basic example which shows you how to use the MFO package:
 
-```{r load, message=FALSE}
+```{r load, message=FALSE, results = "hide"}
 library(devtools)
 install_github("JorgeDelro/MFO")
 library(MFO)
