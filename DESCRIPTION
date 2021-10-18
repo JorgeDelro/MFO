@@ -1,5 +1,5 @@
 Package: MFO
-Title: Maximal Fat Oxidation And Kinetics Calculation
+Title: Maximal Fat Oxidation and Kinetics Calculation
 Version: 0.0.0.9000
 Authors@R: 
     c(person("Jorge R",
@@ -30,7 +30,7 @@ Authors@R:
 Description: The package provides functions to calculate the maximal fat oxidation (MFO), 
               the exercise intensity that elicits MFO (Fatmax) and the SIN model to represent
               the fat oxidation kinetics. Three variables can be obtained from the SIN model:
-              dilatation, symmetry and traslation.
+              dilatation, symmetry and translation.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
