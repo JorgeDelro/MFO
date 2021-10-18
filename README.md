@@ -8,7 +8,7 @@ MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.or
 [![Travis build
 status](https://travis-ci.com/JorgeDelro/MFO.svg?branch=master)](https://app.travis-ci.com/github/JorgeDelro/MFO/jobs/543650025/config)
 [![Codecov test
-coverage](https://codecov.io/gh/JorgeDelro/MFO/branch/master/graph/badge.svg)](https://codecov.io/gh/JorgeDelro/MFO?branch=master)
+coverage](https://codecov.io/gh/JorgeDelro/MFO/branch/master/graph/badge.svg)](https://app.codecov.io/gh/JorgeDelro/MFO?branch=master)
 <!-- badges: end -->
 
 ## Overview
