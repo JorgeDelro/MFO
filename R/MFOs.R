@@ -53,7 +53,7 @@ MFOs <- function(from = c("folder", "files"),
                  col_name_VCO2 = "VCO2",
                  col_name_RER = "RER",
                  col_name_HR = "HR",
-                 save_plot = T){
+                 save_plot = TRUE){
 
   participants <- list.files(path)
 
@@ -87,7 +87,7 @@ MFOs <- function(from = c("folder", "files"),
                                   VO2max = VO2max)
 
     # MFO plot
-    if(save_plot == T){
+    if(save_plot == TRUE){
 
       # Create a folder to store plots
       if(i == 1){
@@ -106,7 +106,7 @@ MFOs <- function(from = c("folder", "files"),
     participant_result_MFO_kinetics <- MFO_kinetics(participant_result_MFO$MFO_db)
 
     # Kinetics plot
-    if(save_plot == T){
+    if(save_plot == TRUE){
       ggsave(paste(ID_participant,"kinetics_.png", sep = ""),
              plot = participant_result_MFO_kinetics$MFO_kinetics_plot,
              path = paste(path,"/MFO_plots", sep = ""),

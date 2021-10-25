@@ -16,25 +16,16 @@
 #'
 #' @examples
 #' \dontrun{
-#' # Path to the MFO package sample data
-#' path <- system.file("extdata", "sample_data.xlsx", package = "MFO")
+#' # Read databases and convert to data.frame
+#' basal_df <- data.frame(basal_df)
+#' MFO_df <- data.frame(MFO_df)
+#' VO2max_df <- data.frame(VO2max_df)
 #'
-#' # Read databases
-#' sample_data <- read_MFO_databases(from = "files",
-#'                                  path = paste(path),
-#'                                  db_basal_name = "M.BASAL",
-#'                                  db_MFO_name = "MFO",
-#'                                  db_graded_name = "V02máx.",
-#'                                  col_name_VO2 = "V'O2",
-#'                                  col_name_VCO2 = "V'CO2",
-#'                                  col_name_RER = "RER",
-#'                                  col_name_HR = "HR",
-#'                                  remove_rows = NULL)
 #' # Calculate MFO and Fatmax
 #' result_MFO <- MFO(step_time = 20,
-#'                  db_MFO = sample_data$participant_db_MFO,
-#'                  db_basal = sample_data$participant_db_basal,
-#'                  db_graded = sample_data$participant_db_graded,
+#'                  db_MFO = MFO_df,
+#'                  db_basal = basal_df,
+#'                  db_graded = VO2max_df,
 #'                  cv_var = "RER",
 #'                  author = "Frayn",
 #'                  VO2max = NULL)
@@ -113,7 +104,7 @@ MFO <- function(step_time,
   MFO_plot <- MFO_db %>%
     ggplot(aes(x = porc_VO2, y = FAT)) +
     geom_point(aes(size = 15)) +
-    stat_smooth(method='lm', formula = y~x + I(x^2), se = F) +
+    stat_smooth(method='lm', formula = y~x + I(x^2), se = FALSE) +
     ylab("FAT (gr)") +
     xlab(expression("Exercise " *"intensity " *"("*VO["2max"]*")")) +
     theme_bw() +
@@ -129,7 +120,7 @@ MFO <- function(step_time,
              vjust=1.5,
              hjust=1.25,
              label = VO2_MFO_text,
-             parse = T) +
+             parse = TRUE) +
     annotate("label",
              #x = min(MFO_db$porc_VO2) + 5,
              #y = max(MFO_db$FAT) - 0.05,
@@ -138,7 +129,7 @@ MFO <- function(step_time,
              vjust=3.5,
              hjust=1.25,
              label = VAR_MFO_text,
-             parse = T)
+             parse = TRUE)
 
   return(list(MFO_db = MFO_db,
               MFO_plot = MFO_plot,
