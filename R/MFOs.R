@@ -24,8 +24,8 @@
 #' @importFrom stringr str_subset
 #' @importFrom openxlsx write.xlsx
 #'
-#'  @return {This function creates an .xlsx file in the working directory with the
-#'  following variables:
+#' @return {This function creates an .xlsx file in the working directory with the
+#' following variables:
 #' \itemize{
 #' \item MFO_db: database used to create the MFO plot.
 #' \item MFO_plot: ggplot object with the MFO plot.

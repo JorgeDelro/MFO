@@ -55,6 +55,19 @@ same participant are store in one file but in different sheets)}
 
 \item{save_plot}{to save the plot or not.Default set to True.}
 }
+\value{
+{This function creates an .xlsx file in the working directory with the
+following variables:
+\itemize{
+\item MFO_db: database used to create the MFO plot.
+\item MFO_plot: ggplot object with the MFO plot.
+\item MFO: Maximal fat oxidation.
+\item FAT_MAX: Intensity that elicits MFO.
+\item x_CHO: carbohydrates in basal metabolism.
+\item x_FAT: fat in basal metabolism.
+\item x_Kcal: Kcal in basal metabolism.
+}}
+}
 \description{
 Maximal Fat Oxidation calculation of multiple databases
 }
