@@ -1,5 +1,5 @@
 
-#' Maximal Fat Oxidation Function
+#' Maximal Fat Oxidation & Fat Max Function
 #'
 #' @param step_time how often the data was collected (in seconds).
 #' @param db_MFO database containing MFO test.
@@ -12,11 +12,30 @@
 #' @import ggplot2
 #' @importFrom tibble tibble
 #' @importFrom stats lm na.omit sd
+#'
+#'
+#' @return {Returns a list which contains:
+#' \itemize{
+#' \item MFO_db: database used to create the MFO plot.
+#' \item MFO_plot: ggplot object with the MFO plot.
+#' \item MFO: Maximal fat oxidation.
+#' \item FAT_MAX: Intensity that elicits MFO.
+#' \item x_CHO: carbohydrates in basal metabolism.
+#' \item x_FAT: fat in basal metabolism.
+#' \item x_Kcal: Kcal in basal metabolism.
+#' }}
+#'
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#' # Read databases and convert to data.frame
+#' # Set temporary directory
+#' setwd(tempdir())
+#'
+#' # Read dfs
+#' data(list = c("basal_df", "MFO_df", "VO2max_df"), package = "MFO")
+#'
+#' # Convert to data.frame
 #' basal_df <- data.frame(basal_df)
 #' MFO_df <- data.frame(MFO_df)
 #' VO2max_df <- data.frame(VO2max_df)
@@ -38,6 +57,10 @@ MFO <- function(step_time,
                 cv_var,
                 author,
                 VO2max = NULL) {
+
+  # Solve error: 'list' object cannot be coerced to type 'double'
+  db_basal <- data.frame(db_basal)
+  db_MFO <- data.frame(db_MFO)
 
   # Get VO2max
   if(!is.null(db_graded)) {

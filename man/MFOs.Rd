@@ -19,7 +19,7 @@ MFOs(
   col_name_VCO2 = "VCO2",
   col_name_RER = "RER",
   col_name_HR = "HR",
-  save_plot = T
+  save_plot = TRUE
 )
 }
 \arguments{
@@ -60,6 +60,8 @@ Maximal Fat Oxidation calculation of multiple databases
 }
 \examples{
 \dontrun{
+# Set temporary directory
+setwd(tempdir())
 
 # Path to the MFO package sample data FOLDER
 path <- system.file("extdata", package = "MFO")

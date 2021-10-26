@@ -203,8 +203,6 @@ calculate_vars <- function(step_time, db_MFO, VO2max, author) {
 #' @param db a database
 #' @param db_type either "basal" or "MFO"
 #'
-#'
-#' @examples
 calculate_steps <- function(step_time, db, db_type) {
 
   if(db_type == "basal") {
@@ -262,6 +260,15 @@ get_5min <- function(db, cv_var, n_row) {
 #' @importFrom dplyr rename select
 #' @importFrom magrittr %>%
 #' @importFrom readxl read_xlsx
+#'
+#' @return {Returns 3 databases:
+#' \itemize{
+#' \item participant_db_basal: database with basal metabolism.
+#' \item participant_db_MFO: database with MFO test.
+#' \item participant_db_graded: graded exercise test.
+#' }}
+#'
+#'
 #' @export
 #'
 #' @examples

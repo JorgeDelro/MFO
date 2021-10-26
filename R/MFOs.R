@@ -23,10 +23,25 @@
 #' @importFrom tibble tibble
 #' @importFrom stringr str_subset
 #' @importFrom openxlsx write.xlsx
+#'
+#'  @return {This function creates an .xlsx file in the working directory with the
+#'  following variables:
+#' \itemize{
+#' \item MFO_db: database used to create the MFO plot.
+#' \item MFO_plot: ggplot object with the MFO plot.
+#' \item MFO: Maximal fat oxidation.
+#' \item FAT_MAX: Intensity that elicits MFO.
+#' \item x_CHO: carbohydrates in basal metabolism.
+#' \item x_FAT: fat in basal metabolism.
+#' \item x_Kcal: Kcal in basal metabolism.
+#' }}
+#'
 #' @export
 #'
 #' @examples
 #' \dontrun{
+#' # Set temporary directory
+#' setwd(tempdir())
 #'
 #' # Path to the MFO package sample data FOLDER
 #' path <- system.file("extdata", package = "MFO")

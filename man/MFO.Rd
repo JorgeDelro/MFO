@@ -2,7 +2,7 @@
 % Please edit documentation in R/MFO.R
 \name{MFO}
 \alias{MFO}
-\title{Maximal Fat Oxidation Function}
+\title{Maximal Fat Oxidation & Fat Max Function}
 \usage{
 MFO(
   step_time,
@@ -29,30 +29,39 @@ MFO(
 
 \item{VO2max}{VO2max can be passed directly using this argument instead of use db_graded argument.}
 }
+\value{
+{Returns a list which contains:
+\itemize{
+\item MFO_db: database used to create the MFO plot.
+\item MFO_plot: ggplot object with the MFO plot.
+\item MFO: Maximal fat oxidation.
+\item FAT_MAX: Intensity that elicits MFO.
+\item x_CHO: carbohydrates in basal metabolism.
+\item x_FAT: fat in basal metabolism.
+\item x_Kcal: Kcal in basal metabolism.
+}}
+}
 \description{
-Maximal Fat Oxidation Function
+Maximal Fat Oxidation & Fat Max Function
 }
 \examples{
 \dontrun{
-# Path to the MFO package sample data
-path <- system.file("extdata", "sample_data.xlsx", package = "MFO")
+# Set temporary directory
+setwd(tempdir())
 
-# Read databases
-sample_data <- read_MFO_databases(from = "files",
-                                 path = paste(path),
-                                 db_basal_name = "M.BASAL",
-                                 db_MFO_name = "MFO",
-                                 db_graded_name = "V02máx.",
-                                 col_name_VO2 = "V'O2",
-                                 col_name_VCO2 = "V'CO2",
-                                 col_name_RER = "RER",
-                                 col_name_HR = "HR",
-                                 remove_rows = NULL)
+# Read dfs
+data(list = c("basal_df", "MFO_df", "VO2max_df"), package = "MFO")
+
+# Convert to data.frame
+basal_df <- data.frame(basal_df)
+MFO_df <- data.frame(MFO_df)
+VO2max_df <- data.frame(VO2max_df)
+
 # Calculate MFO and Fatmax
 result_MFO <- MFO(step_time = 20,
-                 db_MFO = sample_data$participant_db_MFO,
-                 db_basal = sample_data$participant_db_basal,
-                 db_graded = sample_data$participant_db_graded,
+                 db_MFO = MFO_df,
+                 db_basal = basal_df,
+                 db_graded = VO2max_df,
                  cv_var = "RER",
                  author = "Frayn",
                  VO2max = NULL)

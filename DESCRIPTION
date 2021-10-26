@@ -29,7 +29,9 @@ Authors@R:
              comment = c(ORCID = "https://orcid.org/0000-0002-9849-5544")))
 Description: Calculate the maximal fat oxidation, the exercise intensity that elicits the 
               maximal fat oxidation and the SIN model to represent the fat oxidation kinetics. 
-              Three variables can be obtained from the SIN model: dilatation, symmetry and translation.
+              Three variables can be obtained from the SIN model: dilatation, symmetry and translation. 
+              Examples of these methods can be found in Montes de Oca et al (2021) <doi:10.1080/17461391.2020.1788650>
+              and Chenevière et al. (2009) <doi:10.1249/MSS.0b013e31819e2f91>.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

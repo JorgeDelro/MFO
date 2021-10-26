@@ -38,6 +38,14 @@ read_MFO_databases(
 
 \item{remove_rows}{An integer (or a vector of integers) representing the position of the rows to delete}
 }
+\value{
+{Returns 3 databases:
+\itemize{
+\item participant_db_basal: database with basal metabolism.
+\item participant_db_MFO: database with MFO test.
+\item participant_db_graded: graded exercise test.
+}}
+}
 \description{
 Read databases for MFO package
 }

@@ -8,11 +8,26 @@
 #' @importFrom stats predict
 #' @import ggplot2
 #'
+#' @return {Returns a list which contains:
+#' \itemize{
+#' \item MFO_kinetics_data: database used to create the MFO kinetics plot.
+#' \item MFO_kinetics_plot: ggplot object with the MFO kinetics plot.
+#' \item d: dilatation.
+#' \item t: translation.
+#' \item s: symmetry.
+#' }}
+#'
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#' # Read databases and convert to data.frame
+#' # Set temporary directory
+#' setwd(tempdir())
+#'
+#' # Read dfs
+#' data(list = c("basal_df", "MFO_df", "VO2max_df"), package = "MFO")
+#'
+#' # Convert to data.frame
 #' basal_df <- data.frame(basal_df)
 #' MFO_df <- data.frame(MFO_df)
 #' VO2max_df <- data.frame(VO2max_df)
