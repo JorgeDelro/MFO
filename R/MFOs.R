@@ -68,7 +68,8 @@ MFOs <- function(from = c("folder", "files"),
                  col_name_VCO2 = "VCO2",
                  col_name_RER = "RER",
                  col_name_HR = "HR",
-                 save_plot = TRUE){
+                 save_plot = TRUE,
+                 save_result = TRUE){
 
   participants <- list.files(path)
 
@@ -159,7 +160,10 @@ MFOs <- function(from = c("folder", "files"),
 
   } # end loop
 
-
+  if(save_result == TRUE){
   write.xlsx(dF_result, "MFO_result.xlsx")
+  }
+
+  return(dF_result)
 
 }
