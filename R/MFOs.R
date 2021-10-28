@@ -78,7 +78,7 @@ MFOs <- function(from = c("folder", "files"),
 
     # Get the participant ID
     # Need to be fixed
-    ID_participant <- str_subset(participants[i], ".xlsx")
+    ID_participant <- participants[i]
 
     print(paste("Working in ", participants[i], sep = ""))
 
@@ -106,12 +106,12 @@ MFOs <- function(from = c("folder", "files"),
 
       # Create a folder to store plots
       if(i == 1){
-      dir.create(paste(path,"/MFO_plots", sep = ""))
+      dir.create(paste(getwd(),"/MFO_plots", sep = ""))
       }
 
       ggsave(paste(ID_participant,".png", sep = ""),
              plot = participant_result_MFO$MFO_plot,
-             path = paste(path,"/MFO_plots", sep = ""),
+             path = paste(getwd(),"/MFO_plots", sep = ""),
              height=5,
              width=7,
              units='in',
@@ -124,7 +124,7 @@ MFOs <- function(from = c("folder", "files"),
     if(save_plot == TRUE){
       ggsave(paste(ID_participant,"kinetics_.png", sep = ""),
              plot = participant_result_MFO_kinetics$MFO_kinetics_plot,
-             path = paste(path,"/MFO_plots", sep = ""),
+             path = paste(getwd(),"/MFO_plots", sep = ""),
              height=5,
              width=7,
              units='in',
