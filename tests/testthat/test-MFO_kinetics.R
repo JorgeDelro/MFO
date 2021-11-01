@@ -1,6 +1,9 @@
 
 test_that("output of MFO Kinetics function", {
 
+  # Set temporary directory
+  setwd(tempdir())
+
   # Simulate MFO databases
   # Basal Metabolism; rows = 48, HR, VO2, VCO2 and RER
   HR <- rnorm(n = 48, mean = 66.21, sd = 4.15)

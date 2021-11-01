@@ -51,14 +51,18 @@ Read databases for MFO package
 }
 \examples{
  \dontrun{
-#' # Read databases
-sample_data <- read_MFO_databases(from = "files",
-                                 path = paste(path),
-                                 db_basal_name = "M.BASAL",
-                                 db_MFO_name = "MFO",
-                                 db_graded_name = "V02máx.",
-                                 col_name_VO2 = "V'O2",
-                                 col_name_VCO2 = "V'CO2",
+# Set temporary directory
+setwd(tempdir())
+
+# Read databases
+# "path" is the path to the databases
+sample_data <- read_MFO_databases(from = "folder",
+                                 path = path,,
+                                 db_basal_name = "basal_df",
+                                 db_MFO_name = "MFO_df",
+                                 db_graded_name = "graded_df",
+                                 col_name_VO2 = "VO2",
+                                 col_name_VCO2 = "VCO2",
                                  col_name_RER = "RER",
                                  col_name_HR = "HR",
                                  remove_rows = NULL)

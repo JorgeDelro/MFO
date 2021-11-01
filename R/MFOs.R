@@ -43,16 +43,25 @@
 #' # Set temporary directory
 #' setwd(tempdir())
 #'
-#' # Path to the MFO package sample data FOLDER
-#' path <- system.file("extdata", package = "MFO")
+#' # MFOs function
+#' # "path" is the path to the databases
+#' MFOs <- function(from = "folder",
+#'                  path = path,
+#'                  db_basal_name = "basal_df",
+#'                  db_MFO_name = "MFO_df",
+#'                  db_graded_name = "graded_df",
+#'                  step_time = 20,
+#'                  cv_var = "RER",
+#'                  author = "Frayn",
+#'                  VO2max = NULL,
+#'                  remove_rows = NULL,
+#'                  col_name_VO2 = "VO2",
+#'                  col_name_VCO2 = "VCO2",
+#'                  col_name_RER = "RER",
+#'                  col_name_HR = "HR",
+#'                  save_plot = TRUE,
+#'                  save_result = TRUE)
 #'
-#' # Calculate MFO and Fatmax
-#' MFOs(folders_path = path
-#'     step_time = 20,
-#'     cv_var = "RER",
-#'     author = "Frayn",
-#'     VO2max = NULL,
-#'     save_plot = T)
 #'}
 MFOs <- function(from = c("folder", "files"),
                  path,
