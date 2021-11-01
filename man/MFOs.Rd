@@ -54,7 +54,9 @@ same participant are store in one file but in different sheets)}
 
 \item{col_name_HR}{name given to the variable HR in the databases. Must be the same for all databases. Default set to "HR"}
 
-\item{save_plot}{to save the plot or not.Default set to True.}
+\item{save_plot}{to save the plot or not. Default set to True.}
+
+\item{save_result}{to save the results in a .xlsx file or not. Default set to True.}
 }
 \value{
 {This function creates an .xlsx file in the working directory with the
