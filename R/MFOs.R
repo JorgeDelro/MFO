@@ -16,7 +16,8 @@
 #' @param col_name_VCO2 name given to the variable VCO2 in the databases. Must be the same for all databases. Default set to "VCO2"
 #' @param col_name_RER name given to the variable RER in the databases. Must be the same for all databases. Default set to "RER"
 #' @param col_name_HR name given to the variable HR in the databases. Must be the same for all databases. Default set to "HR"
-#' @param save_plot to save the plot or not.Default set to True.
+#' @param save_plot to save the plot or not. Default set to True.
+#' @param save_result to save the results in a .xlsx file or not. Default set to True.
 #'
 #'
 #' @importFrom readxl read_xlsx
