@@ -5,6 +5,7 @@ This is a resubmission. In this version I have:
 * References have been added to the DESCRIPTION file.
 * TRUE and FALSE were written instead of T and F.
 * \value have been added to .Rd files.
+* functions do not write by default  in the user's home filespace. tempdir() is used.
 
 ## Test environments
 * local R installation, R 4.0.3
