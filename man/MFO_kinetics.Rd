@@ -23,7 +23,10 @@ MFO_kinetics(MFO_data)
 Maximal Fat Oxidation Kinetics
 }
 \examples{
-\dontrun{
+
+# Get old working directory
+oldwd <- getwd()
+
 # Set temporary directory
 setwd(tempdir())
 
@@ -46,6 +49,9 @@ result_MFO <- MFO(step_time = 20,
 
 # Calculate MFO Kinetics
 result_MFO_kinetics <- MFO_kinetics(result_MFO$MFO_db)
-}
+
+# set user working directory
+setwd(oldwd)
+
 
 }

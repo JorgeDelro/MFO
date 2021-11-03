@@ -40,7 +40,10 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#'
+#' # Get old working directory
+#' oldwd <- getwd()
+#'
 #' # Set temporary directory
 #' setwd(tempdir())
 #'
@@ -63,7 +66,9 @@
 #'                  save_plot = TRUE,
 #'                  save_result = TRUE)
 #'
-#'}
+#' # set user working directory
+#' setwd(oldwd)
+#'
 MFOs <- function(from = c("folder", "files"),
                  path,
                  db_basal_name,

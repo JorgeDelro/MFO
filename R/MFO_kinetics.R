@@ -20,7 +20,10 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#'
+#' # Get old working directory
+#' oldwd <- getwd()
+#'
 #' # Set temporary directory
 #' setwd(tempdir())
 #'
@@ -43,7 +46,10 @@
 #'
 #' # Calculate MFO Kinetics
 #' result_MFO_kinetics <- MFO_kinetics(result_MFO$MFO_db)
-#'}
+#'
+#' # set user working directory
+#' setwd(oldwd)
+#'
 #'
 MFO_kinetics <- function(MFO_data) {
 

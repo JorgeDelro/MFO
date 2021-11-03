@@ -50,7 +50,10 @@ read_MFO_databases(
 Read databases for MFO package
 }
 \examples{
- \dontrun{
+
+# Get old working directory
+oldwd <- getwd()
+
 # Set temporary directory
 setwd(tempdir())
 
@@ -66,6 +69,8 @@ sample_data <- read_MFO_databases(from = "folder",
                                  col_name_RER = "RER",
                                  col_name_HR = "HR",
                                  remove_rows = NULL)
- }
+
+# set user working directory
+setwd(oldwd)
 
 }

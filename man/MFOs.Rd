@@ -75,7 +75,10 @@ following variables:
 Maximal Fat Oxidation calculation of multiple databases
 }
 \examples{
-\dontrun{
+
+# Get old working directory
+oldwd <- getwd()
+
 # Set temporary directory
 setwd(tempdir())
 
@@ -98,5 +101,7 @@ MFOs <- function(from = "folder",
                  save_plot = TRUE,
                  save_result = TRUE)
 
-}
+# set user working directory
+setwd(oldwd)
+
 }

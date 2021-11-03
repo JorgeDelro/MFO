@@ -272,7 +272,10 @@ get_5min <- function(db, cv_var, n_row) {
 #' @export
 #'
 #' @examples
-#'  \dontrun{
+#'
+#' # Get old working directory
+#' oldwd <- getwd()
+#'
 #' # Set temporary directory
 #' setwd(tempdir())
 #'
@@ -288,7 +291,9 @@ get_5min <- function(db, cv_var, n_row) {
 #'                                  col_name_RER = "RER",
 #'                                  col_name_HR = "HR",
 #'                                  remove_rows = NULL)
-#'  }
+#'
+#' # set user working directory
+#' setwd(oldwd)
 #'
 read_MFO_databases <- function(from = c("folder", "files"),
                                path,

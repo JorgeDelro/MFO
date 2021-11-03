@@ -20,7 +20,7 @@ Authors@R:
              role = "ctb",
              comment = c(ORCID = "https://orcid.org/0000-0002-6867-7718")),
       person("Juan",
-             "Corral-Pérez",
+             "Corral-Perez",
              role = "ctb",
              comment = c(ORCID = "https://orcid.org/0000-0002-6574-9827")),
       person("Alejandro",

@@ -28,7 +28,10 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#'
+#' # Get old working directory
+#' oldwd <- getwd()
+#'
 #' # Set temporary directory
 #' setwd(tempdir())
 #'
@@ -49,7 +52,10 @@
 #'                  author = "Frayn",
 #'                  VO2max = NULL)
 #'
-#' }
+#' # set user working directory
+#' setwd(oldwd)
+#'
+#'
 MFO <- function(step_time,
                 db_MFO,
                 db_basal,

@@ -6,6 +6,8 @@ This is a resubmission. In this version I have:
 * TRUE and FALSE were written instead of T and F.
 * \value have been added to .Rd files.
 * functions do not write by default  in the user's home filespace. tempdir() is used.
+* \dontrun{} has been removed from the examples.
+* User's working directory is saved and setting after the example is executed in a temporary directory
 
 ## Test environments
 * local R installation, R 4.0.3
