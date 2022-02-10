@@ -46,6 +46,7 @@ Maximal Fat Oxidation & Fat Max Function
 }
 \examples{
 
+\dontrun{
 # Get old working directory
 oldwd <- getwd()
 
@@ -71,6 +72,6 @@ result_MFO <- MFO(step_time = 20,
 
 # set user working directory
 setwd(oldwd)
-
+}
 
 }

@@ -76,11 +76,17 @@ Maximal Fat Oxidation calculation of multiple databases
 }
 \examples{
 
+\dontrun{
 # Get old working directory
 oldwd <- getwd()
 
 # Set temporary directory
 setwd(tempdir())
+
+# Create path to store databases
+dir.create(paste(getwd(),"/MFO_databases", sep = ""))
+# Get path to databases
+path <- paste(getwd(),"/MFO_databases", sep = "")
 
 # MFOs function
 # "path" is the path to the databases
@@ -103,5 +109,6 @@ MFOs <- function(from = "folder",
 
 # set user working directory
 setwd(oldwd)
+}
 
 }

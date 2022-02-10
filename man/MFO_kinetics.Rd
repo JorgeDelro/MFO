@@ -23,7 +23,7 @@ MFO_kinetics(MFO_data)
 Maximal Fat Oxidation Kinetics
 }
 \examples{
-
+\dontrun{
 # Get old working directory
 oldwd <- getwd()
 
@@ -52,6 +52,6 @@ result_MFO_kinetics <- MFO_kinetics(result_MFO$MFO_db)
 
 # set user working directory
 setwd(oldwd)
-
+}
 
 }

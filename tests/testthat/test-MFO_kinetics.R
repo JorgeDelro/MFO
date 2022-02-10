@@ -1,6 +1,9 @@
 
 test_that("output of MFO Kinetics function", {
 
+  # Get old working directory
+  oldwd <- getwd()
+
   # Set temporary directory
   setwd(tempdir())
 
@@ -47,6 +50,9 @@ test_that("output of MFO Kinetics function", {
   expect_equal(class(test_result_MFO_kinetics$d), "numeric")
   expect_equal(class(test_result_MFO_kinetics$s), "numeric")
   expect_equal(class(test_result_MFO_kinetics$t), "numeric")
+
+  # set user working directory
+  setwd(oldwd)
 
 })
 

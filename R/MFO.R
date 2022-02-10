@@ -29,6 +29,7 @@
 #'
 #' @examples
 #'
+#' \dontrun{
 #' # Get old working directory
 #' oldwd <- getwd()
 #'
@@ -54,7 +55,7 @@
 #'
 #' # set user working directory
 #' setwd(oldwd)
-#'
+#' }
 #'
 MFO <- function(step_time,
                 db_MFO,

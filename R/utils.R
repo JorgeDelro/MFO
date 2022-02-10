@@ -260,6 +260,7 @@ get_5min <- function(db, cv_var, n_row) {
 #' @importFrom dplyr rename select
 #' @importFrom magrittr %>%
 #' @importFrom readxl read_xlsx
+#' @importFrom openxlsx write.xlsx
 #'
 #' @return {Returns 3 databases:
 #' \itemize{
@@ -268,32 +269,6 @@ get_5min <- function(db, cv_var, n_row) {
 #' \item participant_db_graded: graded exercise test.
 #' }}
 #'
-#'
-#' @export
-#'
-#' @examples
-#'
-#' # Get old working directory
-#' oldwd <- getwd()
-#'
-#' # Set temporary directory
-#' setwd(tempdir())
-#'
-#' # Read databases
-#' # "path" is the path to the databases
-#' sample_data <- read_MFO_databases(from = "folder",
-#'                                  path = path,,
-#'                                  db_basal_name = "basal_df",
-#'                                  db_MFO_name = "MFO_df",
-#'                                  db_graded_name = "graded_df",
-#'                                  col_name_VO2 = "VO2",
-#'                                  col_name_VCO2 = "VCO2",
-#'                                  col_name_RER = "RER",
-#'                                  col_name_HR = "HR",
-#'                                  remove_rows = NULL)
-#'
-#' # set user working directory
-#' setwd(oldwd)
 #'
 read_MFO_databases <- function(from = c("folder", "files"),
                                path,

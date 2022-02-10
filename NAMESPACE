@@ -3,7 +3,6 @@
 export(MFO)
 export(MFO_kinetics)
 export(MFOs)
-export(read_MFO_databases)
 import(ggplot2)
 importFrom(dplyr,mutate)
 importFrom(dplyr,pull)

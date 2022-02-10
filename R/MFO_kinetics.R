@@ -20,7 +20,7 @@
 #' @export
 #'
 #' @examples
-#'
+#' \dontrun{
 #' # Get old working directory
 #' oldwd <- getwd()
 #'
@@ -49,7 +49,7 @@
 #'
 #' # set user working directory
 #' setwd(oldwd)
-#'
+#' }
 #'
 MFO_kinetics <- function(MFO_data) {
 

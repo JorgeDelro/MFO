@@ -1,5 +1,8 @@
 test_that("output of MFO function", {
 
+  # Get old working directory
+  oldwd <- getwd()
+
   # Set temporary directory
   setwd(tempdir())
 
@@ -46,5 +49,8 @@ test_that("output of MFO function", {
   expect_equal(class(test_result_MFO$x_CHO), "numeric")
   expect_equal(class(test_result_MFO$x_FAT), "numeric")
   expect_equal(class(test_result_MFO$x_Kcal), "numeric")
+
+  # set user working directory
+  setwd(oldwd)
 
 })
