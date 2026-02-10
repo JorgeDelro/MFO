@@ -1,0 +1,292 @@
+
+# Helper function to create realistic test data
+# VCO2 starts well below VO2 (RER ~0.75) and rises to approach VO2 (RER ~0.95)
+# This produces the classic inverted-U fat oxidation curve
+create_test_data <- function(seed = 42, n_exercise = 45) {
+  set.seed(seed)
+
+  # Basal: 48 rows (16 min at 20s intervals)
+  HR <- rnorm(n = 48, mean = 66, sd = 3)
+  VO2 <- rnorm(n = 48, mean = 280, sd = 15)
+  VCO2 <- rnorm(n = 48, mean = 220, sd = 12)
+  RER <- VCO2 / VO2
+  M_basal <- data.frame(HR = HR, VO2 = VO2, VCO2 = VCO2, RER = RER)
+
+  # Exercise: n rows with realistic RER progression (0.75 -> 0.95)
+  HR_ex <- seq(90, 170, length.out = n_exercise) + rnorm(n_exercise, 0, 2)
+  VO2_ex <- seq(800, 2200, length.out = n_exercise) + rnorm(n_exercise, 0, 20)
+  # VCO2 starts at ~75% of VO2 and rises to ~95%, keeping RER < 1.0
+  RER_target <- seq(0.75, 0.95, length.out = n_exercise) + rnorm(n_exercise, 0, 0.01)
+  VCO2_ex <- VO2_ex * RER_target
+  RER_ex <- VCO2_ex / VO2_ex
+  MFO_test <- data.frame(HR = HR_ex, VO2 = VO2_ex, VCO2 = VCO2_ex, RER = RER_ex)
+
+  list(basal = M_basal, exercise = MFO_test, VO2max = 2600)
+}
+
+
+test_that("MFO function returns correct structure with P3 method", {
+
+  d <- create_test_data(42)
+
+  result <- MFO(step_time = 20,
+                db_MFO = d$exercise,
+                db_basal = d$basal,
+                db_graded = NULL,
+                cv_var = "VO2",
+                author = "Frayn",
+                VO2max = d$VO2max,
+                method = "P3")
+
+  # Structure checks
+  expect_true(is.data.frame(result$MFO_db))
+  expect_true("porc_VO2" %in% colnames(result$MFO_db))
+  expect_true("FAT" %in% colnames(result$MFO_db))
+  expect_true("CHO" %in% colnames(result$MFO_db))
+  expect_true("HR" %in% colnames(result$MFO_db))
+  expect_true("RER" %in% colnames(result$MFO_db))
+
+  # Numeric checks
+  expect_type(result$MFO, "double")
+  expect_type(result$FAT_MAX, "double")
+  expect_type(result$R_squared, "double")
+  expect_type(result$RMSE, "double")
+  expect_type(result$x_CHO, "double")
+  expect_type(result$x_FAT, "double")
+  expect_type(result$x_Kcal, "double")
+
+  # MFO should be non-negative
+  expect_true(result$MFO >= 0)
+
+  # FatMax should be within reasonable range
+  expect_true(result$FAT_MAX > 0)
+  expect_true(result$FAT_MAX < 100)
+
+  # R-squared should be between 0 and 1 (with realistic data)
+  expect_true(result$R_squared >= 0)
+  expect_true(result$R_squared <= 1)
+
+  # Method should be recorded
+  expect_equal(result$method, "P3")
+
+  # FatMax zone should exist
+  expect_true(is.numeric(result$FatMax_zone_lower) || is.na(result$FatMax_zone_lower))
+  expect_true(is.numeric(result$FatMax_zone_upper) || is.na(result$FatMax_zone_upper))
+
+  # Crossover point check
+  expect_true(is.numeric(result$crossover_point) || is.na(result$crossover_point))
+})
+
+
+test_that("MFO function works with P2 method", {
+
+  d <- create_test_data(42)
+
+  result <- MFO(step_time = 20,
+                db_MFO = d$exercise,
+                db_basal = d$basal,
+                db_graded = NULL,
+                cv_var = "VO2",
+                author = "Frayn",
+                VO2max = d$VO2max,
+                method = "P2")
+
+  expect_equal(result$method, "P2")
+  expect_type(result$MFO, "double")
+  expect_true(result$MFO >= 0)
+})
+
+
+test_that("MFO function works with MRER method", {
+
+  d <- create_test_data(42)
+
+  result <- MFO(step_time = 20,
+                db_MFO = d$exercise,
+                db_basal = d$basal,
+                db_graded = NULL,
+                cv_var = "VO2",
+                author = "Frayn",
+                VO2max = d$VO2max,
+                method = "MRER")
+
+  expect_equal(result$method, "MRER")
+  expect_type(result$MFO, "double")
+  expect_true(result$MFO >= 0)
+})
+
+
+test_that("MFO function works with Jeukendrup and Peronnet equations", {
+
+  d <- create_test_data(42)
+
+  # Jeukendrup
+  result_j <- MFO(step_time = 20,
+                  db_MFO = d$exercise,
+                  db_basal = d$basal,
+                  cv_var = "VO2",
+                  author = "Jeukendrup",
+                  VO2max = d$VO2max)
+
+  expect_type(result_j$MFO, "double")
+
+  # Peronnet
+  result_p <- MFO(step_time = 20,
+                  db_MFO = d$exercise,
+                  db_basal = d$basal,
+                  cv_var = "VO2",
+                  author = "Peronnet",
+                  VO2max = d$VO2max)
+
+  expect_type(result_p$MFO, "double")
+})
+
+
+test_that("MFO function calculates relative MFO and HR-based FatMax", {
+
+  d <- create_test_data(42)
+
+  result <- MFO(step_time = 20,
+                db_MFO = d$exercise,
+                db_basal = d$basal,
+                cv_var = "VO2",
+                author = "Frayn",
+                VO2max = d$VO2max,
+                body_mass = 75,
+                fat_free_mass = 60,
+                HRmax = 190)
+
+  # Relative MFO should be non-negative
+  expect_true(!is.na(result$MFO_relative))
+  expect_true(result$MFO_relative >= 0)
+
+  # FFM-relative MFO should be non-negative
+  expect_true(!is.na(result$MFO_FFM))
+  expect_true(result$MFO_FFM >= 0)
+
+  # If MFO > 0, FFM relative should be larger than body mass relative
+  if (result$MFO > 0) {
+    expect_true(result$MFO_FFM > result$MFO_relative)
+  }
+
+  # HR at FatMax
+  expect_true(!is.na(result$FAT_MAX_HR))
+
+  # %HRmax
+  expect_true(!is.na(result$FAT_MAX_porcHRmax))
+  expect_true(result$FAT_MAX_porcHRmax > 0)
+  expect_true(result$FAT_MAX_porcHRmax < 100)
+})
+
+
+test_that("MFO function handles RER cutoff correctly", {
+
+  d <- create_test_data(42)
+
+  # Without cutoff
+  result_no_cutoff <- MFO(step_time = 20,
+                          db_MFO = d$exercise,
+                          db_basal = d$basal,
+                          cv_var = "VO2",
+                          author = "Frayn",
+                          VO2max = d$VO2max,
+                          RER_cutoff = NULL)
+
+  # With strict cutoff
+  result_cutoff <- MFO(step_time = 20,
+                       db_MFO = d$exercise,
+                       db_basal = d$basal,
+                       cv_var = "VO2",
+                       author = "Frayn",
+                       VO2max = d$VO2max,
+                       RER_cutoff = 0.85)
+
+  # With cutoff should have fewer or equal rows
+  expect_true(nrow(result_cutoff$MFO_db) <= nrow(result_no_cutoff$MFO_db))
+})
+
+
+test_that("MFO function errors without VO2max", {
+
+  d <- create_test_data(42)
+
+  expect_error(
+    MFO(step_time = 20,
+        db_MFO = d$exercise,
+        db_basal = d$basal,
+        db_graded = NULL,
+        cv_var = "VO2",
+        author = "Frayn",
+        VO2max = NULL),
+    "You must provide a VO2max"
+  )
+})
+
+
+test_that("substrate_oxidation returns correct values for known inputs", {
+
+  # Test Frayn equations with known values
+  # VO2 = 2000 ml/min = 2.0 L/min, VCO2 = 1700 ml/min = 1.7 L/min
+  result <- substrate_oxidation(VO2 = 2000, VCO2 = 1700, author = "Frayn")
+
+  # CHO = 4.55 * 1.7 - 3.21 * 2.0 = 7.735 - 6.42 = 1.315 g/min
+  expect_equal(result$CHO, 4.55 * 1.7 - 3.21 * 2.0, tolerance = 0.001)
+
+  # FAT = 1.67 * 2.0 - 1.67 * 1.7 = 3.34 - 2.839 = 0.501 g/min
+  expect_equal(result$FAT, 1.67 * 2.0 - 1.67 * 1.7, tolerance = 0.001)
+
+  # Test Peronnet equations
+  result_p <- substrate_oxidation(VO2 = 2000, VCO2 = 1700, author = "Peronnet")
+  expect_equal(result_p$FAT, 1.6946 * 2.0 - 1.7012 * 1.7, tolerance = 0.001)
+})
+
+
+test_that("fat_oxidation_MRER returns correct values", {
+
+  # VO2 = 1500 ml/min, RER = 0.85
+  # FAT = 1.7 * (1 - 0.85) * 1500 / 1000 = 1.7 * 0.15 * 1.5 = 0.3825 g/min
+  result <- fat_oxidation_MRER(VO2 = 1500, RER = 0.85)
+  expect_equal(result, 1.7 * 0.15 * 1500 / 1000, tolerance = 0.001)
+
+  # At RER = 1.0, fat oxidation should be 0
+  result_rer1 <- fat_oxidation_MRER(VO2 = 1500, RER = 1.0)
+  expect_equal(result_rer1, 0)
+
+  # At RER = 0.7, fat oxidation should be maximal
+  result_rer07 <- fat_oxidation_MRER(VO2 = 1500, RER = 0.7)
+  expect_true(result_rer07 > result)
+})
+
+
+test_that("MFO function works with different step_time values", {
+
+  set.seed(42)
+
+  # Basal: enough rows
+  HR <- rnorm(n = 90, mean = 66, sd = 3)
+  VO2 <- rnorm(n = 90, mean = 280, sd = 15)
+  VCO2 <- rnorm(n = 90, mean = 220, sd = 12)
+  RER <- VCO2 / VO2
+  M_basal <- data.frame(HR = HR, VO2 = VO2, VCO2 = VCO2, RER = RER)
+
+  # 5 steps x 18 records (3 min at 10s intervals)
+  n <- 90
+  HR_ex <- seq(90, 170, length.out = n) + rnorm(n, 0, 2)
+  VO2_ex <- seq(800, 2200, length.out = n) + rnorm(n, 0, 20)
+  RER_target <- seq(0.75, 0.95, length.out = n) + rnorm(n, 0, 0.01)
+  VCO2_ex <- VO2_ex * RER_target
+  RER_ex <- VCO2_ex / VO2_ex
+  MFO_test <- data.frame(HR = HR_ex, VO2 = VO2_ex, VCO2 = VCO2_ex, RER = RER_ex)
+
+  result <- MFO(step_time = 10,
+                db_MFO = MFO_test,
+                db_basal = M_basal,
+                cv_var = "VO2",
+                author = "Frayn",
+                VO2max = 2600,
+                step_duration = 180,
+                steady_state_duration = 60)
+
+  expect_type(result$MFO, "double")
+  expect_true(result$MFO >= 0)
+})

@@ -1,0 +1,253 @@
+
+#' Maximal Fat Oxidation calculation of multiple databases
+#'
+#' Process multiple participants' MFO data in batch, generating plots and summary results.
+#' Supports all parameters from the MFO() and MFO_kinetics() functions.
+#'
+#' @param from select "folder" (basal, MFO and graded databases of the same participant are stored in
+#'              different files but in the same folder) or "files" (basal, MFO and graded databases of the
+#'              same participant are stored in one file but in different sheets)
+#' @param path path to the folder with the databases
+#' @param db_basal_name name given to the basal database, eg: "basal_df"
+#' @param db_MFO_name name given to the MFO database, eg: "MFO_df"
+#' @param db_graded_name name given to the graded database, eg: "VO2max_df"
+#' @param step_time how often the data was collected (in seconds).
+#' @param cv_var variable to estimate coefficient of variation. Can be: "VO2", "VCO2" or "RER".
+#' @param author equation set: "Frayn", "Jeukendrup" or "Peronnet".
+#' @param method curve-fitting method: "P3", "P2", or "MRER". Default "P3".
+#' @param VO2max VO2max can be passed directly (ml/min). Default NULL.
+#' @param step_duration duration of each exercise step in seconds (default 180).
+#' @param steady_state_duration duration of steady-state period within each step in seconds (default 60).
+#' @param RER_cutoff RER value above which steps are excluded (default NULL).
+#' @param negative_FAT how to handle negative fat oxidation: "truncate", "exclude", or "keep".
+#' @param body_mass body mass in kg (optional).
+#' @param fat_free_mass fat-free mass in kg (optional).
+#' @param HRmax maximum heart rate in bpm (optional).
+#' @param remove_rows rows to exclude from analysis.
+#' @param col_name_VO2 column name for VO2 in databases. Default "VO2".
+#' @param col_name_VCO2 column name for VCO2 in databases. Default "VCO2".
+#' @param col_name_RER column name for RER in databases. Default "RER".
+#' @param col_name_HR column name for HR in databases. Default "HR".
+#' @param save_plot save plots to MFO_plots/ directory (default TRUE).
+#' @param save_result save results file (default TRUE).
+#' @param output_format format for results file: "xlsx", "csv", or "rds". Default "xlsx".
+#'
+#'
+#' @importFrom readxl read_xlsx
+#' @importFrom tibble tibble
+#' @importFrom openxlsx write.xlsx
+#' @importFrom utils write.csv
+#'
+#' @return {Data frame with one row per participant containing:
+#' \itemize{
+#' \item ID: Participant identifier.
+#' \item MFO_g_min: Maximal fat oxidation (g/min).
+#' \item MFO_relative: MFO relative to body mass (mg/kg/min), if body_mass provided.
+#' \item MFO_FFM: MFO relative to fat-free mass (mg/kgFFM/min), if fat_free_mass provided.
+#' \item FAT_MAX_perVO2max: FatMax as \% VO2max.
+#' \item FAT_MAX_HR: Heart rate at FatMax (bpm).
+#' \item FAT_MAX_porcHRmax: FatMax as \% HRmax, if HRmax provided.
+#' \item FatMax_zone_lower: Lower bound of FatMax zone (\% VO2max).
+#' \item FatMax_zone_upper: Upper bound of FatMax zone (\% VO2max).
+#' \item crossover_point: Crossover intensity (\% VO2max).
+#' \item R_squared: R-squared of the curve fit.
+#' \item d: SIN dilatation parameter.
+#' \item t: SIN translation parameter.
+#' \item s: SIN symmetry parameter.
+#' \item Fatmin: Fatmin from SIN model (\% VO2max).
+#' \item FatMax_SIN: FatMax from SIN model (\% VO2max).
+#' \item SIN_R_squared: R-squared of SIN model.
+#' \item CHO_g_basal: Basal CHO oxidation (g/min).
+#' \item FAT_g_basal: Basal FAT oxidation (g/min).
+#' \item Kcal_g_basal: Basal energy expenditure (kcal/min).
+#' }}
+#'
+#' @export
+#'
+#' @examples
+#'
+#' \dontrun{
+#' # MFOs function
+#' results <- MFOs(from = "folder",
+#'                 path = "/path/to/participant_data",
+#'                 db_basal_name = "basal_df",
+#'                 db_MFO_name = "MFO_df",
+#'                 db_graded_name = "graded_df",
+#'                 step_time = 20,
+#'                 cv_var = "RER",
+#'                 author = "Frayn",
+#'                 method = "P3")
+#' }
+#'
+MFOs <- function(from = c("folder", "files"),
+                 path,
+                 db_basal_name,
+                 db_MFO_name,
+                 db_graded_name,
+                 step_time,
+                 cv_var,
+                 author,
+                 method = "P3",
+                 VO2max = NULL,
+                 step_duration = 180,
+                 steady_state_duration = 60,
+                 RER_cutoff = NULL,
+                 negative_FAT = "truncate",
+                 body_mass = NULL,
+                 fat_free_mass = NULL,
+                 HRmax = NULL,
+                 remove_rows = NULL,
+                 col_name_VO2 = "VO2",
+                 col_name_VCO2 = "VCO2",
+                 col_name_RER = "RER",
+                 col_name_HR = "HR",
+                 save_plot = TRUE,
+                 save_result = TRUE,
+                 output_format = "xlsx") {
+
+  from <- match.arg(from)
+  output_format <- match.arg(output_format, c("xlsx", "csv", "rds"))
+
+  participants <- list.files(path)
+
+  if (length(participants) == 0) {
+    stop("No participant folders found in the specified path.")
+  }
+
+  # Initialize results list
+  results_list <- vector("list", length(participants))
+
+  for (i in seq_along(participants)) {
+
+    ID_participant <- participants[i]
+    message(paste("Processing:", ID_participant))
+
+    tryCatch({
+      # Read databases
+      participant_dbs <- read_MFO_databases(
+        from = from,
+        path = paste(path, "/", participants[i], sep = ""),
+        db_basal_name = db_basal_name,
+        db_MFO_name = db_MFO_name,
+        db_graded_name = db_graded_name,
+        remove_rows = remove_rows,
+        col_name_VO2 = col_name_VO2,
+        col_name_VCO2 = col_name_VCO2,
+        col_name_RER = col_name_RER,
+        col_name_HR = col_name_HR
+      )
+
+      # Calculate MFO
+      participant_result_MFO <- MFO(
+        step_time = step_time,
+        db_MFO = participant_dbs$participant_db_MFO,
+        db_basal = participant_dbs$participant_db_basal,
+        db_graded = participant_dbs$participant_db_graded,
+        cv_var = cv_var,
+        author = author,
+        VO2max = VO2max,
+        method = method,
+        step_duration = step_duration,
+        steady_state_duration = steady_state_duration,
+        RER_cutoff = RER_cutoff,
+        negative_FAT = negative_FAT,
+        body_mass = body_mass,
+        fat_free_mass = fat_free_mass,
+        HRmax = HRmax
+      )
+
+      # Save MFO plot
+      if (save_plot) {
+        if (i == 1) {
+          plot_dir <- paste(getwd(), "/MFO_plots", sep = "")
+          if (!dir.exists(plot_dir)) dir.create(plot_dir)
+        }
+        ggsave(paste(ID_participant, "_MFO.png", sep = ""),
+               plot = participant_result_MFO$MFO_plot,
+               path = paste(getwd(), "/MFO_plots", sep = ""),
+               height = 5, width = 7, units = "in", dpi = 600)
+      }
+
+      # Calculate kinetics
+      participant_result_kinetics <- MFO_kinetics(participant_result_MFO$MFO_db)
+
+      # Save kinetics plot
+      if (save_plot) {
+        ggsave(paste(ID_participant, "_kinetics.png", sep = ""),
+               plot = participant_result_kinetics$MFO_kinetics_plot,
+               path = paste(getwd(), "/MFO_plots", sep = ""),
+               height = 5, width = 7, units = "in", dpi = 600)
+      }
+
+      # Collect results
+      results_list[[i]] <- data.frame(
+        ID = ID_participant,
+        MFO_g_min = round(participant_result_MFO$MFO, 4),
+        MFO_relative = round(ifelse(is.na(participant_result_MFO$MFO_relative), NA,
+                                    participant_result_MFO$MFO_relative), 2),
+        MFO_FFM = round(ifelse(is.na(participant_result_MFO$MFO_FFM), NA,
+                               participant_result_MFO$MFO_FFM), 2),
+        FAT_MAX_perVO2max = round(participant_result_MFO$FAT_MAX, 2),
+        FAT_MAX_HR = round(ifelse(is.na(participant_result_MFO$FAT_MAX_HR), NA,
+                                  participant_result_MFO$FAT_MAX_HR), 1),
+        FAT_MAX_porcHRmax = round(ifelse(is.na(participant_result_MFO$FAT_MAX_porcHRmax), NA,
+                                          participant_result_MFO$FAT_MAX_porcHRmax), 2),
+        FatMax_zone_lower = round(ifelse(is.na(participant_result_MFO$FatMax_zone_lower), NA,
+                                          participant_result_MFO$FatMax_zone_lower), 2),
+        FatMax_zone_upper = round(ifelse(is.na(participant_result_MFO$FatMax_zone_upper), NA,
+                                          participant_result_MFO$FatMax_zone_upper), 2),
+        crossover_point = round(ifelse(is.na(participant_result_MFO$crossover_point), NA,
+                                       participant_result_MFO$crossover_point), 2),
+        R_squared = round(participant_result_MFO$R_squared, 4),
+        method = participant_result_MFO$method,
+        d = round(participant_result_kinetics$d, 3),
+        t = round(participant_result_kinetics$t, 3),
+        s = round(participant_result_kinetics$s, 3),
+        Fatmin = round(ifelse(is.na(participant_result_kinetics$Fatmin), NA,
+                              participant_result_kinetics$Fatmin), 2),
+        FatMax_SIN = round(ifelse(is.na(participant_result_kinetics$FatMax_SIN), NA,
+                                   participant_result_kinetics$FatMax_SIN), 2),
+        SIN_R_squared = round(ifelse(is.na(participant_result_kinetics$R_squared), NA,
+                                     participant_result_kinetics$R_squared), 4),
+        SIN_convergence = participant_result_kinetics$convergence,
+        CHO_g_basal = round(participant_result_MFO$x_CHO, 4),
+        FAT_g_basal = round(participant_result_MFO$x_FAT, 4),
+        Kcal_g_basal = round(participant_result_MFO$x_Kcal, 4),
+        stringsAsFactors = FALSE
+      )
+
+    }, error = function(e) {
+      warning(paste("Error processing", ID_participant, ":", e$message))
+      results_list[[i]] <<- data.frame(
+        ID = ID_participant,
+        MFO_g_min = NA, MFO_relative = NA, MFO_FFM = NA,
+        FAT_MAX_perVO2max = NA, FAT_MAX_HR = NA, FAT_MAX_porcHRmax = NA,
+        FatMax_zone_lower = NA, FatMax_zone_upper = NA,
+        crossover_point = NA, R_squared = NA, method = method,
+        d = NA, t = NA, s = NA, Fatmin = NA, FatMax_SIN = NA,
+        SIN_R_squared = NA, SIN_convergence = FALSE,
+        CHO_g_basal = NA, FAT_g_basal = NA, Kcal_g_basal = NA,
+        stringsAsFactors = FALSE
+      )
+    })
+
+  } # end loop
+
+  # Combine results
+  dF_result <- do.call(rbind, results_list)
+
+  # Save results
+  if (save_result) {
+    result_file <- paste("MFO_result.", output_format, sep = "")
+    if (output_format == "xlsx") {
+      write.xlsx(dF_result, result_file)
+    } else if (output_format == "csv") {
+      write.csv(dF_result, result_file, row.names = FALSE)
+    } else if (output_format == "rds") {
+      saveRDS(dF_result, result_file)
+    }
+    message(paste("Results saved to:", result_file))
+  }
+
+  return(dF_result)
+}
