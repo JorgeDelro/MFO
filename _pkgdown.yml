@@ -1,0 +1,4 @@
+url: https://jorgedelro.github.io/MFO/
+destination: pkgdown-site
+template:
+  bootstrap: 5
