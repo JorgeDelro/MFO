@@ -1,0 +1,8 @@
+^CLAUDE\.md$
+^docs$
+^\.github$
+^_pkgdown\.yml$
+^pkgdown-site$
+^README\.Rmd$
+^cran-comments\.md$
+^codecov\.yml$
