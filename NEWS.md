@@ -58,8 +58,8 @@ GitHub release (February 2026). Not submitted to CRAN.
 
 ## Other changes
 
-* Requires R >= 4.1.0.
-* Unit tests with testthat (3rd edition).
+* Requires R >= 4.1.0 (was R >= 2.10).
+* Expanded unit tests.
 
 # MFO 0.1.0
 
