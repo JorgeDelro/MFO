@@ -34,7 +34,8 @@ MFOs(
   include_basal = FALSE,
   fatmin_threshold = NULL,
   energy_equivalents = c("classic", "source"),
-  use_incomplete_step = FALSE
+  use_incomplete_step = FALSE,
+  min_steps = 6
 )
 }
 \arguments{
@@ -105,6 +106,9 @@ a proportion of MFO in (0, 1). See [MFO_kinetics()].}
 
 \item{use_incomplete_step}{logical; use an incomplete last step that holds the
 steady-state segment (default `FALSE`). See [MFO()].}
+
+\item{min_steps}{minimum number of exercise steps recommended for the fit
+(default 6); fewer give a warning. See [MFO()].}
 }
 \value{
 {Data frame with one row per participant containing:

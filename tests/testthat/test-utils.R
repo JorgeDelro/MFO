@@ -90,10 +90,13 @@ test_that("the resting row never triggers the Jeukendrup range warning", {
                    VCO2 = rep(vo2 * seq(0.78, 0.92, length.out = 6), each = 9),
                    RER = rep(seq(0.78, 0.92, length.out = 6), each = 9),
                    HR = rep(seq(110, 160, length.out = 6), each = 9))
+  # (these linear data put Fatmax at the first step: that edge warning is
+  # expected and not the subject of this test)
   for (inc in c(FALSE, TRUE)) {
-    expect_no_warning(
+    w <- capture_warnings(
       MFO(step_time = 20, db_MFO = ex, db_basal = rest, cv_var = "VO2",
           author = "Jeukendrup", VO2max = 2600, include_basal = inc))
+    expect_false(any(grepl("Jeukendrup", w)))
   }
 })
 

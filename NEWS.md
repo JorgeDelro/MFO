@@ -109,6 +109,17 @@ Target: v0.2.1 on CRAN. Scientific background and sources in `docs/SPEC.md`.
 
 ## New features
 
+* Quality warnings in `MFO()` and `MFOs()` (new section *Quality warnings*
+  in `?MFO`): new argument `min_steps` (default 6) warns when fewer
+  exercise steps enter the fit after `RER_cutoff` and
+  `negative_FAT = "exclude"` (the resting row does not count); and a
+  warning when Fatmax is at the edge, i.e. the exercise step nearest to
+  Fatmax is the first or the last one (the test may have started too high
+  or stopped too early). Results are unchanged. The example data give
+  neither warning; with `RER_cutoff = "sedentary"` (5 steps) `min_steps`
+  warns, and with `"trained"` (4 steps) MV, MRER and P2 also put Fatmax
+  at the last step (SPEC 14).
+
 * Incomplete last step: records left after the last complete step now always
   give a warning ("Last step incomplete (120 s of 180 s)"); v0.2.0 dropped
   them silently. The new `use_incomplete_step` argument of `MFO()` and

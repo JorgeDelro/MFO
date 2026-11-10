@@ -24,6 +24,8 @@
 #' @param energy_equivalents "classic" (default in 0.2.x) or "source". See [MFO()].
 #' @param use_incomplete_step logical; use an incomplete last step that holds the
 #'        steady-state segment (default `FALSE`). See [MFO()].
+#' @param min_steps minimum number of exercise steps recommended for the fit
+#'        (default 6); fewer give a warning. See [MFO()].
 #' @param fatmin_threshold `NULL` (default, Fatmin at the second zero of the SIN) or
 #'        a proportion of MFO in (0, 1). See [MFO_kinetics()].
 #' @param step_duration duration of each exercise step in seconds (default 180).
@@ -121,7 +123,8 @@ MFOs <- function(from = c("folder", "files"),
                  include_basal = FALSE,
                  fatmin_threshold = NULL,
                  energy_equivalents = c("classic", "source"),
-                 use_incomplete_step = FALSE) {
+                 use_incomplete_step = FALSE,
+                 min_steps = 6) {
 
   from <- match.arg(from)
   output_format <- match.arg(output_format, c("xlsx", "csv", "rds"))
@@ -178,7 +181,8 @@ MFOs <- function(from = c("folder", "files"),
         vo2max_window = vo2max_window,
         include_basal = include_basal,
         energy_equivalents = energy_equivalents,
-        use_incomplete_step = use_incomplete_step
+        use_incomplete_step = use_incomplete_step,
+        min_steps = min_steps
       )
 
       # Save MFO plot
