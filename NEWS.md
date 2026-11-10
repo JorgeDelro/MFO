@@ -68,6 +68,16 @@ Target: v0.2.1 on CRAN. Scientific background and sources in `docs/SPEC.md`.
 
 ## Coefficient policy
 
+* Péronnet & Massicotte (1991) print no oxidation equations: `"Peronnet"` now
+  derives them in code from the O2/CO2 constants of their Table 1 (glucose
+  0.7455/0.7426, fatty acid 2.0092/1.4136 L/g): CHO = 4.58519 VCO2 −
+  3.22597 VO2, FAT = 1.69469 VO2 − 1.70130 VCO2, instead of the rounded
+  4.585/3.2255/1.6946/1.7012. Changes are in the 4th decimal: example data,
+  Fatmax 35.288 -> 35.285 %VO2max, MFO unchanged at 0.3158 g/min, resting CHO
+  0.13369 -> 0.13361 g/min. Frayn (1983) prints his equations, which stay as
+  printed (4.55/3.21; 1.67/1.67); their derivation from his Table 1 is a
+  cross-check test (SPEC 19, finding 6).
+
 * Coefficients printed in the source are used as printed and cited by table
   or equation; derived coefficients are used only where the source prints no
   equation, with the derivation explained in the documentation (SPEC 19).

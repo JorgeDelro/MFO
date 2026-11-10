@@ -118,11 +118,11 @@ Fat (FAT) and carbohydrate (CHO) oxidation in g/min are computed from
 VO2 and VCO2 in L/min, assuming negligible protein oxidation during
 exercise. Choose the equation set with `author`:
 
-| `author`       | CHO (g/min)                                                                      | FAT (g/min)              | Source                       |
-|----------------|----------------------------------------------------------------------------------|--------------------------|------------------------------|
-| `"Frayn"`      | 4.55 VCO2 − 3.21 VO2                                                             | 1.67 VO2 − 1.67 VCO2     | Frayn (1983)                 |
-| `"Peronnet"`   | 4.585 VCO2 − 3.2255 VO2                                                          | 1.6946 VO2 − 1.7012 VCO2 | Péronnet & Massicotte (1991) |
-| `"Jeukendrup"` | 4.344 VCO2 − 3.061 VO2 (40–50 %VO2max)<br>4.210 VCO2 − 2.962 VO2 (50–75 %VO2max) | 1.695 VO2 − 1.701 VCO2   | Jeukendrup & Wallis (2005)   |
+| `author`       | CHO (g/min)                                                                      | FAT (g/min)                | Source                                             |
+|----------------|----------------------------------------------------------------------------------|----------------------------|----------------------------------------------------|
+| `"Frayn"`      | 4.55 VCO2 − 3.21 VO2                                                             | 1.67 VO2 − 1.67 VCO2       | Frayn (1983)                                       |
+| `"Peronnet"`   | 4.58519 VCO2 − 3.22597 VO2                                                       | 1.69469 VO2 − 1.70130 VCO2 | Péronnet & Massicotte (1991), derived from Table 1 |
+| `"Jeukendrup"` | 4.344 VCO2 − 3.061 VO2 (40–50 %VO2max)<br>4.210 VCO2 − 2.962 VO2 (50–75 %VO2max) | 1.695 VO2 − 1.701 VCO2     | Jeukendrup & Wallis (2005)                         |
 
 `"Jeukendrup"` needs VO2max to pick the CHO equation for each step.
 Energy expenditure is CHO × 4 + FAT × 9 kcal/min. Always report which

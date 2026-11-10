@@ -345,8 +345,9 @@ test_that("MFO resting values use the same author equations as the test", {
 
   r_p <- MFO(step_time = 20, db_MFO = d$exercise, db_basal = rest,
              cv_var = "VO2", author = "Peronnet", VO2max = d$VO2max)
-  expect_equal(r_p$x_CHO, 0.13275, tolerance = 1e-10)
-  expect_equal(r_p$x_FAT, 0.100092, tolerance = 1e-10)
+  # Peronnet derived from Table 1 (SPEC 19, finding 6); tolerance 1e-6 as there
+  expect_equal(r_p$x_CHO, 0.1326538, tolerance = 1e-6)
+  expect_equal(r_p$x_FAT, 0.1000929, tolerance = 1e-6)
 
   r_j <- suppressWarnings(  # exercise steps outside 40-75 %, tested in test-utils.R
     MFO(step_time = 20, db_MFO = d$exercise, db_basal = rest,

@@ -34,6 +34,19 @@ different stoichiometric equations.
 Rule: a coefficient printed in the source is used as printed; a derived
 coefficient is used only where the source prints no equation (SPEC 19).
 
+**Frayn (1983)** (J Appl Physiol 55: 628-634, eqs. 5 and 6, n = 0), as printed:
+CHO = 4.55 VCO2 - 3.21 VO2, FAT = 1.67 VO2 - 1.67 VCO2. Deriving them from his
+Table 1 constants (glucose 0.746/0.746, fat 2.03/1.43 L/g) gives
+4.535/3.195 and 1.667/1.667; this is only a cross-check in the tests.
+
+**Peronnet & Massicotte (1991)** (Can J Sport Sci 16: 23-29) print no
+equations. The package derives them from the O2/CO2 constants of their
+Table 1 (glucose 0.7455/0.7426, fatty acid 2.0092/1.4136 L/g) by solving
+VO2 = 0.7455 CHO + 2.0092 FAT and VCO2 = 0.7426 CHO + 1.4136 FAT for CHO and
+FAT: CHO = 4.58519 VCO2 - 3.22597 VO2, FAT = 1.69469 VO2 - 1.70130 VCO2.
+Up to v0.2.0 the rounded 4.585 / 3.2255 / 1.6946 / 1.7012 were used
+(SPEC 19, finding 6).
+
 **Jeukendrup & Wallis (2005)** (Int J Sports Med 26 Suppl 1: S28-S37), with the
 coefficients printed in their Table 5:
 \itemize{
