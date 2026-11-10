@@ -48,4 +48,9 @@ fatty acid 2.0092/1.4136 L/g) by solving the 2x2 system:
 CHO = 4.58519 VCO2 - 3.22597 VO2, FAT = 1.69469 VO2 - 1.70130 VCO2.
 The same derivation with 50/50 and 20/80 glucose/glycogen reproduces the
 Table 5 coefficients within 0.005 and is kept as a cross-check in the tests.
+
+The Table 5 sets are defined for 40-75 \% VO2max only. Below 40 \% the 40-50 \%
+set and above 75 \% the 50-75 \% set are extrapolated; [calculate_vars()] warns
+when an exercise step falls outside the range (SPEC 3, 9.5). Resting values
+(`phase = "rest"`) never trigger that warning.
 }

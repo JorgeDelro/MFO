@@ -30,6 +30,11 @@ Target: v0.2.1 on CRAN. Scientific background and sources in `docs/SPEC.md`.
   MFO and Fatmax are not affected because the resting row is not
   part of the fit. Example data with `"Peronnet"`: resting CHO
   0.130 -> 0.134 g/min, FAT 0.0726 -> 0.0723 g/min (SPEC 9.5).
+* With `author = "Jeukendrup"`, `MFO()` now warns once when exercise steps
+  fall outside 40–75 %VO2max, the range of the Jeukendrup & Wallis (2005,
+  Table 5) equations, and lists their intensities; those steps were
+  extrapolated silently before. Steps removed by `RER_cutoff` and the resting
+  row never warn. Values are unchanged (SPEC 3, 9.5).
 * `substrate_oxidation()` no longer fails on vectors with
   `author = "Jeukendrup"`; each value picks its own equation.
 * When both `VO2max` and `db_graded` are given, `VO2max` is now used and

@@ -120,13 +120,15 @@ test_that("MFO function works with Jeukendrup and Peronnet equations", {
 
   d <- create_test_data(42)
 
-  # Jeukendrup
-  result_j <- MFO(step_time = 20,
-                  db_MFO = d$exercise,
-                  db_basal = d$basal,
-                  cv_var = "VO2",
-                  author = "Jeukendrup",
-                  VO2max = d$VO2max)
+  # Jeukendrup: steps at 39.9 and 83.2 %VO2max are outside 40-75 %
+  expect_warning(
+    result_j <- MFO(step_time = 20,
+                    db_MFO = d$exercise,
+                    db_basal = d$basal,
+                    cv_var = "VO2",
+                    author = "Jeukendrup",
+                    VO2max = d$VO2max),
+    "2 step\\(s\\) outside this range")
 
   expect_type(result_j$MFO, "double")
 
@@ -346,8 +348,9 @@ test_that("MFO resting values use the same author equations as the test", {
   expect_equal(r_p$x_CHO, 0.13275, tolerance = 1e-10)
   expect_equal(r_p$x_FAT, 0.100092, tolerance = 1e-10)
 
-  r_j <- MFO(step_time = 20, db_MFO = d$exercise, db_basal = rest,
-             cv_var = "VO2", author = "Jeukendrup", VO2max = d$VO2max)
+  r_j <- suppressWarnings(  # exercise steps outside 40-75 %, tested in test-utils.R
+    MFO(step_time = 20, db_MFO = d$exercise, db_basal = rest,
+        cv_var = "VO2", author = "Jeukendrup", VO2max = d$VO2max))
   expect_equal(r_j$x_CHO, 0.1326538, tolerance = 1e-6)
   expect_equal(r_j$x_FAT, 0.1000929, tolerance = 1e-6)
 

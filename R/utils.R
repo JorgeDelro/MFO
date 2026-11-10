@@ -111,6 +111,11 @@ met_basal <- function(step_time, db, cv_var, window_duration = 300,
 #' The same derivation with 50/50 and 20/80 glucose/glycogen reproduces the
 #' Table 5 coefficients within 0.005 and is kept as a cross-check in the tests.
 #'
+#' The Table 5 sets are defined for 40-75 \% VO2max only. Below 40 \% the 40-50 \%
+#' set and above 75 \% the 50-75 \% set are extrapolated; [calculate_vars()] warns
+#' when an exercise step falls outside the range (SPEC 3, 9.5). Resting values
+#' (`phase = "rest"`) never trigger that warning.
+#'
 #' @return Named list with CHO (g/min), FAT (g/min), Kcal (kcal/min)
 #'
 substrate_oxidation <- function(VO2, VCO2, author, VO2max = NULL,
@@ -188,6 +193,10 @@ fat_oxidation_MRER <- function(VO2, RER) {
 #' @param author equation set: "Frayn", "Jeukendrup", or "Peronnet".
 #' @param RER_cutoff RER value above which data is excluded (default NULL = no cutoff).
 #'
+#' @details With `author = "Jeukendrup"`, a single warning lists the steps (after
+#' `RER_cutoff`) whose intensity is outside 40-75 \% VO2max, the range of the
+#' Jeukendrup & Wallis (2005, Table 5) equations (SPEC 3, 9.5).
+#'
 #' @importFrom dplyr pull mutate
 #'
 #' @return data frame with columns: VO2, VCO2, HR, RER, CHO, FAT, Kcal (one row per step)
@@ -258,7 +267,26 @@ calculate_vars <- function(step_time,
     }
   }
 
+  if (author == "Jeukendrup") {
+    .warn_jeukendrup_range(db_vars$VO2 / VO2max * 100)
+  }
+
   return(db_vars)
+}
+
+
+# Jeukendrup & Wallis (2005, Table 5) equations cover 40-75 %VO2max; outside
+# that range the nearest set is extrapolated (SPEC 3, 9.5). Exercise only.
+.warn_jeukendrup_range <- function(pct_vo2) {
+  out <- which(pct_vo2 < 40 | pct_vo2 > 75)
+  if (length(out) > 0) {
+    warning(sprintf(paste0(
+      "Jeukendrup & Wallis (2005) equations cover 40-75 %%VO2max; %d step(s) ",
+      "outside this range (%s %%VO2max) use the nearest set, extrapolated."),
+      length(out), paste(sprintf("%.1f", pct_vo2[out]), collapse = ", ")),
+      call. = FALSE)
+  }
+  invisible(out)
 }
 
 

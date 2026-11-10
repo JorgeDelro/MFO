@@ -13,6 +13,8 @@
 #'        VO2max is the highest mean VO2 over `vo2max_window` seconds of consecutive records.
 #' @param cv_var variable to estimate coefficient of variation. Can be: "VO2", "VCO2" or "RER".
 #' @param author author to estimate MFO. Can be: "Frayn", "Jeukendrup" or "Peronnet".
+#'        "Jeukendrup" warns when an exercise step is outside 40-75 \% VO2max, the range
+#'        of Jeukendrup & Wallis (2005, Table 5); the resting row never warns.
 #' @param VO2max VO2max can be passed directly (ml/min) instead of using db_graded.
 #'        If both are given, `VO2max` is used as is and `db_graded` is ignored with a warning.
 #' @param method curve-fitting method: "P3" (3rd-degree polynomial, default), "P2" (2nd-degree polynomial),

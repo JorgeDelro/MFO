@@ -46,3 +46,52 @@ test_that("substrate_oxidation picks the Jeukendrup set per value", {
 
   expect_error(substrate_oxidation(1200, 1020, "Jeukendrup"), "VO2max is required")
 })
+
+
+# Constant steps for calculate_vars(): 1-min steps, 20-s records (3 per step)
+make_steps <- function(vo2, rer = 0.85) {
+  data.frame(VO2 = rep(vo2, each = 3), VCO2 = rep(vo2 * rer, each = 3),
+             RER = rer, HR = rep(seq(100, by = 10, length.out = length(vo2)), each = 3))
+}
+
+test_that("Jeukendrup warns once for steps outside 40-75 %VO2max", {
+  # VO2max 2600: 1000 -> 38.5 %, 1300 -> 50.0 %, 1950 -> 75.0 %, 2000 -> 76.9 %
+  db <- make_steps(c(1000, 1300, 1950, 2000))
+  expect_warning(
+    calculate_vars(20, db, VO2max = 2600, author = "Jeukendrup",
+                   step_duration = 60, steady_state_duration = 60),
+    "2 step\\(s\\) outside this range \\(38.5, 76.9 %VO2max\\)")
+  # Limits are inclusive: 40 % (1040) and 75 % (1950) do not warn
+  expect_no_warning(
+    calculate_vars(20, make_steps(c(1040, 1300, 1950)), VO2max = 2600,
+                   author = "Jeukendrup", step_duration = 60,
+                   steady_state_duration = 60))
+  # Other equation sets have no range
+  expect_no_warning(
+    calculate_vars(20, db, VO2max = 2600, author = "Frayn",
+                   step_duration = 60, steady_state_duration = 60))
+})
+
+test_that("Jeukendrup range warning ignores steps removed by RER_cutoff", {
+  db <- rbind(make_steps(c(1300, 1600)), make_steps(2200, rer = 1.05))
+  expect_no_warning(suppressMessages(
+    calculate_vars(20, db, VO2max = 2600, author = "Jeukendrup",
+                   step_duration = 60, steady_state_duration = 60,
+                   RER_cutoff = 1.0)))
+})
+
+test_that("the resting row never triggers the Jeukendrup range warning", {
+  # Rest at 300 ml/min = 11.5 %VO2max; exercise steps 42-73 %VO2max
+  rest <- data.frame(VO2 = rep(300, 48), VCO2 = rep(240, 48),
+                     RER = rep(0.8, 48), HR = rep(60, 48))
+  vo2 <- seq(1100, 1900, length.out = 6)
+  ex <- data.frame(VO2 = rep(vo2, each = 9),
+                   VCO2 = rep(vo2 * seq(0.78, 0.92, length.out = 6), each = 9),
+                   RER = rep(seq(0.78, 0.92, length.out = 6), each = 9),
+                   HR = rep(seq(110, 160, length.out = 6), each = 9))
+  for (inc in c(FALSE, TRUE)) {
+    expect_no_warning(
+      MFO(step_time = 20, db_MFO = ex, db_basal = rest, cv_var = "VO2",
+          author = "Jeukendrup", VO2max = 2600, include_basal = inc))
+  }
+})
