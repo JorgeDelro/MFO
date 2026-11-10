@@ -141,11 +141,19 @@ maximum is located:
   the cubic cannot be fitted.
 - **`"P2"`**: parabola, Fatmax $= -b / 2c$. More stable with few steps,
   but forces a symmetric curve.
-- **`"MRER"`**: the step with the highest observed
-  $\mathrm{FAT} = 1.7\,(1 - \mathrm{RER})\,\mathrm{VO_2}$ (see [Known
-  issues](#known-issues-in-v02x)).
+- **`"MV"`** (measured values): the step with the highest observed FAT
+  (`author` equations). No curve is fitted: `R_squared` and `RMSE` are
+  `NA` and the Fatmax zone uses linear interpolation between steps.
+- **`"MRER"`** (Chenevière et al., 2009):
+  $1 - \mathrm{RER} = a_1 + b_1x$ and $\mathrm{VO_2} = a_2 + b_2x$ are
+  fitted as straight lines, so
+  $\mathrm{FAT} = 1.7\,(1 - \mathrm{RER})\,\mathrm{VO_2}$ is a parabola
+  with Fatmax at its vertex, $x = -(a_1b_2 + a_2b_1)/(2b_1b_2)$. Falls
+  back to MV with a warning if the vertex is not a maximum inside the
+  measured range. Up to v0.2.0 `"MRER"` returned the highest observed
+  step, which is now `"MV"`.
 
-For P3 and P2 the fit’s `R_squared` and `RMSE` are returned. The
+For P3, P2 and MRER the fit’s `R_squared` and `RMSE` are returned. The
 **Fatmax zone** is the range of intensities where the fitted FAT is ≥ 90
 % of MFO (Achten et al., 2002). The **crossover point** is the intensity
 at which CHO exceeds FAT, by linear interpolation between steps.
@@ -216,9 +224,10 @@ and MRER issues do not affect MFO and Fatmax obtained with P3 or P2.
   computed $(\pi^{1/s}/\pi) + 2d$ instead of $\pi^{1/s}/(\pi + 2d)$,
   fitted a P3-smoothed grid and used a 5 % threshold for `Fatmin`. Fixed
   in the development version.
-- **`method = "MRER"`** takes the observed maximum of 1.7 (1 − RER) VO2.
-  This is a measured-values (MV) method, not the two-regression MRER
-  procedure of Chenevière et al. (2009).
+- **`method = "MRER"` in v0.2.0** took the observed maximum of 1.7 (1 −
+  RER) VO2, a measured-values method. The development version implements
+  the two-regression MRER of Chenevière et al. (2009) and adds
+  `method = "MV"`.
 - The **resting row** is not used in the curve fit unless
   `include_basal = TRUE` (development version).
 - The `Load` column of `MFO_db` is a step label, not the measured

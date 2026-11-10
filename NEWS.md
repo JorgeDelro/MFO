@@ -75,7 +75,25 @@ Target: v0.2.1 on CRAN. Scientific background and sources in `docs/SPEC.md`.
   are used as printed; their derivation from the published O2/CO2 constants
   is kept as a cross-check test.
 
+## Breaking changes
+
+* `method = "MRER"` now implements the MRER of Chenevière et al. (2009,
+  p. 1617): (1 − RER) and VO2 are fitted as straight lines of %VO2max and
+  Fatmax is the vertex of their product, 1.7 (1 − RER) VO2. **In v0.2.0,
+  `"MRER"` was a different method**: it returned the step with the highest
+  observed 1.7 (1 − RER) VO2, a measured-values (MV) method. That behaviour
+  is now `method = "MV"`, which uses the `author` equation (same step; MFO
+  differs by the ratio of coefficients, e.g. 1.67/1.7 with Frayn). In the
+  example data (Frayn) `"MRER"` moves from Fatmax 41.0 %VO2max /
+  MFO 0.339 g/min to 35.8 %VO2max / 0.327 g/min; `"MV"` gives
+  41.0 %VO2max / 0.327 g/min (SPEC 6.1, 19 finding 4).
+
 ## New features
+
+* `method = "MV"` (measured values) in `MFO()` and `MFOs()`: Fatmax is the
+  step with the highest observed FAT. `R_squared` and `RMSE` are `NA`; the
+  Fatmax zone uses linear interpolation between steps and is labelled so in
+  the plot and in the new `FatMax_zone_method` element (SPEC 6.1).
 
 * `MFO_kinetics()` and `MFOs()` gain `fatmin_threshold` (default `NULL`,
   Fatmin at the second zero of the SIN curve); a proportion of MFO such as

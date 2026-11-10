@@ -54,7 +54,7 @@ same participant are stored in one file but in different sheets)}
 
 \item{author}{equation set: "Frayn", "Jeukendrup" or "Peronnet".}
 
-\item{method}{curve-fitting method: "P3", "P2", or "MRER". Default "P3".}
+\item{method}{method to locate MFO: "P3" (default), "P2", "MV" or "MRER". See [MFO()].}
 
 \item{VO2max}{VO2max can be passed directly (ml/min). Default NULL. If given, it is used for
 every participant and the graded databases are ignored.}

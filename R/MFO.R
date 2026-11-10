@@ -3,7 +3,7 @@
 #'
 #' Calculate Maximal Fat Oxidation (MFO), the exercise intensity that elicits
 #' MFO (FatMax), the FatMax zone, and the crossover point. Supports multiple
-#' curve-fitting methods (P3, P2, SIN, MRER) and stoichiometric equations
+#' methods to locate MFO (P3, P2, MV, MRER) and stoichiometric equations
 #' (Frayn, Jeukendrup, Peronnet).
 #'
 #' @param step_time how often the data was collected (in seconds).
@@ -17,8 +17,9 @@
 #'        of Jeukendrup & Wallis (2005, Table 5); the resting row never warns.
 #' @param VO2max VO2max can be passed directly (ml/min) instead of using db_graded.
 #'        If both are given, `VO2max` is used as is and `db_graded` is ignored with a warning.
-#' @param method curve-fitting method: "P3" (3rd-degree polynomial, default), "P2" (2nd-degree polynomial),
-#'        or "MRER" (RER-based method of Perez-Martin et al.).
+#' @param method method to locate MFO and Fatmax: "P3" (3rd-degree polynomial, default),
+#'        "P2" (2nd-degree polynomial), "MV" (measured values) or "MRER" (RER method).
+#'        See the section *Methods*.
 #' @param step_duration duration of each exercise step in seconds (default 180 = 3 min).
 #' @param steady_state_duration duration of steady-state period to average within each step, in seconds (default 60).
 #' @param RER_cutoff RER value above which steps are excluded (default NULL = no cutoff).
@@ -38,6 +39,29 @@
 #'        resting row. With `TRUE` the P3/P2 fit changes; the resting row has `HR = NA`
 #'        and `Load = "basal"`. See SPEC 9.5.
 #'
+#' @section Methods:
+#' \itemize{
+#' \item `"P3"`, `"P2"`: least-squares polynomial of FAT on \% VO2max; Fatmax is
+#'   the maximum of the fitted curve within the measured range (SPEC 6.2, 6.3).
+#' \item `"MV"` (measured values): Fatmax is the step with the highest observed
+#'   FAT, computed with the `author` equations; MFO is that FAT. No model is
+#'   fitted, so `R_squared` and `RMSE` are `NA`; the curve drawn and the Fatmax
+#'   zone use linear interpolation between steps (`FatMax_zone_method =
+#'   "linear interpolation"`). SPEC 6.1.
+#' \item `"MRER"`: procedure of Cheneviere et al. (2009, p. 1617,
+#'   \doi{10.1249/MSS.0b013e31819e2f91}), after Perez-Martin et al. (2001).
+#'   (1 - RER) and VO2 are fitted as straight lines of \% VO2max,
+#'   1 - RER = a1 + b1 x and VO2 = a2 + b2 x, so fat oxidation
+#'   1.7 (1 - RER) VO2 is a parabola whose vertex,
+#'   x = -(a1 b2 + a2 b1) / (2 b1 b2), gives Fatmax, and its value MFO (g/min).
+#'   This uses the 1.7 (1 - RER) VO2 simplification of Peronnet & Massicotte
+#'   whatever `author` is. If the parabola has no maximum or the vertex lies
+#'   outside the measured range, `"MV"` is used with a warning. SPEC 3, 6.1.
+#' }
+#' Up to v0.2.0, `"MRER"` returned the step with the highest observed
+#' 1.7 (1 - RER) VO2, which is a measured-values method: use `"MV"` for that
+#' behaviour (same step; MFO from the `author` equation). SPEC 19, finding 4.
+#'
 #' @import ggplot2
 #' @importFrom tibble tibble
 #' @importFrom stats lm na.omit sd predict coef uniroot optimize approx
@@ -56,9 +80,10 @@
 #' \item FAT_MAX_porcHRmax: FatMax as \% HRmax, if HRmax provided.
 #' \item FatMax_zone_lower: Lower bound of FatMax zone (\% VO2max).
 #' \item FatMax_zone_upper: Upper bound of FatMax zone (\% VO2max).
+#' \item FatMax_zone_method: "fitted curve", or "linear interpolation" for `method = "MV"`.
 #' \item crossover_point: Intensity at which CHO > FAT (\% VO2max).
-#' \item R_squared: R-squared of the fitted model.
-#' \item RMSE: Root mean squared error of the fitted model.
+#' \item R_squared: R-squared of the fitted model (`NA` for "MV").
+#' \item RMSE: Root mean squared error of the fitted model (`NA` for "MV").
 #' \item method: Method used for curve fitting.
 #' \item VO2max: VO2max used to express intensity (ml/min).
 #' \item VO2max_window: effective averaging window for VO2max (s); NA if VO2max was supplied.
@@ -123,7 +148,7 @@ MFO <- function(step_time,
                 include_basal = FALSE) {
 
   # Validate inputs
-  method <- match.arg(method, c("P3", "P2", "MRER"))
+  method <- match.arg(method, c("P3", "P2", "MV", "MRER"))
   negative_FAT <- match.arg(negative_FAT, c("truncate", "exclude", "keep"))
 
   # Solve error: 'list' object cannot be coerced to type 'double'
@@ -215,9 +240,12 @@ MFO <- function(step_time,
     result <- .fit_P3(MFO_db)
   } else if (method == "P2") {
     result <- .fit_P2(MFO_db)
+  } else if (method == "MV") {
+    result <- .fit_MV(MFO_db)
   } else if (method == "MRER") {
     result <- .fit_MRER(MFO_db)
   }
+  FatMax_zone_method <- if (result$method == "MV") "linear interpolation" else "fitted curve"
 
   VAR_MFO <- result$MFO
   VO2_MFO <- result$FAT_MAX
@@ -256,7 +284,8 @@ MFO <- function(step_time,
 
   # --- Plot ---
   MFO_plot <- .create_MFO_plot(MFO_db, fat_predict_fn, cho_predict_fn,
-                               VO2_MFO, VAR_MFO, fatmax_zone, crossover, method)
+                               VO2_MFO, VAR_MFO, fatmax_zone, crossover, method,
+                               FatMax_zone_method)
 
   return(list(MFO_db = MFO_db,
               MFO_plot = MFO_plot,
@@ -268,6 +297,7 @@ MFO <- function(step_time,
               FAT_MAX_porcHRmax = FAT_MAX_porcHRmax,
               FatMax_zone_lower = fatmax_zone$lower,
               FatMax_zone_upper = fatmax_zone$upper,
+              FatMax_zone_method = FatMax_zone_method,
               crossover_point = crossover,
               R_squared = R_squared,
               RMSE = RMSE,
@@ -352,7 +382,7 @@ MFO <- function(step_time,
   return(list(MFO = VAR_MFO, FAT_MAX = VO2_MFO,
               R_squared = R_squared, RMSE = RMSE,
               fat_predict_fn = fat_predict_fn,
-              cho_predict_fn = cho_predict_fn))
+              cho_predict_fn = cho_predict_fn, method = "P3"))
 }
 
 
@@ -397,40 +427,67 @@ MFO <- function(step_time,
   return(list(MFO = VAR_MFO, FAT_MAX = VO2_MFO,
               R_squared = R_squared, RMSE = RMSE,
               fat_predict_fn = fat_predict_fn,
-              cho_predict_fn = cho_predict_fn))
+              cho_predict_fn = cho_predict_fn, method = "P2"))
 }
 
 
-# --- Internal helper: Fit MRER method ---
+# --- Internal helper: measured values (MV), SPEC 6.1 ---
+# Highest observed FAT (author equations); curve = linear interpolation
+.fit_MV <- function(MFO_db) {
+  idx_max <- which.max(MFO_db$FAT)
+  ord <- order(MFO_db$porc_VO2)
+  x <- MFO_db$porc_VO2[ord]
+  interp <- function(y) function(xout) approx(x, y[ord], xout = xout, rule = 2)$y
+
+  list(MFO = MFO_db$FAT[idx_max], FAT_MAX = MFO_db$porc_VO2[idx_max],
+       R_squared = NA_real_, RMSE = NA_real_,
+       fat_predict_fn = interp(MFO_db$FAT),
+       cho_predict_fn = interp(MFO_db$CHO), method = "MV")
+}
+
+
+# --- Internal helper: MRER of Cheneviere et al. (2009, p. 1617), SPEC 6.1 ---
+# 1 - RER = a1 + b1 x and VO2 = a2 + b2 x (straight lines of %VO2max);
+# FAT = 1.7 (1 - RER) VO2 / 1000 is a parabola with vertex
+# x = -(a1 b2 + a2 b1) / (2 b1 b2), a maximum when b1 b2 < 0.
 .fit_MRER <- function(MFO_db) {
-  # MRER: Fat ox = 1.7 * (1 - RER) * VO2 / 1000  (g/min)
-  MFO_db$FAT_MRER <- fat_oxidation_MRER(MFO_db$VO2, MFO_db$RER)
+  x <- MFO_db$porc_VO2
+  one_minus_rer <- 1 - MFO_db$RER
+  l_rer <- coef(lm(one_minus_rer ~ x))
+  l_vo2 <- coef(lm(MFO_db$VO2 ~ x))
+  a1 <- l_rer[[1]]; b1 <- l_rer[[2]]
+  a2 <- l_vo2[[1]]; b2 <- l_vo2[[2]]
 
-  idx_max <- which.max(MFO_db$FAT_MRER)
-  VAR_MFO <- MFO_db$FAT_MRER[idx_max]
-  VO2_MFO <- MFO_db$porc_VO2[idx_max]
+  fat_predict_fn <- function(x) 1.7 * (a1 + b1 * x) * (a2 + b2 * x) / 1000
 
-  # For MRER we use a simple polynomial fit for visualization
-  mod <- lm(FAT_MRER ~ porc_VO2 + I(porc_VO2^2) + I(porc_VO2^3), data = MFO_db)
-
-  ss_res <- sum(residuals(mod)^2)
-  ss_tot <- sum((MFO_db$FAT_MRER - mean(MFO_db$FAT_MRER))^2)
-  R_squared <- 1 - ss_res / ss_tot
-  RMSE <- sqrt(mean(residuals(mod)^2))
-
-  fat_predict_fn <- function(x) {
-    predict(mod, newdata = data.frame(porc_VO2 = x))
+  if (any(is.na(c(a1, b1, a2, b2))) || b1 * b2 >= 0) {
+    warning("MRER: the product of the (1 - RER) and VO2 lines has no maximum. Using MV.",
+            call. = FALSE)
+    return(.fit_MV(MFO_db))
   }
+  VO2_MFO <- -(a1 * b2 + a2 * b1) / (2 * b1 * b2)
+  if (VO2_MFO < min(x) || VO2_MFO > max(x)) {
+    warning(sprintf(paste0("MRER: vertex at %.1f %%VO2max is outside the measured ",
+                           "range (%.1f-%.1f). Using MV."), VO2_MFO, min(x), max(x)),
+            call. = FALSE)
+    return(.fit_MV(MFO_db))
+  }
+
+  # Goodness of fit of the parabola to the observed 1.7 (1 - RER) VO2
+  fat_obs <- fat_oxidation_MRER(MFO_db$VO2, MFO_db$RER)
+  resid <- fat_obs - fat_predict_fn(x)
+  R_squared <- 1 - sum(resid^2) / sum((fat_obs - mean(fat_obs))^2)
+  RMSE <- sqrt(mean(resid^2))
 
   mod_cho <- lm(CHO ~ porc_VO2 + I(porc_VO2^2) + I(porc_VO2^3), data = MFO_db)
   cho_predict_fn <- function(x) {
     predict(mod_cho, newdata = data.frame(porc_VO2 = x))
   }
 
-  return(list(MFO = VAR_MFO, FAT_MAX = VO2_MFO,
-              R_squared = R_squared, RMSE = RMSE,
-              fat_predict_fn = fat_predict_fn,
-              cho_predict_fn = cho_predict_fn))
+  list(MFO = fat_predict_fn(VO2_MFO), FAT_MAX = VO2_MFO,
+       R_squared = R_squared, RMSE = RMSE,
+       fat_predict_fn = fat_predict_fn,
+       cho_predict_fn = cho_predict_fn, method = "MRER")
 }
 
 
@@ -482,7 +539,8 @@ MFO <- function(step_time,
 
 # --- Internal helper: Create MFO plot ---
 .create_MFO_plot <- function(MFO_db, fat_predict_fn, cho_predict_fn,
-                              VO2_MFO, VAR_MFO, fatmax_zone, crossover, method) {
+                              VO2_MFO, VAR_MFO, fatmax_zone, crossover, method,
+                              zone_method = "fitted curve") {
 
   x_seq <- seq(min(MFO_db$porc_VO2), max(MFO_db$porc_VO2), length.out = 200)
   fat_curve <- data.frame(porc_VO2 = x_seq, FAT = fat_predict_fn(x_seq))
@@ -491,6 +549,9 @@ MFO <- function(step_time,
   VO2_MFO_text <- paste("FAT[MAX] == ~", round(VO2_MFO, 2), "*'% VO'[2]*'max'")
   VAR_MFO_text <- paste("MFO == ~", round(VAR_MFO, 3), "*' g/min'")
   method_text <- paste("Method:", method)
+  if (zone_method == "linear interpolation") {
+    method_text <- paste0(method_text, " (Fatmax zone: linear interpolation)")
+  }
 
   p <- ggplot() +
     # FatMax zone shading

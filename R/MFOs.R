@@ -14,7 +14,7 @@
 #' @param step_time how often the data was collected (in seconds).
 #' @param cv_var variable to estimate coefficient of variation. Can be: "VO2", "VCO2" or "RER".
 #' @param author equation set: "Frayn", "Jeukendrup" or "Peronnet".
-#' @param method curve-fitting method: "P3", "P2", or "MRER". Default "P3".
+#' @param method method to locate MFO: "P3" (default), "P2", "MV" or "MRER". See [MFO()].
 #' @param VO2max VO2max can be passed directly (ml/min). Default NULL. If given, it is used for
 #'        every participant and the graded databases are ignored.
 #' @param vo2max_window averaging window in seconds for VO2max from the graded database
