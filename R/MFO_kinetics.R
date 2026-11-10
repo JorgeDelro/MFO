@@ -6,6 +6,13 @@
 #' Also calculates Fatmin (the intensity where fat oxidation becomes negligible),
 #' which is a unique capability of the SIN model over polynomial methods.
 #'
+#' The model is equation \[14\] of Cheneviere et al. (2009, Med Sci Sports Exerc
+#' 41: 1615-1625, p. 1618, \doi{10.1249/MSS.0b013e31819e2f91}):
+#' \deqn{\%MFO = \sin\{[\pi^{1/s} / (\pi + 2d) \cdot (Kx + d + t)]^s\},
+#'       \quad K = \pi/100,}
+#' x in \% VO2max. Up to v0.2.0 the package computed (pi^(1/s)/pi) + 2d, so its
+#' `d` (and `t`) are not comparable with published values (SPEC 6.5, 19).
+#'
 #' @param MFO_data a data frame obtained from the MFO function (must contain FAT and porc_VO2 columns).
 #'
 #' @importFrom minpack.lm nlsLM
@@ -84,8 +91,8 @@ MFO_kinetics <- function(MFO_data) {
   colnames(data_nls)[1] <- "porc_VO2_kinetics"
 
   # --- SIN model fitting ---
-  # %MFO = sin(( (pi^(1/s) / pi + 2*d) * (K*porc_VO2 + d + t) )^s)
-  # K = pi/100
+  # %MFO = sin([pi^(1/s) / (pi + 2d) * (K*porc_VO2 + d + t)]^s), K = pi/100
+  # Cheneviere et al. (2009), eq. [14]; see .sin_model() (SPEC 6.5)
 
   convergence <- TRUE
   d <- NA; s <- NA; t_param <- NA
@@ -94,8 +101,7 @@ MFO_kinetics <- function(MFO_data) {
 
   tryCatch({
     mod_nls <- nlsLM(
-      porc_MFO_kinetics ~ sin(((pi^(1/s) / pi + 2 * d) *
-                                  ((pi / 100) * porc_VO2_kinetics + d + t_param))^s),
+      porc_MFO_kinetics ~ .sin_model(porc_VO2_kinetics, d, s, t_param),
       start = list(d = 0, s = 1, t_param = 0),
       data = data_nls,
       control = list(maxiter = 200)
@@ -138,9 +144,7 @@ MFO_kinetics <- function(MFO_data) {
   # --- Calculate FatMax from SIN model ---
   FatMax_SIN <- NA
   if (convergence) {
-    sin_fn <- function(x) {
-      sin(((pi^(1/s) / pi + 2 * d) * ((pi / 100) * x + d + t_param))^s)
-    }
+    sin_fn <- function(x) .sin_model(x, d, s, t_param)
     # Find maximum by optimization
     opt <- optimize(sin_fn, interval = c(0, 100), maximum = TRUE)
     FatMax_SIN <- opt$maximum
@@ -149,9 +153,7 @@ MFO_kinetics <- function(MFO_data) {
   # --- Calculate Fatmin (intensity where fat ox becomes negligible) ---
   Fatmin <- NA
   if (convergence && !is.na(FatMax_SIN)) {
-    sin_fn <- function(x) {
-      sin(((pi^(1/s) / pi + 2 * d) * ((pi / 100) * x + d + t_param))^s)
-    }
+    sin_fn <- function(x) .sin_model(x, d, s, t_param)
     # Fatmin: find where SIN curve crosses near 0 above FatMax
     tryCatch({
       x_search <- seq(FatMax_SIN, 100, length.out = 500)
@@ -169,12 +171,11 @@ MFO_kinetics <- function(MFO_data) {
 
   # --- Basic SIN curve (reference: d=0, s=1, t=0) ---
   porc_VO2_100 <- seq(from = 0, to = 100, length.out = 100)
-  porc_MFO_basic <- sin(((pi^(1/1) / pi + 2 * 0) * ((pi / 100) * porc_VO2_100 + 0 + 0))^1)
+  porc_MFO_basic <- .sin_model(porc_VO2_100, d = 0, s = 1, t = 0)
 
   # --- Fitted SIN curve ---
   if (convergence) {
-    porc_MFO_fitted <- sin(((pi^(1/s) / pi + 2 * d) *
-                              ((pi / 100) * porc_VO2_100 + d + t_param))^s)
+    porc_MFO_fitted <- .sin_model(porc_VO2_100, d, s, t_param)
   } else {
     porc_MFO_fitted <- rep(NA, 100)
   }

@@ -12,6 +12,14 @@ Target: v0.2.1 on CRAN. Scientific background and sources in `docs/SPEC.md`.
 
 ## Bug fixes
 
+* SIN model: `MFO_kinetics()` now implements equation [14] of Chenevière
+  et al. (2009), `pi^(1/s) / (pi + 2*d)`; v0.1.0/v0.2.0 computed
+  `pi^(1/s) / pi + 2*d`. Both describe the same family of curves, so the
+  fitted curve can be the same, but `d` and `t` take different values: the
+  old `d` was not Chenevière's dilatation and is not comparable with
+  published values. With their Fig. 5 parameters (d = 0.18, s = 1.52,
+  t = 0.21) the old formula put Fatmax at 28.9 %VO2max instead of 58.2
+  (SPEC 6.5, 19 finding 5).
 * VO2max from `db_graded` is now the highest rolling mean over the new
   `vo2max_window` argument (default 30 s) instead of the single highest
   record. If the window is not a multiple of `step_time`, the number of
@@ -67,9 +75,6 @@ Target: v0.2.1 on CRAN. Scientific background and sources in `docs/SPEC.md`.
 Found while verifying the code against the primary sources (SPEC sections
 9.5 and 19):
 
-* The SIN model in `MFO_kinetics()` computes `pi^(1/s) / pi + 2*d` instead of
-  `pi^(1/s) / (pi + 2*d)` (Cheneviere et al., 2009, eq. 14). Values of `d`
-  from v0.1.0/v0.2.0 are not comparable with published values.
 * `MFO_kinetics()` fits the SIN model to a P3-smoothed synthetic grid instead
   of the observed steps, and defines `Fatmin` with a 5 % threshold instead of
   the second zero of the curve.

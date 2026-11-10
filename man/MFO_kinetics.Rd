@@ -33,6 +33,14 @@ and extract three parameters: dilatation (d), symmetry (s), and translation (t).
 Also calculates Fatmin (the intensity where fat oxidation becomes negligible),
 which is a unique capability of the SIN model over polynomial methods.
 }
+\details{
+The model is equation \[14\] of Cheneviere et al. (2009, Med Sci Sports Exerc
+41: 1615-1625, p. 1618, \doi{10.1249/MSS.0b013e31819e2f91}):
+\deqn{\%MFO = \sin\{[\pi^{1/s} / (\pi + 2d) \cdot (Kx + d + t)]^s\},
+      \quad K = \pi/100,}
+x in \% VO2max. Up to v0.2.0 the package computed (pi^(1/s)/pi) + 2d, so its
+`d` (and `t`) are not comparable with published values (SPEC 6.5, 19).
+}
 \examples{
 \dontrun{
 # Read dfs
