@@ -42,7 +42,13 @@ different stoichiometric equations.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">substrate_oxidation</span><span class="op">(</span><span class="va">VO2</span>, <span class="va">VCO2</span>, <span class="va">author</span>, VO2max <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">substrate_oxidation</span><span class="op">(</span></span>
+<span>  <span class="va">VO2</span>,</span>
+<span>  <span class="va">VCO2</span>,</span>
+<span>  <span class="va">author</span>,</span>
+<span>  VO2max <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  phase <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"exercise"</span>, <span class="st">"rest"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -50,11 +56,11 @@ different stoichiometric equations.</p>
 
 
 <dl><dt id="arg-vo-">VO2<a class="anchor" aria-label="anchor" href="#arg-vo-"></a></dt>
-<dd><p>oxygen consumption in ml/min</p></dd>
+<dd><p>oxygen consumption in ml/min (scalar or vector)</p></dd>
 
 
 <dt id="arg-vco-">VCO2<a class="anchor" aria-label="anchor" href="#arg-vco-"></a></dt>
-<dd><p>carbon dioxide production in ml/min</p></dd>
+<dd><p>carbon dioxide production in ml/min (same length as VO2)</p></dd>
 
 
 <dt id="arg-author">author<a class="anchor" aria-label="anchor" href="#arg-author"></a></dt>
@@ -62,12 +68,32 @@ different stoichiometric equations.</p>
 
 
 <dt id="arg-vo-max">VO2max<a class="anchor" aria-label="anchor" href="#arg-vo-max"></a></dt>
-<dd><p>maximum oxygen uptake in ml/min (required for Jeukendrup)</p></dd>
+<dd><p>maximum oxygen uptake in ml/min (required for Jeukendrup during exercise)</p></dd>
+
+
+<dt id="arg-phase">phase<a class="anchor" aria-label="anchor" href="#arg-phase"></a></dt>
+<dd><p>"exercise" (default) or "rest". Only changes "Jeukendrup".</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>Named list with CHO (g/min), FAT (g/min), Kcal (kcal/min)</p>
+    </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>Rule: a coefficient printed in the source is used as printed; a derived
+coefficient is used only where the source prints no equation (SPEC 19).</p>
+<p>**Jeukendrup &amp; Wallis (2005)** (Int J Sports Med 26 Suppl 1: S28-S37), with the
+coefficients printed in their Table 5:</p><ul><li><p>below 50 % VO2max (40-50 % set): CHO = 4.344 VCO2 - 3.061 VO2;</p></li>
+<li><p>at or above 50 % VO2max (50-75 % set): CHO = 4.210 VCO2 - 2.962 VO2;</p></li>
+<li><p>FAT = 1.695 VO2 - 1.701 VCO2 in both.</p></li>
+</ul><p>With `phase = "rest"` there is no printed equation: Jeukendrup &amp; Wallis propose
+none. As a package decision (pure glucose, no glycogen use at rest), the pair is
+derived from the O2/CO2 constants of their Table 4 (glucose 0.7455/0.7426,
+fatty acid 2.0092/1.4136 L/g) by solving the 2x2 system:
+CHO = 4.58519 VCO2 - 3.22597 VO2, FAT = 1.69469 VO2 - 1.70130 VCO2.
+The same derivation with 50/50 and 20/80 glucose/glycogen reproduces the
+Table 5 coefficients within 0.005 and is kept as a cross-check in the tests.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

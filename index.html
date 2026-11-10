@@ -70,9 +70,9 @@
 <p>One participant is described by three recordings, exported from the gas analyser at a fixed sampling interval (<code>step_time</code>, in seconds) with columns <code>VO2</code> and <code>VCO2</code> (mL/min), <code>RER</code> and <code>HR</code> (bpm):</p>
 <table class="table">
 <colgroup>
-<col width="28%">
-<col width="11%">
-<col width="60%">
+<col width="19%">
+<col width="7%">
+<col width="72%">
 </colgroup>
 <thead><tr>
 <th>Recording</th>
@@ -93,7 +93,7 @@
 <tr>
 <td>Maximal graded test</td>
 <td><code>db_graded</code></td>
-<td>VO2max, to express intensity as %VO2max (or pass <code>VO2max</code> directly)</td>
+<td>VO2max = highest mean over <code>vo2max_window</code> s (default 30), to express intensity as %VO2max (or pass <code>VO2max</code> directly)</td>
 </tr>
 </tbody>
 </table>
@@ -127,9 +127,11 @@
 <span><span class="va">result</span><span class="op">$</span><span class="va">MFO</span>       <span class="co"># g/min</span></span>
 <span><span class="co">#&gt; [1] 0.316712</span></span>
 <span><span class="va">result</span><span class="op">$</span><span class="va">FAT_MAX</span>   <span class="co"># %VO2max</span></span>
-<span><span class="co">#&gt; [1] 34.8358</span></span>
+<span><span class="co">#&gt; [1] 36.17038</span></span>
+<span><span class="va">result</span><span class="op">$</span><span class="va">VO2max</span>    <span class="co"># ml/min, highest 40-s mean (30 s rounded up to 2 records)</span></span>
+<span><span class="co">#&gt; [1] 3315</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">result</span><span class="op">$</span><span class="va">FatMax_zone_lower</span>, <span class="va">result</span><span class="op">$</span><span class="va">FatMax_zone_upper</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 23.29808 46.55705</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 24.19065 48.34069</span></span></code></pre></div>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result</span><span class="op">$</span><span class="va">MFO_plot</span></span></code></pre></div>
 <p><img src="reference/figures/README-mfo-plot-1.png" alt="Fat and carbohydrate oxidation (g/min) against exercise intensity (%VO2max) for the example participant, with the fitted P3 curve, the Fatmax zone shaded, and vertical lines at Fatmax and at the crossover point." width="100%"></p>
@@ -137,11 +139,11 @@
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">kin</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/MFO_kinetics.html">MFO_kinetics</a></span><span class="op">(</span><span class="va">result</span><span class="op">$</span><span class="va">MFO_db</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="va">kin</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"d"</span>, <span class="st">"s"</span>, <span class="st">"t"</span>, <span class="st">"FatMax_SIN"</span>, <span class="st">"Fatmin"</span>, <span class="st">"R_squared"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="co">#&gt;          d          s          t FatMax_SIN     Fatmin  R_squared </span></span>
-<span><span class="co">#&gt;  0.1704067  0.9348865 -0.1209002 34.6633388 73.2892207  0.9972825</span></span></code></pre></div>
+<span><span class="co">#&gt;           d           s           t  FatMax_SIN      Fatmin   R_squared </span></span>
+<span><span class="co">#&gt;  0.14408038  0.93487545 -0.09259011 35.99157490 76.01287476  0.99727966</span></span></code></pre></div>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">kin</span><span class="op">$</span><span class="va">MFO_kinetics_plot</span></span>
-<span><span class="co">#&gt; Warning: Removed 27 rows containing missing values or values outside the scale range</span></span>
+<span><span class="co">#&gt; Warning: Removed 24 rows containing missing values or values outside the scale range</span></span>
 <span><span class="co">#&gt; (`geom_line()`).</span></span></code></pre></div>
 <p><img src="reference/figures/README-sin-plot-1.png" alt="Normalised fat oxidation (%MFO) against intensity (%VO2max): the basic SIN curve (d = 0, s = 1, t = 0) in grey and the curve fitted to the example participant in orange." width="100%"></p>
 <p>To process a whole folder of participants and write a summary table, see <code><a href="reference/MFOs.html">?MFOs</a></code>.</p>
@@ -323,10 +325,7 @@
 <strong>SIN model formula.</strong> The code computes <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msup><mi>π</mi><mrow><mn>1</mn><mi>/</mi><mi>s</mi></mrow></msup><mi>/</mi><mi>π</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mn>2</mn><mi>d</mi></mrow><annotation encoding="application/x-tex">(\pi^{1/s}/\pi) + 2d</annotation></semantics></math> instead of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>π</mi><mrow><mn>1</mn><mi>/</mi><mi>s</mi></mrow></msup><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mi>π</mi><mo>+</mo><mn>2</mn><mi>d</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\pi^{1/s}/(\pi + 2d)</annotation></semantics></math>. Both agree when d = 0, but otherwise the returned <code>d</code> is <strong>not</strong> comparable with values published by Chenevière et al. The fit is also made on a P3-smoothed grid rather than on the observed steps, and <code>Fatmin</code> uses a 5 % threshold instead of the second zero of the curve.</li>
 <li>
 <strong><code>method = "MRER"</code></strong> takes the observed maximum of 1.7 (1 − RER) VO2. This is a measured-values (MV) method, not the two-regression MRER procedure of Chenevière et al. (2009).</li>
-<li>
-<strong>VO2max</strong> from <code>db_graded</code> is the single highest record, not a 30-s average, which can overestimate VO2max and shift Fatmax to the left.</li>
-<li>
-<strong>Resting values</strong> are always computed with Frayn’s equations, whatever <code>author</code> is, and the resting row is not used in the curve fit.</li>
+<li>The <strong>resting row</strong> is not used in the curve fit (an <code>include_basal</code> option is planned).</li>
 <li>The <code>Load</code> column of <code>MFO_db</code> is a step label, not the measured external load.</li>
 </ul>
 </div>

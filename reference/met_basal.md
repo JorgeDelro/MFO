@@ -6,7 +6,7 @@ identify the most metabolically stable 5-minute period.
 ## Usage
 
 ``` r
-met_basal(step_time, db, cv_var, window_duration = 300)
+met_basal(step_time, db, cv_var, window_duration = 300, author = "Frayn")
 ```
 
 ## Arguments
@@ -27,3 +27,12 @@ met_basal(step_time, db, cv_var, window_duration = 300)
 - window_duration:
 
   duration of the stable window in seconds (default 300 = 5 min).
+
+- author:
+
+  equation set used for resting substrate oxidation: "Frayn" (default),
+  "Jeukendrup" or "Peronnet". \`MFO()\` passes its own \`author\`, so
+  resting and exercise values use the same equations (SPEC 9.5).
+  Jeukendrup & Wallis (2005) propose no resting equation; with
+  "Jeukendrup" the package uses the 100 % glucose pair derived from
+  their Table 4 (see \[substrate_oxidation()\], \`phase = "rest"\`).

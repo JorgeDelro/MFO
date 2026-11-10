@@ -35,7 +35,7 @@ columns `VO2` and `VCO2` (mL/min), `RER` and `HR` (bpm):
 |----|----|----|
 | Resting metabolism (15–30 min) | `db_basal` | Most stable 5-min window → resting VO2, RER, CHO, FAT, kcal |
 | Incremental MFO test | `db_MFO` | Steady-state average of each step → fat oxidation curve |
-| Maximal graded test | `db_graded` | VO2max, to express intensity as %VO2max (or pass `VO2max` directly) |
+| Maximal graded test | `db_graded` | VO2max = highest mean over `vo2max_window` s (default 30), to express intensity as %VO2max (or pass `VO2max` directly) |
 
 The package ships one anonymised example participant (`basal_df`,
 `MFO_df`, `VO2max_df`).
@@ -68,9 +68,11 @@ result <- MFO(
 result$MFO       # g/min
 #> [1] 0.316712
 result$FAT_MAX   # %VO2max
-#> [1] 34.8358
+#> [1] 36.17038
+result$VO2max    # ml/min, highest 40-s mean (30 s rounded up to 2 records)
+#> [1] 3315
 c(result$FatMax_zone_lower, result$FatMax_zone_upper)
-#> [1] 23.29808 46.55705
+#> [1] 24.19065 48.34069
 ```
 
 ``` r
@@ -89,14 +91,14 @@ The kinetics of the curve are described with the SIN model:
 
 kin <- MFO_kinetics(result$MFO_db)
 unlist(kin[c("d", "s", "t", "FatMax_SIN", "Fatmin", "R_squared")])
-#>          d          s          t FatMax_SIN     Fatmin  R_squared 
-#>  0.1704067  0.9348865 -0.1209002 34.6633388 73.2892207  0.9972825
+#>           d           s           t  FatMax_SIN      Fatmin   R_squared 
+#>  0.14408038  0.93487545 -0.09259011 35.99157490 76.01287476  0.99727966
 ```
 
 ``` r
 
 kin$MFO_kinetics_plot
-#> Warning: Removed 27 rows containing missing values or values outside the scale range
+#> Warning: Removed 24 rows containing missing values or values outside the scale range
 #> (`geom_line()`).
 ```
 
@@ -205,11 +207,8 @@ and MRER issues do not affect MFO and Fatmax obtained with P3 or P2.
 - **`method = "MRER"`** takes the observed maximum of 1.7 (1 − RER) VO2.
   This is a measured-values (MV) method, not the two-regression MRER
   procedure of Chenevière et al. (2009).
-- **VO2max** from `db_graded` is the single highest record, not a 30-s
-  average, which can overestimate VO2max and shift Fatmax to the left.
-- **Resting values** are always computed with Frayn’s equations,
-  whatever `author` is, and the resting row is not used in the curve
-  fit.
+- The **resting row** is not used in the curve fit (an `include_basal`
+  option is planned).
 - The `Load` column of `MFO_db` is a step label, not the measured
   external load.
 

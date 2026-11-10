@@ -42,7 +42,7 @@ to identify the most metabolically stable 5-minute period.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">met_basal</span><span class="op">(</span><span class="va">step_time</span>, <span class="va">db</span>, <span class="va">cv_var</span>, window_duration <span class="op">=</span> <span class="fl">300</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">met_basal</span><span class="op">(</span><span class="va">step_time</span>, <span class="va">db</span>, <span class="va">cv_var</span>, window_duration <span class="op">=</span> <span class="fl">300</span>, author <span class="op">=</span> <span class="st">"Frayn"</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -63,6 +63,14 @@ to identify the most metabolically stable 5-minute period.</p>
 
 <dt id="arg-window-duration">window_duration<a class="anchor" aria-label="anchor" href="#arg-window-duration"></a></dt>
 <dd><p>duration of the stable window in seconds (default 300 = 5 min).</p></dd>
+
+
+<dt id="arg-author">author<a class="anchor" aria-label="anchor" href="#arg-author"></a></dt>
+<dd><p>equation set used for resting substrate oxidation: "Frayn" (default),
+"Jeukendrup" or "Peronnet". `MFO()` passes its own `author`, so resting and
+exercise values use the same equations (SPEC 9.5). Jeukendrup &amp; Wallis (2005)
+propose no resting equation; with "Jeukendrup" the package uses the 100 % glucose
+pair derived from their Table 4 (see [substrate_oxidation()], `phase = "rest"`).</p></dd>
 
 </dl></div>
 

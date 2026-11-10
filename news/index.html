@@ -42,6 +42,23 @@
 <li>Fixed the DOI of Achten et al. (2002) in <code>DESCRIPTION</code>.</li>
 </ul></div>
 <div class="section level3">
+<h3 id="bug-fixes-development-version">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-development-version"></a></h3>
+<ul><li>VO2max from <code>db_graded</code> is now the highest rolling mean over the new <code>vo2max_window</code> argument (default 30 s) instead of the single highest record. If the window is not a multiple of <code>step_time</code>, the number of records is rounded up (30 s with 20-s records = 2 records = 40 s) and a message reports the effective window. Fatmax, the Fatmax zone and the crossover point (%VO2max) increase by the ratio old/new VO2max; MFO (g/min) is unchanged. In the example data VO2max drops from 3442 to 3315 ml/min and Fatmax moves from 34.8 to 36.2 %VO2max. Use <code>vo2max_window = step_time</code> to reproduce v0.2.0 (SPEC 9.5, 14).</li>
+<li>Resting substrate oxidation (<code>x_CHO</code>, <code>x_FAT</code>, <code>x_Kcal</code>) now uses the same <code>author</code> equations as the test; it always used Frayn before. Jeukendrup &amp; Wallis (2005) propose no resting equation: with <code>author = "Jeukendrup"</code> the package uses the 100 % glucose pair derived from their Table 4 constants (CHO = 4.58519 VCO2 − 3.22597 VO2, FAT = 1.69469 VO2 − 1.70130 VCO2), documented as a package decision. MFO and Fatmax are not affected because the resting row is not part of the fit. Example data with <code>"Peronnet"</code>: resting CHO 0.130 -&gt; 0.134 g/min, FAT 0.0726 -&gt; 0.0723 g/min (SPEC 9.5).</li>
+<li>
+<code><a href="../reference/substrate_oxidation.html">substrate_oxidation()</a></code> no longer fails on vectors with <code>author = "Jeukendrup"</code>; each value picks its own equation.</li>
+<li>When both <code>VO2max</code> and <code>db_graded</code> are given, <code>VO2max</code> is now used and <code>db_graded</code> is ignored with a warning (v0.2.0 silently used <code>db_graded</code>).</li>
+</ul></div>
+<div class="section level3">
+<h3 id="coefficient-policy-development-version">Coefficient policy<a class="anchor" aria-label="anchor" href="#coefficient-policy-development-version"></a></h3>
+<ul><li>Coefficients printed in the source are used as printed and cited by table or equation; derived coefficients are used only where the source prints no equation, with the derivation explained in the documentation (SPEC 19). Exercise equations of Jeukendrup &amp; Wallis (2005, Table 5) and Frayn (1983) are used as printed; their derivation from the published O2/CO2 constants is kept as a cross-check test.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="new-features-development-version">New features<a class="anchor" aria-label="anchor" href="#new-features-development-version"></a></h3>
+<ul><li>
+<code><a href="../reference/MFO.html">MFO()</a></code> returns <code>VO2max</code>, <code>VO2max_window</code> (effective, s) and <code>VO2max_window_requested</code>; <code><a href="../reference/MFOs.html">MFOs()</a></code> gains <code>vo2max_window</code> and the columns <code>VO2max</code> and <code>VO2max_window</code>.</li>
+</ul></div>
+<div class="section level3">
 <h3 id="known-issues-scheduled-for-this-release-development-version">Known issues (scheduled for this release)<a class="anchor" aria-label="anchor" href="#known-issues-scheduled-for-this-release-development-version"></a></h3>
 <p>Found while verifying the code against the primary sources (SPEC sections 9.5 and 19):</p>
 <ul><li>The SIN model in <code><a href="../reference/MFO_kinetics.html">MFO_kinetics()</a></code> computes <code>pi^(1/s) / pi + 2*d</code> instead of <code>pi^(1/s) / (pi + 2*d)</code> (Cheneviere et al., 2009, eq. 14). Values of <code>d</code> from v0.1.0/v0.2.0 are not comparable with published values.</li>
@@ -49,9 +66,8 @@
 <code><a href="../reference/MFO_kinetics.html">MFO_kinetics()</a></code> fits the SIN model to a P3-smoothed synthetic grid instead of the observed steps, and defines <code>Fatmin</code> with a 5 % threshold instead of the second zero of the curve.</li>
 <li>
 <code>method = "MRER"</code> is a measured-values method on <code>1.7 * (1 - RER) * VO2</code>, not the two-regression MRER procedure.</li>
-<li>VO2max from <code>db_graded</code> is the single highest record, not a rolling mean.</li>
-<li>Resting values always use Frayn’s equations, and the resting row is dropped before the curve fit.</li>
-<li>Péronnet–Massicotte coefficients are rounded constants rather than derived from their Table 1; energy equivalents are 4/9 kcal/g for all equations.</li>
+<li>The resting row is dropped before the curve fit (<code>include_basal</code> option planned); <code>MFO_db$Load</code> is a synthetic step index, not measured load.</li>
+<li>Péronnet &amp; Massicotte (1991) print no equations: the package uses rounded constants instead of the coefficients derived from their Table 1 (4.58519/3.22597; 1.69469/1.70130); energy equivalents are 4/9 kcal/g for all equations (Jeukendrup &amp; Wallis 2005, Table 5, give CHO 3.95 kcal/g at 40–50 %VO2max, 4.07 kcal/g at 50–75 % and fat 9.75 kcal/g).</li>
 </ul></div>
 </div>
     <div class="section level2">

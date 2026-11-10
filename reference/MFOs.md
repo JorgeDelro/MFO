@@ -32,7 +32,8 @@ MFOs(
   col_name_HR = "HR",
   save_plot = TRUE,
   save_result = TRUE,
-  output_format = "xlsx"
+  output_format = "xlsx",
+  vo2max_window = 30
 )
 ```
 
@@ -80,7 +81,8 @@ MFOs(
 
 - VO2max:
 
-  VO2max can be passed directly (ml/min). Default NULL.
+  VO2max can be passed directly (ml/min). Default NULL. If given, it is
+  used for every participant and the graded databases are ignored.
 
 - step_duration:
 
@@ -144,6 +146,11 @@ MFOs(
 
   format for results file: "xlsx", "csv", or "rds". Default "xlsx".
 
+- vo2max_window:
+
+  averaging window in seconds for VO2max from the graded database
+  (default 30). See \[MFO()\].
+
 ## Value
 
 Data frame with one row per participant containing:
@@ -157,6 +164,11 @@ Data frame with one row per participant containing:
 
 - MFO_FFM: MFO relative to fat-free mass (mg/kgFFM/min), if
   fat_free_mass provided.
+
+- VO2max: VO2max used (ml/min).
+
+- VO2max_window: effective averaging window for VO2max (s); NA if VO2max
+  was supplied.
 
 - FAT_MAX_perVO2max: FatMax as % VO2max.
 

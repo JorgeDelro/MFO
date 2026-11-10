@@ -23,7 +23,8 @@ MFO(
   negative_FAT = "truncate",
   body_mass = NULL,
   fat_free_mass = NULL,
-  HRmax = NULL
+  HRmax = NULL,
+  vo2max_window = 30
 )
 ```
 
@@ -44,7 +45,8 @@ MFO(
 - db_graded:
 
   database containing incremental exercise test (optional if VO2max
-  provided).
+  provided). VO2max is the highest mean VO2 over \`vo2max_window\`
+  seconds of consecutive records.
 
 - cv_var:
 
@@ -57,7 +59,9 @@ MFO(
 
 - VO2max:
 
-  VO2max can be passed directly (ml/min) instead of using db_graded.
+  VO2max can be passed directly (ml/min) instead of using db_graded. If
+  both are given, \`VO2max\` is used as is and \`db_graded\` is ignored
+  with a warning.
 
 - method:
 
@@ -98,6 +102,13 @@ MFO(
 
   maximum heart rate in bpm (optional, for FatMax as %HRmax).
 
+- vo2max_window:
+
+  averaging window in seconds for VO2max from \`db_graded\` (default
+  30). If it is not a multiple of \`step_time\`, the number of records
+  is rounded up (30 s with 20-s records uses 2 records = 40 s). See SPEC
+  9.5 and 14.
+
 ## Value
 
 Returns a list which contains:
@@ -134,7 +145,16 @@ Returns a list which contains:
 
 - method: Method used for curve fitting.
 
-- x_CHO: carbohydrates in basal metabolism (g/min).
+- VO2max: VO2max used to express intensity (ml/min).
+
+- VO2max_window: effective averaging window for VO2max (s); NA if VO2max
+  was supplied.
+
+- VO2max_window_requested: \`vo2max_window\` as requested (s); NA if
+  VO2max was supplied.
+
+- x_CHO: carbohydrates in basal metabolism (g/min), with the same
+  \`author\` equations as the test.
 
 - x_FAT: fat in basal metabolism (g/min).
 
