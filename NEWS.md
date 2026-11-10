@@ -34,6 +34,10 @@ Target: v0.2.1 on CRAN. Scientific background and sources in `docs/SPEC.md`.
   `RER_cutoff = 1` (Chenevière's step selection) the example gives
   s = 0.54 and Fatmin = 85.3 %VO2max: the SIN is sensitive to the last step,
   see `?MFO_kinetics` (SPEC 6.5, 19 findings 3 and 7).
+* `MFO_kinetics()` now distinguishes two warnings: with fewer than 4 steps the
+  SIN cannot be fitted (`convergence = FALSE`, as before); with 4 or 5 steps
+  it is fitted but warns that the fit is unreliable and that at least 6 steps
+  are recommended (SPEC 6.5).
 * VO2max from `db_graded` is now the highest rolling mean over the new
   `vo2max_window` argument (default 30 s) instead of the single highest
   record. If the window is not a multiple of `step_time`, the number of

@@ -32,7 +32,8 @@ test_that("MFO_kinetics returns correct structure and SIN parameters", {
                     author = "Frayn",
                     VO2max = d$VO2max)
 
-  result_kinetics <- MFO_kinetics(result_MFO$MFO_db)
+  # Helper data have 5 steps: fitted, with the < 6 steps warning
+  expect_warning(result_kinetics <- MFO_kinetics(result_MFO$MFO_db), "unreliable")
 
   # Structure checks
   expect_true(is.data.frame(result_kinetics$MFO_kinetics_data))
@@ -73,7 +74,7 @@ test_that("MFO_kinetics returns Fatmin at the second zero, above FatMax_SIN", {
                     author = "Frayn",
                     VO2max = d$VO2max)
 
-  k <- MFO_kinetics(result_MFO$MFO_db)
+  expect_warning(k <- MFO_kinetics(result_MFO$MFO_db), "unreliable")
 
   expect_true(k$convergence)
   expect_true(k$Fatmin > k$FatMax_SIN)
@@ -92,7 +93,8 @@ test_that("MFO_kinetics plot is a ggplot object", {
                     author = "Frayn",
                     VO2max = d$VO2max)
 
-  result_kinetics <- MFO_kinetics(result_MFO$MFO_db)
+  # Helper data have 5 steps: fitted, with the < 6 steps warning
+  expect_warning(result_kinetics <- MFO_kinetics(result_MFO$MFO_db), "unreliable")
 
   expect_s3_class(result_kinetics$MFO_kinetics_plot, "ggplot")
 })
@@ -152,6 +154,19 @@ test_that("fatmin_threshold gives the closed-form intensity at that fraction of 
 
   expect_error(MFO_kinetics(fig5_steps(), fatmin_threshold = 5), "proportion")
   expect_error(MFO_kinetics(fig5_steps(), fatmin_threshold = 0), "proportion")
+})
+
+test_that("MFO_kinetics warns that 4-5 steps give an unreliable fit", {
+  # 5 steps: fit attempted, warning recommends >= 6 (SPEC 6.5)
+  expect_warning(k5 <- MFO_kinetics(fig5_steps()[c(1, 3, 5, 7, 9), ]),
+                 "5 steps.*unreliable.*at least 6")
+  expect_true(k5$convergence)
+  expect_false(is.na(k5$FatMax_SIN))
+  # 4 steps: same warning, still fitted
+  expect_warning(MFO_kinetics(fig5_steps()[c(1, 3, 5, 9), ]),
+                 "4 steps.*unreliable")
+  # 6 or more steps: no warning
+  expect_no_warning(MFO_kinetics(fig5_steps()[3:8, ]))
 })
 
 test_that("MFO_kinetics needs at least 4 steps", {

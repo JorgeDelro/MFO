@@ -57,7 +57,10 @@ proportion of the highest observed value (\%MFO / 100). There is no smoothing
 and no synthetic grid: v0.1.0/v0.2.0 fitted the SIN to a fine grid predicted by
 a third-degree polynomial, which inflated n and shrank the standard errors of
 d, s and t (SPEC 19, finding 7). R-squared and RMSE are computed on the
-observed proportions. At least 4 rows are needed for 3 parameters.
+observed proportions. At least 4 rows are needed for 3 parameters: with
+fewer the function warns and returns `convergence = FALSE`; with 4 or 5 it
+fits but warns that the fit is unreliable and that at least 6 steps are
+recommended (SPEC 6.5).
 
 `FatMax_SIN` and `Fatmin` come from closed forms derived from eq. \[14\]:
 Fatmax = \[(pi + 2d) 2^(-1/s) - d - t\] / K and, by default, Fatmin = second
