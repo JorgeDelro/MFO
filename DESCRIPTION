@@ -1,6 +1,6 @@
 Package: MFO
 Title: Maximal Fat Oxidation and Kinetics Calculation
-Version: 0.2.0
+Version: 0.2.0.9000
 Authors@R:
     c(person("Jorge R",
              "Fernandez-Santos",
@@ -36,12 +36,12 @@ Description: Calculate the maximal fat oxidation (MFO), the exercise intensity t
               Examples of these methods can be found in Montes de Oca et al (2021)
               <doi:10.1080/17461391.2020.1788650>, Cheneviere et al. (2009)
               <doi:10.1249/MSS.0b013e31819e2f91>, and Achten et al. (2002)
-              <doi:10.1097/00005768-200211000-00015>.
+              <doi:10.1097/00005768-200201000-00015>.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.3
-URL: https://github.com/JorgeDelro/MFO
+URL: https://github.com/JorgeDelro/MFO, https://jorgedelro.github.io/MFO/
 BugReports: https://github.com/JorgeDelro/MFO/issues
 Imports: stats, dplyr, ggplot2, tibble, minpack.lm, openxlsx, readxl, tidyr
 Depends: R (>= 4.1.0)
