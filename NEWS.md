@@ -20,6 +20,20 @@ Target: v0.2.1 on CRAN. Scientific background and sources in `docs/SPEC.md`.
   published values. With their Fig. 5 parameters (d = 0.18, s = 1.52,
   t = 0.21) the old formula put Fatmax at 28.9 %VO2max instead of 58.2
   (SPEC 6.5, 19 finding 5).
+* SIN fitting procedure: `MFO_kinetics()` now fits the model directly to the
+  observed steps (%MFO normalised to the highest observed step), as
+  Chenevière et al. (2009) did. v0.1.0/v0.2.0 fitted a grid of ≥ 50 points
+  predicted by a third-degree polynomial, which inflated n and shrank the
+  standard errors of d, s and t. `FatMax_SIN` and `Fatmin` now come from
+  closed forms derived from eq. [14], and `Fatmin` is the second zero of the
+  curve, (π + d − t)/K, instead of the first grid point below 5 % of MFO.
+  Example data (Frayn): d 0.144 -> −0.385, s 0.935 -> 0.910,
+  t −0.093 -> 0.355, FatMax_SIN 36.0 -> 36.2, Fatmin 76.0 -> 76.4 %VO2max,
+  R² 0.997 -> 0.965 (now on the observed steps); standard errors grow
+  20–60 fold to their honest size. With `negative_FAT = "exclude"` or
+  `RER_cutoff = 1` (Chenevière's step selection) the example gives
+  s = 0.54 and Fatmin = 85.3 %VO2max: the SIN is sensitive to the last step,
+  see `?MFO_kinetics` (SPEC 6.5, 19 findings 3 and 7).
 * VO2max from `db_graded` is now the highest rolling mean over the new
   `vo2max_window` argument (default 30 s) instead of the single highest
   record. If the window is not a multiple of `step_time`, the number of
@@ -59,6 +73,11 @@ Target: v0.2.1 on CRAN. Scientific background and sources in `docs/SPEC.md`.
 
 ## New features
 
+* `MFO_kinetics()` and `MFOs()` gain `fatmin_threshold` (default `NULL`,
+  Fatmin at the second zero of the SIN curve); a proportion of MFO such as
+  0.05 gives the intensity above Fatmax where fat oxidation falls to that
+  fraction, in closed form. The kinetics plot now shows the observed steps
+  and draws the fitted curve between its two zeros (SPEC 19, finding 3).
 * `MFO()` and `MFOs()` gain `include_basal` (default `FALSE`). With `TRUE`
   the resting row enters `MFO_db` as step 0 and is part of the P3/P2 fit, as
   in Montes de Oca et al. (2021). The default reproduces v0.1.0/v0.2.0, which
@@ -75,9 +94,6 @@ Target: v0.2.1 on CRAN. Scientific background and sources in `docs/SPEC.md`.
 Found while verifying the code against the primary sources (SPEC sections
 9.5 and 19):
 
-* `MFO_kinetics()` fits the SIN model to a P3-smoothed synthetic grid instead
-  of the observed steps, and defines `Fatmin` with a 5 % threshold instead of
-  the second zero of the curve.
 * `method = "MRER"` is a measured-values method on `1.7 * (1 - RER) * VO2`,
   not the two-regression MRER procedure.
 * `MFO_db$Load` is a synthetic step index, not measured load.

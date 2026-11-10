@@ -21,6 +21,8 @@
 #'        (default 30). See [MFO()].
 #' @param include_basal logical; include the resting row as step 0 in the fit
 #'        (default `FALSE`). See [MFO()].
+#' @param fatmin_threshold `NULL` (default, Fatmin at the second zero of the SIN) or
+#'        a proportion of MFO in (0, 1). See [MFO_kinetics()].
 #' @param step_duration duration of each exercise step in seconds (default 180).
 #' @param steady_state_duration duration of steady-state period within each step in seconds (default 60).
 #' @param RER_cutoff RER value above which steps are excluded (default NULL).
@@ -112,7 +114,8 @@ MFOs <- function(from = c("folder", "files"),
                  save_result = TRUE,
                  output_format = "xlsx",
                  vo2max_window = 30,
-                 include_basal = FALSE) {
+                 include_basal = FALSE,
+                 fatmin_threshold = NULL) {
 
   from <- match.arg(from)
   output_format <- match.arg(output_format, c("xlsx", "csv", "rds"))
@@ -181,7 +184,8 @@ MFOs <- function(from = c("folder", "files"),
       }
 
       # Calculate kinetics
-      participant_result_kinetics <- MFO_kinetics(participant_result_MFO$MFO_db)
+      participant_result_kinetics <- MFO_kinetics(participant_result_MFO$MFO_db,
+                                                  fatmin_threshold = fatmin_threshold)
 
       # Save kinetics plot
       if (save_plot) {
