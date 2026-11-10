@@ -4,7 +4,13 @@
 \alias{substrate_oxidation}
 \title{Substrate oxidation equations}
 \usage{
-substrate_oxidation(VO2, VCO2, author, VO2max = NULL)
+substrate_oxidation(
+  VO2,
+  VCO2,
+  author,
+  VO2max = NULL,
+  phase = c("exercise", "rest")
+)
 }
 \arguments{
 \item{VO2}{oxygen consumption in ml/min (scalar or vector)}
@@ -13,7 +19,9 @@ substrate_oxidation(VO2, VCO2, author, VO2max = NULL)
 
 \item{author}{equation set: "Frayn", "Jeukendrup", or "Peronnet"}
 
-\item{VO2max}{maximum oxygen uptake in ml/min (required for Jeukendrup)}
+\item{VO2max}{maximum oxygen uptake in ml/min (required for Jeukendrup during exercise)}
+
+\item{phase}{"exercise" (default) or "rest". Only changes "Jeukendrup".}
 }
 \value{
 Named list with CHO (g/min), FAT (g/min), Kcal (kcal/min)
@@ -21,4 +29,19 @@ Named list with CHO (g/min), FAT (g/min), Kcal (kcal/min)
 \description{
 Calculate fat and carbohydrate oxidation from VO2 and VCO2 using
 different stoichiometric equations.
+}
+\details{
+**Jeukendrup & Wallis (2005)** (Int J Sports Med 26 Suppl 1: S28-S37). The
+coefficients are derived in code from the O2/CO2 constants of their Table 4
+(glucose 0.7455/0.7426, glycogen 0.8283/0.8251, fatty acid 2.0092/1.4136 L/g)
+by solving the 2x2 system, for a glucose/glycogen mix of:
+\itemize{
+\item 50/50 below 50 \% VO2max (40-50 \% set; published CHO = 4.344 VCO2 - 3.061 VO2);
+\item 20/80 at or above 50 \% VO2max (50-75 \% set, Table 4 eq. 11;
+  CHO = 4.2105 VCO2 - 2.9623 VO2);
+\item 100/0 with `phase = "rest"`. Jeukendrup & Wallis propose no resting
+  equation; this is a package decision (pure glucose, no glycogen use at rest),
+  giving CHO = 4.585 VCO2 - 3.226 VO2 and FAT = 1.695 VO2 - 1.701 VCO2.
+}
+Derived and published coefficients agree within 0.005 (rounding in the article).
 }

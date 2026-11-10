@@ -143,8 +143,7 @@ MFO <- function(step_time,
   basal <- met_basal(step_time = step_time,
                      db = db_basal,
                      cv_var = cv_var,
-                     author = author,
-                     VO2max = VO2max)
+                     author = author)
 
   # Calculate CHO, FAT and Kcal for each step
   MFO_test <- calculate_vars(step_time = step_time,

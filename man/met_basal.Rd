@@ -4,14 +4,7 @@
 \alias{met_basal}
 \title{Basal metabolic rate}
 \usage{
-met_basal(
-  step_time,
-  db,
-  cv_var,
-  window_duration = 300,
-  author = "Frayn",
-  VO2max = NULL
-)
+met_basal(step_time, db, cv_var, window_duration = 300, author = "Frayn")
 }
 \arguments{
 \item{step_time}{how often the data was collected (in seconds).}
@@ -24,11 +17,9 @@ met_basal(
 
 \item{author}{equation set used for resting substrate oxidation: "Frayn" (default),
 "Jeukendrup" or "Peronnet". `MFO()` passes its own `author`, so resting and
-exercise values use the same equations (SPEC 9.5). With "Jeukendrup" the resting
-point (~5-10 \% VO2max) falls below the 40-75 \% range of the equations and the
-low-intensity (40-50 \%) set is extrapolated.}
-
-\item{VO2max}{maximum oxygen uptake in ml/min (required for "Jeukendrup").}
+exercise values use the same equations (SPEC 9.5). Jeukendrup & Wallis (2005)
+propose no resting equation; with "Jeukendrup" the package uses the 100 \% glucose
+pair derived from their Table 4 (see [substrate_oxidation()], `phase = "rest"`).}
 }
 \description{
 Calculate basal metabolism from rest test data using a rolling window

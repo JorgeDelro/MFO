@@ -348,8 +348,8 @@ test_that("MFO resting values use the same author equations as the test", {
 
   r_j <- MFO(step_time = 20, db_MFO = d$exercise, db_basal = rest,
              cv_var = "VO2", author = "Jeukendrup", VO2max = d$VO2max)
-  expect_equal(r_j$x_CHO, 0.12426, tolerance = 1e-10)
-  expect_equal(r_j$x_FAT, 0.10026, tolerance = 1e-10)
+  expect_equal(r_j$x_CHO, 0.1326538, tolerance = 1e-6)
+  expect_equal(r_j$x_FAT, 0.1000929, tolerance = 1e-6)
 
   r_f <- MFO(step_time = 20, db_MFO = d$exercise, db_basal = rest,
              cv_var = "VO2", author = "Frayn", VO2max = d$VO2max)

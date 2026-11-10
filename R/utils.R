@@ -10,16 +10,15 @@
 #' @param window_duration duration of the stable window in seconds (default 300 = 5 min).
 #' @param author equation set used for resting substrate oxidation: "Frayn" (default),
 #'        "Jeukendrup" or "Peronnet". `MFO()` passes its own `author`, so resting and
-#'        exercise values use the same equations (SPEC 9.5). With "Jeukendrup" the resting
-#'        point (~5-10 \% VO2max) falls below the 40-75 \% range of the equations and the
-#'        low-intensity (40-50 \%) set is extrapolated.
-#' @param VO2max maximum oxygen uptake in ml/min (required for "Jeukendrup").
+#'        exercise values use the same equations (SPEC 9.5). Jeukendrup & Wallis (2005)
+#'        propose no resting equation; with "Jeukendrup" the package uses the 100 \% glucose
+#'        pair derived from their Table 4 (see [substrate_oxidation()], `phase = "rest"`).
 #'
 #' @importFrom dplyr pull mutate
 #' @importFrom tibble add_column
 #'
 met_basal <- function(step_time, db, cv_var, window_duration = 300,
-                      author = "Frayn", VO2max = NULL) {
+                      author = "Frayn") {
 
   # Number of records in the stable window
   window_size <- as.integer(window_duration / step_time)
@@ -60,7 +59,7 @@ met_basal <- function(step_time, db, cv_var, window_duration = 300,
   # Substrate oxidation for the stable window, same equations as the test
   db_5min_calc <- db_5min
   subs <- substrate_oxidation(VO2 = db_5min_calc$VO2, VCO2 = db_5min_calc$VCO2,
-                              author = author, VO2max = VO2max)
+                              author = author, phase = "rest")
   db_5min_calc$CHO <- subs$CHO
   db_5min_calc$FAT <- subs$FAT
   db_5min_calc$Kcal <- subs$Kcal
@@ -90,11 +89,30 @@ met_basal <- function(step_time, db, cv_var, window_duration = 300,
 #' @param VO2 oxygen consumption in ml/min (scalar or vector)
 #' @param VCO2 carbon dioxide production in ml/min (same length as VO2)
 #' @param author equation set: "Frayn", "Jeukendrup", or "Peronnet"
-#' @param VO2max maximum oxygen uptake in ml/min (required for Jeukendrup)
+#' @param VO2max maximum oxygen uptake in ml/min (required for Jeukendrup during exercise)
+#' @param phase "exercise" (default) or "rest". Only changes "Jeukendrup".
+#'
+#' @details
+#' **Jeukendrup & Wallis (2005)** (Int J Sports Med 26 Suppl 1: S28-S37). The
+#' coefficients are derived in code from the O2/CO2 constants of their Table 4
+#' (glucose 0.7455/0.7426, glycogen 0.8283/0.8251, fatty acid 2.0092/1.4136 L/g)
+#' by solving the 2x2 system, for a glucose/glycogen mix of:
+#' \itemize{
+#' \item 50/50 below 50 \% VO2max (40-50 \% set; published CHO = 4.344 VCO2 - 3.061 VO2);
+#' \item 20/80 at or above 50 \% VO2max (50-75 \% set, Table 4 eq. 11;
+#'   CHO = 4.2105 VCO2 - 2.9623 VO2);
+#' \item 100/0 with `phase = "rest"`. Jeukendrup & Wallis propose no resting
+#'   equation; this is a package decision (pure glucose, no glycogen use at rest),
+#'   giving CHO = 4.585 VCO2 - 3.226 VO2 and FAT = 1.695 VO2 - 1.701 VCO2.
+#' }
+#' Derived and published coefficients agree within 0.005 (rounding in the article).
 #'
 #' @return Named list with CHO (g/min), FAT (g/min), Kcal (kcal/min)
 #'
-substrate_oxidation <- function(VO2, VCO2, author, VO2max = NULL) {
+substrate_oxidation <- function(VO2, VCO2, author, VO2max = NULL,
+                                phase = c("exercise", "rest")) {
+
+  phase <- match.arg(phase)
 
   # Convert to L/min for equations (inputs are in ml/min)
   vo2 <- VO2 / 1000
@@ -106,16 +124,20 @@ substrate_oxidation <- function(VO2, VCO2, author, VO2max = NULL) {
     FAT <- 1.67 * vo2 - 1.67 * vco2
 
   } else if (author == "Jeukendrup") {
-    # Jeukendrup & Wallis (2005) - Int J Sports Med
-    if (is.null(VO2max)) stop("VO2max is required for Jeukendrup equations")
-    pct_vo2 <- (VO2 / VO2max) * 100
-
-    FAT <- 1.695 * vo2 - 1.701 * vco2
-
-    # Vectorised: each value picks the 40-50 % or 50-75 % VO2max set
-    CHO <- ifelse(pct_vo2 < 50,
-                  4.344 * vco2 - 3.061 * vo2,
-                  4.210 * vco2 - 2.962 * vo2)
+    # Jeukendrup & Wallis (2005) - Int J Sports Med; derived from Table 4
+    if (phase == "rest") {
+      k <- .jeukendrup_coefficients(glucose_fraction = 1)
+    } else {
+      if (is.null(VO2max)) stop("VO2max is required for Jeukendrup equations")
+      pct_vo2 <- (VO2 / VO2max) * 100
+      # Vectorised: each value picks the 40-50 % (50/50) or 50-75 % (20/80) mix
+      k_low <- .jeukendrup_coefficients(glucose_fraction = 0.5)
+      k_high <- .jeukendrup_coefficients(glucose_fraction = 0.2)
+      k <- lapply(names(k_low), function(n) ifelse(pct_vo2 < 50, k_low[[n]], k_high[[n]]))
+      names(k) <- names(k_low)
+    }
+    CHO <- k[["cho_VCO2"]] * vco2 - k[["cho_VO2"]] * vo2
+    FAT <- k[["fat_VO2"]] * vo2 - k[["fat_VCO2"]] * vco2
 
   } else if (author == "Peronnet") {
     # Peronnet & Massicotte (1991)

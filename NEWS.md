@@ -22,13 +22,20 @@ Target: v0.2.1 on CRAN. Scientific background and sources in `docs/SPEC.md`.
   Fatmax moves from 34.8 to 36.2 %VO2max. Use `vo2max_window = step_time` to
   reproduce v0.2.0 (SPEC 9.5, 14).
 * Resting substrate oxidation (`x_CHO`, `x_FAT`, `x_Kcal`) now uses the
-  same `author` equations as the test; it always used Frayn before. With
-  `author = "Jeukendrup"` the low-intensity (40–50 %VO2max) set is
-  extrapolated to rest. MFO and Fatmax are not affected because the resting
-  row is not part of the fit. Example data with `"Peronnet"`: resting CHO
+  same `author` equations as the test; it always used Frayn before.
+  Jeukendrup & Wallis (2005) propose no resting equation: with
+  `author = "Jeukendrup"` the package uses the 100 % glucose pair derived
+  from their Table 4 (CHO = 4.585 VCO2 − 3.226 VO2, FAT = 1.695 VO2 −
+  1.701 VCO2). MFO and Fatmax are not affected because the resting row is not
+  part of the fit. Example data with `"Peronnet"`: resting CHO
   0.130 -> 0.134 g/min, FAT 0.0726 -> 0.0723 g/min (SPEC 9.5).
+* Jeukendrup & Wallis (2005) coefficients are now derived in code from the
+  O2/CO2 constants of their Table 4 (glucose/glycogen mix 50/50 for
+  40–50 %VO2max, 20/80 for 50–75 %VO2max) instead of the rounded published
+  values (differences ≤ 0.005). Example data with `"Jeukendrup"`: MFO 0.3163
+  -> 0.3158 g/min, Fatmax 35.36 -> 35.29 %VO2max (SPEC 19).
 * `substrate_oxidation()` no longer fails on vectors with
-  `author = "Jeukendrup"`; each value picks its own CHO equation.
+  `author = "Jeukendrup"`; each value picks its own equation.
 * When both `VO2max` and `db_graded` are given, `VO2max` is now used and
   `db_graded` is ignored with a warning (v0.2.0 silently used `db_graded`).
 
