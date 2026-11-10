@@ -124,7 +124,7 @@ Flujo resumido:
 3. Ventana basal más estable → valores de reposo.
 4. Por escalón: media del tramo estable → VO2, VCO2, RER, HR → CHO y FAT con la ecuación elegida.
 5. Aplicar `RER_cutoff` y la política de negativos.
-6. Añadir el punto basal como escalón 0 y expresar cada escalón en %VO2max.
+6. Expresar cada escalón en %VO2max. El punto basal se añade como escalón 0 solo si `include_basal = TRUE` (Montes de Oca et al., 2021); por defecto no entra en el ajuste (§9.5).
 7. Ajustar la curva y localizar MFO y Fatmax (§6).
 
 ## 6. Determinación de MFO y Fatmax: P3, P2, MRER y modelo SIN
@@ -256,7 +256,7 @@ El paquete tiene tres funciones exportadas y seis auxiliares internas, en ocho f
 2. VO2max: si se pasa `db_graded`, toma `max(VO2)` de esa tabla; si no, usa `VO2max`.
 3. `met_basal()` → valores de reposo.
 4. `calculate_vars()` → una fila por escalón con VO2, VCO2, HR, RER, CHO, FAT, kcal.
-5. Une la fila basal (escalón 0) con los escalones y calcula `porc_VO2` = VO2/VO2max × 100.
+5. Une la fila basal (escalón 0, con `HR = NA`) con los escalones y calcula `porc_VO2` = VO2/VO2max × 100. A continuación `na.omit()` elimina la fila basal (su HR es NA), de modo que el punto de reposo **no** llega al ajuste ni a `MFO_db` (§9.5).
 6. Aplica la política de FAT negativa.
 7. Ajusta según `method`; obtiene MFO, Fatmax, R², RMSE y las funciones de predicción.
 8. Zona Fatmax, punto de cruce, HR a Fatmax (interpolación `approx` de HR vs porc\_VO2) y %HRmax si se dio `HRmax`.
@@ -276,7 +276,8 @@ El paquete tiene tres funciones exportadas y seis auxiliares internas, en ocho f
 
 - **VO2max = valor instantáneo máximo.** `max(db_graded$VO2)` toma el registro más alto, no una media de 30 s. Con datos a 20 s sobreestima el VO2max y desplaza Fatmax hacia la izquierda. Corregir con una media móvil configurable (por defecto 30 s) y permitir pasar el VO2max ya calculado por el laboratorio.
 - **Los basales siempre se calculan con Frayn**, aunque el usuario elija otra ecuación para el test. Es inconsistente y debe unificarse con `author`.
-- **Punto basal como escalón 0.** La fila de reposo entra en el ajuste polinómico. Es la práctica de Montes de Oca et al. (2021), pero no todos los autores la siguen; debe ser una opción (`include_basal = TRUE`) y documentarse, porque cambia el P3.
+- **Punto basal como escalón 0 (corregido 10 nov 2026).** Versiones anteriores de este documento decían que la fila de reposo entra en el ajuste polinómico. **No es así**: `MFO()` construye la fila basal con `HR = NA` y `na.omit(MFO_db)` la elimina antes de la política de negativos y del ajuste, así que la v0.1.0/v0.2.0 equivale de hecho a `include_basal = FALSE`, y la fila basal tampoco aparece en el `MFO_db` devuelto (los basales solo se ven en `x_CHO`, `x_FAT`, `x_Kcal`). Incluir el reposo como escalón 0 es la práctica de Montes de Oca et al. (2021), pero no todos los autores la siguen. Decisión (Jorge, 10 nov 2026): nuevo argumento `include_basal = FALSE` por defecto (conserva los resultados publicados con la v0.2.0); `TRUE` documentado como opción, porque cambia el P3. Si se incluye, la exclusión del basal no debe depender de que falte HR.
+- **Columna `Load` sintética.** La columna `Load` de `MFO_db` no es la carga medida: se fabrica como `seq_len(n_steps) * step_duration/60 * 5` (5, 10, 15… para escalones de 1 min; 15, 30, 45… para 3 min) y vale `"basal"` en la fila de reposo, lo que además convierte la columna en texto. No debe interpretarse como W ni km/h. Hasta que exista la columna `Load` real (§14) se documentará como índice de escalón o se renombrará; no se usa en ningún cálculo.
 - **MRER: atribución y naturaleza.** Es el método "valor observado" con un coeficiente redondeado. Renombrarlo a `MV` (measured values) y corregir la cita, o eliminarlo.
 - **Jeukendrup: umbral del 50 %** aplicado al VO2 del escalón; las ecuaciones originales cubren 40–75 % VO2max. Fuera de ese rango el paquete extrapola sin avisar. Añadir aviso.
 - **Cutoff de RER en `calculate_vars` y política de negativos en `MFO()`** actúan sobre la misma situación en dos sitios; la lógica se entiende, pero conviene centralizarla y describirla en una vignette.
