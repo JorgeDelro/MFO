@@ -290,3 +290,46 @@ test_that("MFO function works with different step_time values", {
   expect_type(result$MFO, "double")
   expect_true(result$MFO >= 0)
 })
+
+
+test_that("MFO uses the rolling-mean VO2max from db_graded and returns it", {
+  d <- create_test_data(42)
+  # Hand calculation: pairwise means 2000, 3050, 3000, 3200, 2750 -> 3200 ml/min
+  graded <- data.frame(VO2 = c(1000, 3000, 3100, 2900, 3500, 2000))
+
+  expect_message(
+    result <- MFO(step_time = 20, db_MFO = d$exercise, db_basal = d$basal,
+                  db_graded = graded, cv_var = "VO2", author = "Frayn"),
+    "40 s")
+
+  expect_equal(result$VO2max, 3200)
+  expect_equal(result$VO2max_window, 40)
+  expect_equal(result$VO2max_window_requested, 30)
+  expect_equal(result$MFO_db$porc_VO2, result$MFO_db$VO2 * 100 / 3200)
+
+  # Same window as step_time reproduces the v0.2.0 instantaneous maximum
+  result_inst <- MFO(step_time = 20, db_MFO = d$exercise, db_basal = d$basal,
+                     db_graded = graded, cv_var = "VO2", author = "Frayn",
+                     vo2max_window = 20)
+  expect_equal(result_inst$VO2max, 3500)
+
+  # P3 is invariant to rescaling the x axis: MFO is unchanged and Fatmax
+  # scales by the VO2max ratio (3500 / 3200)
+  expect_equal(result$MFO, result_inst$MFO)
+  expect_equal(result$FAT_MAX, result_inst$FAT_MAX * 3500 / 3200)
+})
+
+
+test_that("a supplied VO2max wins over db_graded with a warning", {
+  d <- create_test_data(42)
+  graded <- data.frame(VO2 = c(1000, 3000, 3100, 2900, 3500, 2000))
+
+  expect_warning(
+    result <- MFO(step_time = 20, db_MFO = d$exercise, db_basal = d$basal,
+                  db_graded = graded, VO2max = 2600, cv_var = "VO2",
+                  author = "Frayn"),
+    "ignoring db_graded")
+  expect_equal(result$VO2max, 2600)
+  expect_true(is.na(result$VO2max_window))
+  expect_true(is.na(result$VO2max_window_requested))
+})

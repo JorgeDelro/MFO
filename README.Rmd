@@ -56,7 +56,7 @@ analyser at a fixed sampling interval (`step_time`, in seconds) with columns
 |---|---|---|
 | Resting metabolism (15–30 min) | `db_basal` | Most stable 5-min window → resting VO2, RER, CHO, FAT, kcal |
 | Incremental MFO test | `db_MFO` | Steady-state average of each step → fat oxidation curve |
-| Maximal graded test | `db_graded` | VO2max, to express intensity as %VO2max (or pass `VO2max` directly) |
+| Maximal graded test | `db_graded` | VO2max = highest mean over `vo2max_window` s (default 30), to express intensity as %VO2max (or pass `VO2max` directly) |
 
 The package ships one anonymised example participant (`basal_df`, `MFO_df`,
 `VO2max_df`).
@@ -84,6 +84,7 @@ result <- MFO(
 
 result$MFO       # g/min
 result$FAT_MAX   # %VO2max
+result$VO2max    # ml/min, highest 40-s mean (30 s rounded up to 2 records)
 c(result$FatMax_zone_lower, result$FatMax_zone_upper)
 ```
 
@@ -203,8 +204,6 @@ not affect MFO and Fatmax obtained with P3 or P2.
 - **`method = "MRER"`** takes the observed maximum of
   1.7 (1 − RER) VO2. This is a measured-values (MV) method, not the
   two-regression MRER procedure of Chenevière et al. (2009).
-- **VO2max** from `db_graded` is the single highest record, not a 30-s
-  average, which can overestimate VO2max and shift Fatmax to the left.
 - **Resting values** are always computed with Frayn's equations, whatever
   `author` is, and the resting row is not used in the curve fit.
 - The `Load` column of `MFO_db` is a step label, not the measured external

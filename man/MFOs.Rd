@@ -29,7 +29,8 @@ MFOs(
   col_name_HR = "HR",
   save_plot = TRUE,
   save_result = TRUE,
-  output_format = "xlsx"
+  output_format = "xlsx",
+  vo2max_window = 30
 )
 }
 \arguments{
@@ -53,7 +54,8 @@ same participant are stored in one file but in different sheets)}
 
 \item{method}{curve-fitting method: "P3", "P2", or "MRER". Default "P3".}
 
-\item{VO2max}{VO2max can be passed directly (ml/min). Default NULL.}
+\item{VO2max}{VO2max can be passed directly (ml/min). Default NULL. If given, it is used for
+every participant and the graded databases are ignored.}
 
 \item{step_duration}{duration of each exercise step in seconds (default 180).}
 
@@ -84,6 +86,9 @@ same participant are stored in one file but in different sheets)}
 \item{save_result}{save results file (default TRUE).}
 
 \item{output_format}{format for results file: "xlsx", "csv", or "rds". Default "xlsx".}
+
+\item{vo2max_window}{averaging window in seconds for VO2max from the graded database
+(default 30). See [MFO()].}
 }
 \value{
 {Data frame with one row per participant containing:
@@ -92,6 +97,8 @@ same participant are stored in one file but in different sheets)}
 \item MFO_g_min: Maximal fat oxidation (g/min).
 \item MFO_relative: MFO relative to body mass (mg/kg/min), if body_mass provided.
 \item MFO_FFM: MFO relative to fat-free mass (mg/kgFFM/min), if fat_free_mass provided.
+\item VO2max: VO2max used (ml/min).
+\item VO2max_window: effective averaging window for VO2max (s); NA if VO2max was supplied.
 \item FAT_MAX_perVO2max: FatMax as \% VO2max.
 \item FAT_MAX_HR: Heart rate at FatMax (bpm).
 \item FAT_MAX_porcHRmax: FatMax as \% HRmax, if HRmax provided.

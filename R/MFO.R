@@ -10,9 +10,11 @@
 #' @param db_MFO database containing MFO test.
 #' @param db_basal database containing basal test.
 #' @param db_graded database containing incremental exercise test (optional if VO2max provided).
+#'        VO2max is the highest mean VO2 over `vo2max_window` seconds of consecutive records.
 #' @param cv_var variable to estimate coefficient of variation. Can be: "VO2", "VCO2" or "RER".
 #' @param author author to estimate MFO. Can be: "Frayn", "Jeukendrup" or "Peronnet".
 #' @param VO2max VO2max can be passed directly (ml/min) instead of using db_graded.
+#'        If both are given, `VO2max` is used as is and `db_graded` is ignored with a warning.
 #' @param method curve-fitting method: "P3" (3rd-degree polynomial, default), "P2" (2nd-degree polynomial),
 #'        or "MRER" (RER-based method of Perez-Martin et al.).
 #' @param step_duration duration of each exercise step in seconds (default 180 = 3 min).
@@ -24,6 +26,9 @@
 #' @param body_mass body mass in kg (optional, for relative MFO calculation).
 #' @param fat_free_mass fat-free mass in kg (optional, for FFM-relative MFO calculation).
 #' @param HRmax maximum heart rate in bpm (optional, for FatMax as \%HRmax).
+#' @param vo2max_window averaging window in seconds for VO2max from `db_graded` (default 30).
+#'        If it is not a multiple of `step_time`, the number of records is rounded up
+#'        (30 s with 20-s records uses 2 records = 40 s). See SPEC 9.5 and 14.
 #'
 #' @import ggplot2
 #' @importFrom tibble tibble
@@ -46,6 +51,9 @@
 #' \item R_squared: R-squared of the fitted model.
 #' \item RMSE: Root mean squared error of the fitted model.
 #' \item method: Method used for curve fitting.
+#' \item VO2max: VO2max used to express intensity (ml/min).
+#' \item VO2max_window: effective averaging window for VO2max (s); NA if VO2max was supplied.
+#' \item VO2max_window_requested: `vo2max_window` as requested (s); NA if VO2max was supplied.
 #' \item x_CHO: carbohydrates in basal metabolism (g/min).
 #' \item x_FAT: fat in basal metabolism (g/min).
 #' \item x_Kcal: Kcal in basal metabolism (kcal/min).
@@ -101,7 +109,8 @@ MFO <- function(step_time,
                 negative_FAT = "truncate",
                 body_mass = NULL,
                 fat_free_mass = NULL,
-                HRmax = NULL) {
+                HRmax = NULL,
+                vo2max_window = 30) {
 
   # Validate inputs
   method <- match.arg(method, c("P3", "P2", "MRER"))
@@ -111,11 +120,22 @@ MFO <- function(step_time,
   db_basal <- data.frame(db_basal)
   db_MFO <- data.frame(db_MFO)
 
-  # Get VO2max
-  if (!is.null(db_graded)) {
+  # Get VO2max: a value supplied by the lab wins over db_graded (SPEC 14);
+  # otherwise the highest rolling mean over vo2max_window s (SPEC 9.5)
+  VO2max_window <- NA
+  VO2max_window_requested <- NA
+  if (!is.null(VO2max)) {
+    if (!is.null(db_graded)) {
+      warning("Both VO2max and db_graded supplied; using VO2max and ignoring db_graded.")
+    }
+  } else if (!is.null(db_graded)) {
     db_graded <- data.frame(db_graded)
-    VO2max <- max(db_graded[["VO2"]], na.rm = TRUE)
-  } else if (is.null(VO2max)) {
+    vo2max_est <- .vo2max_rolling(db_graded[["VO2"]], step_time = step_time,
+                                  window = vo2max_window)
+    VO2max <- vo2max_est$VO2max
+    VO2max_window <- vo2max_est$window
+    VO2max_window_requested <- vo2max_window
+  } else {
     stop("You must provide a VO2max value using db_graded or VO2max arguments.")
   }
 
@@ -235,6 +255,9 @@ MFO <- function(step_time,
               R_squared = R_squared,
               RMSE = RMSE,
               method = method,
+              VO2max = VO2max,
+              VO2max_window = VO2max_window,
+              VO2max_window_requested = VO2max_window_requested,
               x_CHO = basal$x_CHO,
               x_FAT = basal$x_FAT,
               x_Kcal = basal$x_Kcal))

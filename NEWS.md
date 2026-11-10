@@ -10,6 +10,26 @@ Target: v0.2.1 on CRAN. Scientific background and sources in `docs/SPEC.md`.
 * README rewritten for v0.2.x and generated from an executable `README.Rmd`.
 * Fixed the DOI of Achten et al. (2002) in `DESCRIPTION`.
 
+## Bug fixes
+
+* VO2max from `db_graded` is now the highest rolling mean over the new
+  `vo2max_window` argument (default 30 s) instead of the single highest
+  record. If the window is not a multiple of `step_time`, the number of
+  records is rounded up (30 s with 20-s records = 2 records = 40 s) and a
+  message reports the effective window. Fatmax, the Fatmax zone and the
+  crossover point (%VO2max) increase by the ratio old/new VO2max; MFO (g/min)
+  is unchanged. In the example data VO2max drops from 3442 to 3315 ml/min and
+  Fatmax moves from 34.8 to 36.2 %VO2max. Use `vo2max_window = step_time` to
+  reproduce v0.2.0 (SPEC 9.5, 14).
+* When both `VO2max` and `db_graded` are given, `VO2max` is now used and
+  `db_graded` is ignored with a warning (v0.2.0 silently used `db_graded`).
+
+## New features
+
+* `MFO()` returns `VO2max`, `VO2max_window` (effective, s) and
+  `VO2max_window_requested`; `MFOs()` gains `vo2max_window` and the columns
+  `VO2max` and `VO2max_window`.
+
 ## Known issues (scheduled for this release)
 
 Found while verifying the code against the primary sources (SPEC sections
@@ -23,7 +43,6 @@ Found while verifying the code against the primary sources (SPEC sections
   the second zero of the curve.
 * `method = "MRER"` is a measured-values method on `1.7 * (1 - RER) * VO2`,
   not the two-regression MRER procedure.
-* VO2max from `db_graded` is the single highest record, not a rolling mean.
 * Resting values always use Frayn's equations, and the resting row is dropped
   before the curve fit.
 * Péronnet–Massicotte coefficients are rounded constants rather than derived

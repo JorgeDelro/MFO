@@ -19,7 +19,8 @@ MFO(
   negative_FAT = "truncate",
   body_mass = NULL,
   fat_free_mass = NULL,
-  HRmax = NULL
+  HRmax = NULL,
+  vo2max_window = 30
 )
 }
 \arguments{
@@ -29,13 +30,15 @@ MFO(
 
 \item{db_basal}{database containing basal test.}
 
-\item{db_graded}{database containing incremental exercise test (optional if VO2max provided).}
+\item{db_graded}{database containing incremental exercise test (optional if VO2max provided).
+VO2max is the highest mean VO2 over `vo2max_window` seconds of consecutive records.}
 
 \item{cv_var}{variable to estimate coefficient of variation. Can be: "VO2", "VCO2" or "RER".}
 
 \item{author}{author to estimate MFO. Can be: "Frayn", "Jeukendrup" or "Peronnet".}
 
-\item{VO2max}{VO2max can be passed directly (ml/min) instead of using db_graded.}
+\item{VO2max}{VO2max can be passed directly (ml/min) instead of using db_graded.
+If both are given, `VO2max` is used as is and `db_graded` is ignored with a warning.}
 
 \item{method}{curve-fitting method: "P3" (3rd-degree polynomial, default), "P2" (2nd-degree polynomial),
 or "MRER" (RER-based method of Perez-Martin et al.).}
@@ -55,6 +58,10 @@ Recommended values: 1.0 (general), 0.93 (sedentary/obese), 0.90 (trained).}
 \item{fat_free_mass}{fat-free mass in kg (optional, for FFM-relative MFO calculation).}
 
 \item{HRmax}{maximum heart rate in bpm (optional, for FatMax as \%HRmax).}
+
+\item{vo2max_window}{averaging window in seconds for VO2max from `db_graded` (default 30).
+If it is not a multiple of `step_time`, the number of records is rounded up
+(30 s with 20-s records uses 2 records = 40 s). See SPEC 9.5 and 14.}
 }
 \value{
 {Returns a list which contains:
@@ -73,6 +80,9 @@ Recommended values: 1.0 (general), 0.93 (sedentary/obese), 0.90 (trained).}
 \item R_squared: R-squared of the fitted model.
 \item RMSE: Root mean squared error of the fitted model.
 \item method: Method used for curve fitting.
+\item VO2max: VO2max used to express intensity (ml/min).
+\item VO2max_window: effective averaging window for VO2max (s); NA if VO2max was supplied.
+\item VO2max_window_requested: `vo2max_window` as requested (s); NA if VO2max was supplied.
 \item x_CHO: carbohydrates in basal metabolism (g/min).
 \item x_FAT: fat in basal metabolism (g/min).
 \item x_Kcal: Kcal in basal metabolism (kcal/min).

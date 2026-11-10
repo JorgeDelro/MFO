@@ -253,7 +253,7 @@ El paquete tiene tres funciones exportadas y seis auxiliares internas, en ocho f
 **9.3 Flujo interno de `MFO()`, paso a paso**
 
 1. Valida `method` (P3/P2/MRER) y `negative_FAT` (truncate/exclude/keep).
-2. VO2max: si se pasa `db_graded`, toma `max(VO2)` de esa tabla; si no, usa `VO2max`.
+2. VO2max: si se pasa `VO2max`, se usa tal cual (y `db_graded` se ignora con aviso). Si no, la mayor media móvil de `vo2max_window` s (30 por defecto) en `db_graded`, redondeando hacia arriba al número de registros (30 s con registros de 20 s = 2 registros = 40 s). `MFO()` devuelve `VO2max`, `VO2max_window` (efectiva) y `VO2max_window_requested`. Hasta la v0.2.0 tomaba `max(VO2)` (corregido en 0.2.1, §9.5).
 3. `met_basal()` → valores de reposo.
 4. `calculate_vars()` → una fila por escalón con VO2, VCO2, HR, RER, CHO, FAT, kcal.
 5. Une la fila basal (escalón 0, con `HR = NA`) con los escalones y calcula `porc_VO2` = VO2/VO2max × 100. A continuación `na.omit()` elimina la fila basal (su HR es NA), de modo que el punto de reposo **no** llega al ajuste ni a `MFO_db` (§9.5).
@@ -274,7 +274,7 @@ El paquete tiene tres funciones exportadas y seis auxiliares internas, en ocho f
 
 **9.5 Observaciones de revisión del código (a corregir o documentar en v0.3.0)**
 
-- **VO2max = valor instantáneo máximo.** `max(db_graded$VO2)` toma el registro más alto, no una media de 30 s. Con datos a 20 s sobreestima el VO2max y desplaza Fatmax hacia la izquierda. Corregir con una media móvil configurable (por defecto 30 s) y permitir pasar el VO2max ya calculado por el laboratorio.
+- **VO2max = valor instantáneo máximo (corregido en 0.2.1).** `max(db_graded$VO2)` tomaba el registro más alto, no una media de 30 s. Con datos a 20 s sobreestima el VO2max y desplaza Fatmax hacia la izquierda. Corregido con `vo2max_window` (30 s por defecto; si no es múltiplo de `step_time` se redondea hacia arriba el número de registros y se informa de la ventana efectiva). Si se pasa `VO2max`, manda sobre `db_graded` (decisiones de Jorge, 10 nov 2026). En los datos de ejemplo: VO2max 3442 → 3315 mL/min, Fatmax 34,8 → 36,2 % VO2max, MFO sin cambios.
 - **Los basales siempre se calculan con Frayn**, aunque el usuario elija otra ecuación para el test. Es inconsistente y debe unificarse con `author`.
 - **Punto basal como escalón 0 (corregido 10 nov 2026).** Versiones anteriores de este documento decían que la fila de reposo entra en el ajuste polinómico. **No es así**: `MFO()` construye la fila basal con `HR = NA` y `na.omit(MFO_db)` la elimina antes de la política de negativos y del ajuste, así que la v0.1.0/v0.2.0 equivale de hecho a `include_basal = FALSE`, y la fila basal tampoco aparece en el `MFO_db` devuelto (los basales solo se ven en `x_CHO`, `x_FAT`, `x_Kcal`). Incluir el reposo como escalón 0 es la práctica de Montes de Oca et al. (2021), pero no todos los autores la siguen. Decisión (Jorge, 10 nov 2026): nuevo argumento `include_basal = FALSE` por defecto (conserva los resultados publicados con la v0.2.0); `TRUE` documentado como opción, porque cambia el P3. Si se incluye, la exclusión del basal no debe depender de que falte HR.
 - **Columna `Load` sintética.** La columna `Load` de `MFO_db` no es la carga medida: se fabrica como `seq_len(n_steps) * step_duration/60 * 5` (5, 10, 15… para escalones de 1 min; 15, 30, 45… para 3 min) y vale `"basal"` en la fila de reposo, lo que además convierte la columna en texto. No debe interpretarse como W ni km/h. Hasta que exista la columna `Load` real (§14) se documentará como índice de escalón o se renombrará; no se usa en ningún cálculo.
@@ -428,7 +428,7 @@ La v0.2.0 asume escalones de igual duración desde el segundo 0. La v0.3.0 intro
 
 **Carga externa.** Si el test incluye una columna `Load` (W o km/h) por registro, `MFO()` devuelve Fatmax también en esa unidad por interpolación sobre la curva ajustada, y la zona Fatmax en W/km/h. Es lo que el entrenador necesita para prescribir.
 
-**VO2max robusto (`VO2max_from_test()`).** Se sustituye `max(VO2)` por la mayor media móvil de `window` segundos (30 s por defecto; opciones 15, 20, 60). Se reportan criterios de maximalidad (meseta de VO2 < 150 mL/min entre cargas, RER > 1,10, HR ≥ 90 % del teórico) y se etiqueta el valor como VO2max o VO2peak según se cumplan. El usuario puede pasar el VO2max calculado por el laboratorio y el paquete no lo recalcula.
+**VO2max robusto (`VO2max_from_test()`).** Se sustituye `max(VO2)` por la mayor media móvil de `window` segundos (30 s por defecto; opciones 15, 20, 60). La media móvil ya está en la 0.2.1 como argumento `vo2max_window` de `MFO()` (helper interno `.vo2max_rolling()`, §9.3); la 0.3.0 la expone como función con criterios de maximalidad. Se reportan criterios de maximalidad (meseta de VO2 < 150 mL/min entre cargas, RER > 1,10, HR ≥ 90 % del teórico) y se etiqueta el valor como VO2max o VO2peak según se cumplan. El usuario puede pasar el VO2max calculado por el laboratorio y el paquete no lo recalcula.
 
 **Criterio de parada y escalones válidos.** `RER_cutoff` pasa a admitir los valores recomendados por nombre (`"classic"` = 1,00; `"sedentary"` = 0,93; `"trained"` = 0,90; Amaro-Gahete 2019). Se añade `min_steps` (6 por defecto) con aviso si la curva se ajusta con menos escalones, y aviso si Fatmax cae en el primer o último escalón (máximo en el borde, probable protocolo inadecuado).
 
