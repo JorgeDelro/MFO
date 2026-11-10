@@ -122,6 +122,7 @@ although VO2 may not have reached its plateau. See SPEC 9.5.}
 \item R_squared: R-squared of the fitted model (`NA` for "MV").
 \item RMSE: Root mean squared error of the fitted model (`NA` for "MV").
 \item method: Method used for curve fitting.
+\item energy_equivalents: energy equivalents used for `Kcal` ("classic" or "source").
 \item VO2max: VO2max used to express intensity (ml/min).
 \item VO2max_window: effective averaging window for VO2max (s); NA if VO2max was supplied.
 \item VO2max_window_requested: `vo2max_window` as requested (s); NA if VO2max was supplied.

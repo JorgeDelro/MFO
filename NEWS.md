@@ -109,6 +109,11 @@ Target: v0.2.1 on CRAN. Scientific background and sources in `docs/SPEC.md`.
 
 ## New features
 
+* `MFOs()` re-issues every warning with the participant ID first
+  (`"P02: No HR data in db_MFO: ..."`), so the quality warnings can be
+  traced in a batch. The summary gains `FatMax_zone_method` and
+  `energy_equivalents`, and `MFO()` returns `energy_equivalents`.
+
 * Quality warnings in `MFO()` and `MFOs()` (new section *Quality warnings*
   in `?MFO`): new argument `min_steps` (default 6) warns when fewer
   exercise steps enter the fit after `RER_cutoff` and
