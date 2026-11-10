@@ -11,7 +11,8 @@ calculate_vars(
   author,
   step_duration = 180,
   steady_state_duration = 60,
-  RER_cutoff = NULL
+  RER_cutoff = NULL,
+  energy_equivalents = "classic"
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ calculate_vars(
 \item{steady_state_duration}{duration of steady-state period to average within each step, in seconds (default 60 = last minute).}
 
 \item{RER_cutoff}{RER value above which data is excluded (default NULL = no cutoff).}
+
+\item{energy_equivalents}{"classic" (default) or "source"; see [substrate_oxidation()].}
 }
 \value{
 data frame with columns: VO2, VCO2, HR, RER, CHO, FAT, Kcal (one row per step)

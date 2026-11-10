@@ -13,12 +13,13 @@
 #'        exercise values use the same equations (SPEC 9.5). Jeukendrup & Wallis (2005)
 #'        propose no resting equation; with "Jeukendrup" the package uses the 100 \% glucose
 #'        pair derived from their Table 4 (see [substrate_oxidation()], `phase = "rest"`).
+#' @param energy_equivalents "classic" (default) or "source"; see [substrate_oxidation()].
 #'
 #' @importFrom dplyr pull mutate
 #' @importFrom tibble add_column
 #'
 met_basal <- function(step_time, db, cv_var, window_duration = 300,
-                      author = "Frayn") {
+                      author = "Frayn", energy_equivalents = "classic") {
 
   # Number of records in the stable window
   window_size <- as.integer(window_duration / step_time)
@@ -59,7 +60,8 @@ met_basal <- function(step_time, db, cv_var, window_duration = 300,
   # Substrate oxidation for the stable window, same equations as the test
   db_5min_calc <- db_5min
   subs <- substrate_oxidation(VO2 = db_5min_calc$VO2, VCO2 = db_5min_calc$VCO2,
-                              author = author, phase = "rest")
+                              author = author, phase = "rest",
+                              energy_equivalents = energy_equivalents)
   db_5min_calc$CHO <- subs$CHO
   db_5min_calc$FAT <- subs$FAT
   db_5min_calc$Kcal <- subs$Kcal
@@ -91,6 +93,9 @@ met_basal <- function(step_time, db, cv_var, window_duration = 300,
 #' @param author equation set: "Frayn", "Jeukendrup", or "Peronnet"
 #' @param VO2max maximum oxygen uptake in ml/min (required for Jeukendrup during exercise)
 #' @param phase "exercise" (default) or "rest". Only changes "Jeukendrup".
+#' @param energy_equivalents kcal per g of CHO and FAT used for `Kcal`:
+#'        "classic" (default, 4 and 9) or "source" (values of the equation's source,
+#'        see Details).
 #'
 #' @details
 #' Rule: a coefficient printed in the source is used as printed; a derived
@@ -129,12 +134,30 @@ met_basal <- function(step_time, db, cv_var, window_duration = 300,
 #' when an exercise step falls outside the range (SPEC 3, 9.5). Resting values
 #' (`phase = "rest"`) never trigger that warning.
 #'
+#' **Energy equivalents** (`Kcal = CHO * e_cho + FAT * e_fat`, SPEC 19, finding 1):
+#' \itemize{
+#' \item "classic": 4 kcal/g CHO and 9 kcal/g FAT for every equation (v0.2.0).
+#'   Default in 0.2.x; the default will change to "source" in 0.3.0.
+#' \item "source", `author = "Peronnet"`: glucose 3.8683 and fat 9.7460 kcal/g
+#'   (Peronnet & Massicotte 1991, Table 1).
+#' \item "source", `author = "Frayn"`: Frayn (1983, p. 632) gives no energy
+#'   equivalents; as a package decision the Peronnet & Massicotte values are used.
+#' \item "source", `author = "Jeukendrup"`: Jeukendrup & Wallis (2005, Table 5),
+#'   CHO 3.95 kcal/g below 50 \% VO2max (40-50 \% set) and 4.07 kcal/g at or above
+#'   50 \% (50-75 \% set), fat 9.75 kcal/g. At rest (`phase = "rest"`, pure glucose
+#'   pair, package decision) the Peronnet & Massicotte glucose and fat values are used,
+#'   because they are the constants of that pair. `Kcal` jumps at 50 \% VO2max
+#'   with the CHO value.
+#' }
+#'
 #' @return Named list with CHO (g/min), FAT (g/min), Kcal (kcal/min)
 #'
 substrate_oxidation <- function(VO2, VCO2, author, VO2max = NULL,
-                                phase = c("exercise", "rest")) {
+                                phase = c("exercise", "rest"),
+                                energy_equivalents = c("classic", "source")) {
 
   phase <- match.arg(phase)
+  energy_equivalents <- match.arg(energy_equivalents)
 
   # Convert to L/min for equations (inputs are in ml/min)
   vo2 <- VO2 / 1000
@@ -173,9 +196,38 @@ substrate_oxidation <- function(VO2, VCO2, author, VO2max = NULL,
     stop("author must be 'Frayn', 'Jeukendrup', or 'Peronnet'")
   }
 
-  Kcal <- CHO * 4 + FAT * 9
+  e <- .energy_equivalents(energy_equivalents, author, phase,
+                           pct_vo2 = if (is.null(VO2max)) NULL else VO2 / VO2max * 100)
+  Kcal <- CHO * e$cho + FAT * e$fat
 
   return(list(CHO = CHO, FAT = FAT, Kcal = Kcal))
+}
+
+
+# kcal per g of CHO and FAT (see substrate_oxidation(), SPEC 19 finding 1)
+# Peronnet & Massicotte (1991, Table 1): glucose 3.8683, fat 9.7460 kcal/g.
+# Jeukendrup & Wallis (2005, Table 5): CHO 3.95 (40-50 %) / 4.07 (50-75 %), fat 9.75.
+.energy_equivalents <- function(type, author, phase = "exercise", pct_vo2 = NULL) {
+  if (type == "classic") return(list(cho = 4, fat = 9))
+  if (author == "Jeukendrup" && phase == "exercise") {
+    return(list(cho = ifelse(pct_vo2 < 50, 3.95, 4.07), fat = 9.75))
+  }
+  list(cho = 3.8683, fat = 9.7460)
+}
+
+
+# Session state: messages shown once per session
+.mfo_state <- new.env(parent = emptyenv())
+
+# The default energy_equivalents changes in 0.3.0; tell users who rely on it
+.energy_default_message <- function() {
+  if (isTRUE(.mfo_state$energy_message_shown)) return(invisible(FALSE))
+  .mfo_state$energy_message_shown <- TRUE
+  message("Kcal uses energy_equivalents = \"classic\" (4 kcal/g CHO, 9 kcal/g FAT). ",
+          "The default will change to \"source\" (values of the equation's source) ",
+          "in MFO 0.3.0. Set energy_equivalents explicitly to silence this message ",
+          "(shown once per session).")
+  invisible(TRUE)
 }
 
 
@@ -210,6 +262,7 @@ fat_oxidation_MRER <- function(VO2, RER) {
 #' @param VO2max maximum oxygen uptake in ml/min.
 #' @param author equation set: "Frayn", "Jeukendrup", or "Peronnet".
 #' @param RER_cutoff RER value above which data is excluded (default NULL = no cutoff).
+#' @param energy_equivalents "classic" (default) or "source"; see [substrate_oxidation()].
 #'
 #' @details With `author = "Jeukendrup"`, a single warning lists the steps (after
 #' `RER_cutoff`) whose intensity is outside 40-75 \% VO2max, the range of the
@@ -225,7 +278,8 @@ calculate_vars <- function(step_time,
                            author,
                            step_duration = 180,
                            steady_state_duration = 60,
-                           RER_cutoff = NULL) {
+                           RER_cutoff = NULL,
+                           energy_equivalents = "classic") {
 
   records_per_step <- as.integer(step_duration / step_time)
   records_steady <- as.integer(steady_state_duration / step_time)
@@ -263,7 +317,8 @@ calculate_vars <- function(step_time,
 
     # Calculate substrate oxidation
     subs <- substrate_oxidation(VO2 = mean_VO2, VCO2 = mean_VCO2,
-                                author = author, VO2max = VO2max)
+                                author = author, VO2max = VO2max,
+                                energy_equivalents = energy_equivalents)
 
     db_vars[i, "VO2"] <- mean_VO2
     db_vars[i, "VCO2"] <- mean_VCO2

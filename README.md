@@ -125,9 +125,13 @@ exercise. Choose the equation set with `author`:
 | `"Jeukendrup"` | 4.344 VCO2 − 3.061 VO2 (40–50 %VO2max)<br>4.210 VCO2 − 2.962 VO2 (50–75 %VO2max) | 1.695 VO2 − 1.701 VCO2     | Jeukendrup & Wallis (2005)                         |
 
 `"Jeukendrup"` needs VO2max to pick the CHO equation for each step.
-Energy expenditure is CHO × 4 + FAT × 9 kcal/min. Always report which
-equation you used: differences are small for FAT but grow for CHO and
-the crossover point.
+Energy expenditure (`Kcal`) is CHO × 4 + FAT × 9 kcal/min with
+`energy_equivalents = "classic"`, the default in 0.2.x; `"source"` uses
+the values of each equation’s source (Péronnet & Massicotte
+3.8683/9.7460 kcal/g, also for Frayn, who gives none; Jeukendrup &
+Wallis 3.95 or 4.07/9.75 kcal/g). The default will change to `"source"`
+in 0.3.0. Always report which equation you used: differences are small
+for FAT but grow for CHO and the crossover point.
 
 ### Locating MFO and Fatmax
 

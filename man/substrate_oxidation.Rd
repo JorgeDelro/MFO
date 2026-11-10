@@ -9,7 +9,8 @@ substrate_oxidation(
   VCO2,
   author,
   VO2max = NULL,
-  phase = c("exercise", "rest")
+  phase = c("exercise", "rest"),
+  energy_equivalents = c("classic", "source")
 )
 }
 \arguments{
@@ -22,6 +23,10 @@ substrate_oxidation(
 \item{VO2max}{maximum oxygen uptake in ml/min (required for Jeukendrup during exercise)}
 
 \item{phase}{"exercise" (default) or "rest". Only changes "Jeukendrup".}
+
+\item{energy_equivalents}{kcal per g of CHO and FAT used for `Kcal`:
+"classic" (default, 4 and 9) or "source" (values of the equation's source,
+see Details).}
 }
 \value{
 Named list with CHO (g/min), FAT (g/min), Kcal (kcal/min)
@@ -66,4 +71,20 @@ The Table 5 sets are defined for 40-75 \% VO2max only. Below 40 \% the 40-50 \%
 set and above 75 \% the 50-75 \% set are extrapolated; [calculate_vars()] warns
 when an exercise step falls outside the range (SPEC 3, 9.5). Resting values
 (`phase = "rest"`) never trigger that warning.
+
+**Energy equivalents** (`Kcal = CHO * e_cho + FAT * e_fat`, SPEC 19, finding 1):
+\itemize{
+\item "classic": 4 kcal/g CHO and 9 kcal/g FAT for every equation (v0.2.0).
+  Default in 0.2.x; the default will change to "source" in 0.3.0.
+\item "source", `author = "Peronnet"`: glucose 3.8683 and fat 9.7460 kcal/g
+  (Peronnet & Massicotte 1991, Table 1).
+\item "source", `author = "Frayn"`: Frayn (1983, p. 632) gives no energy
+  equivalents; as a package decision the Peronnet & Massicotte values are used.
+\item "source", `author = "Jeukendrup"`: Jeukendrup & Wallis (2005, Table 5),
+  CHO 3.95 kcal/g below 50 \% VO2max (40-50 \% set) and 4.07 kcal/g at or above
+  50 \% (50-75 \% set), fat 9.75 kcal/g. At rest (`phase = "rest"`, pure glucose
+  pair, package decision) the Peronnet & Massicotte glucose and fat values are used,
+  because they are the constants of that pair. `Kcal` jumps at 50 \% VO2max
+  with the CHO value.
+}
 }

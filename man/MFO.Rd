@@ -21,7 +21,8 @@ MFO(
   fat_free_mass = NULL,
   HRmax = NULL,
   vo2max_window = 30,
-  include_basal = FALSE
+  include_basal = FALSE,
+  energy_equivalents = c("classic", "source")
 )
 }
 \arguments{
@@ -73,6 +74,15 @@ If it is not a multiple of `step_time`, the number of records is rounded up
 fits exercise steps only and reproduces v0.1.0/v0.2.0, which dropped the
 resting row. With `TRUE` the P3/P2 fit changes; the resting row has `HR = NA`
 and `Load = "basal"`. See SPEC 9.5.}
+
+\item{energy_equivalents}{kcal per g used for `Kcal` and `x_Kcal`: "classic"
+(4 kcal/g CHO, 9 kcal/g FAT, as in v0.2.0) or "source" (values of the
+source of `author`: Peronnet & Massicotte 1991 for "Peronnet" and, as a
+package decision, "Frayn"; Jeukendrup & Wallis 2005, Table 5, for
+"Jeukendrup"). Default "classic" in 0.2.x; it will change to "source" in
+0.3.0, and a message says so once per session when the argument is not
+set. MFO and Fatmax (g/min) do not depend on it. See
+[substrate_oxidation()] and SPEC 19 (finding 1).}
 }
 \value{
 {Returns a list which contains:

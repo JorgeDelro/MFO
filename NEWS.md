@@ -100,6 +100,18 @@ Target: v0.2.1 on CRAN. Scientific background and sources in `docs/SPEC.md`.
 
 ## New features
 
+* `energy_equivalents` argument in `MFO()` and `MFOs()` for `Kcal` and
+  `x_Kcal`: `"classic"` (4 kcal/g CHO, 9 kcal/g FAT, default in 0.2.x, as in
+  v0.2.0) or `"source"`: Péronnet & Massicotte (1991, Table 1) 3.8683/9.7460
+  kcal/g for `"Peronnet"` and, as a package decision, `"Frayn"` (Frayn 1983
+  gives none); Jeukendrup & Wallis (2005, Table 5) CHO 3.95 kcal/g below
+  50 %VO2max and 4.07 at or above, fat 9.75 kcal/g, for `"Jeukendrup"`
+  (resting row: Péronnet & Massicotte values). MFO and Fatmax are not
+  affected. In the example data (Frayn) `"source"` changes step `Kcal` by
+  −1.9 % to +5.3 %. **The default will change to `"source"` in 0.3.0**; when
+  the argument is not set, a message says so once per session
+  (SPEC 19, finding 1).
+
 * `method = "MV"` (measured values) in `MFO()` and `MFOs()`: Fatmax is the
   step with the highest observed FAT. `R_squared` and `RMSE` are `NA`; the
   Fatmax zone uses linear interpolation between steps and is labelled so in

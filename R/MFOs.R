@@ -21,6 +21,7 @@
 #'        (default 30). See [MFO()].
 #' @param include_basal logical; include the resting row as step 0 in the fit
 #'        (default `FALSE`). See [MFO()].
+#' @param energy_equivalents "classic" (default in 0.2.x) or "source". See [MFO()].
 #' @param fatmin_threshold `NULL` (default, Fatmin at the second zero of the SIN) or
 #'        a proportion of MFO in (0, 1). See [MFO_kinetics()].
 #' @param step_duration duration of each exercise step in seconds (default 180).
@@ -115,10 +116,13 @@ MFOs <- function(from = c("folder", "files"),
                  output_format = "xlsx",
                  vo2max_window = 30,
                  include_basal = FALSE,
-                 fatmin_threshold = NULL) {
+                 fatmin_threshold = NULL,
+                 energy_equivalents = c("classic", "source")) {
 
   from <- match.arg(from)
   output_format <- match.arg(output_format, c("xlsx", "csv", "rds"))
+  if (missing(energy_equivalents)) .energy_default_message()
+  energy_equivalents <- match.arg(energy_equivalents)
 
   participants <- list.files(path)
 
@@ -168,7 +172,8 @@ MFOs <- function(from = c("folder", "files"),
         fat_free_mass = fat_free_mass,
         HRmax = HRmax,
         vo2max_window = vo2max_window,
-        include_basal = include_basal
+        include_basal = include_basal,
+        energy_equivalents = energy_equivalents
       )
 
       # Save MFO plot

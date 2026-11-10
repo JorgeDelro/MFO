@@ -38,6 +38,14 @@
 #'        fits exercise steps only and reproduces v0.1.0/v0.2.0, which dropped the
 #'        resting row. With `TRUE` the P3/P2 fit changes; the resting row has `HR = NA`
 #'        and `Load = "basal"`. See SPEC 9.5.
+#' @param energy_equivalents kcal per g used for `Kcal` and `x_Kcal`: "classic"
+#'        (4 kcal/g CHO, 9 kcal/g FAT, as in v0.2.0) or "source" (values of the
+#'        source of `author`: Peronnet & Massicotte 1991 for "Peronnet" and, as a
+#'        package decision, "Frayn"; Jeukendrup & Wallis 2005, Table 5, for
+#'        "Jeukendrup"). Default "classic" in 0.2.x; it will change to "source" in
+#'        0.3.0, and a message says so once per session when the argument is not
+#'        set. MFO and Fatmax (g/min) do not depend on it. See
+#'        [substrate_oxidation()] and SPEC 19 (finding 1).
 #'
 #' @section Methods:
 #' \itemize{
@@ -145,11 +153,14 @@ MFO <- function(step_time,
                 fat_free_mass = NULL,
                 HRmax = NULL,
                 vo2max_window = 30,
-                include_basal = FALSE) {
+                include_basal = FALSE,
+                energy_equivalents = c("classic", "source")) {
 
   # Validate inputs
   method <- match.arg(method, c("P3", "P2", "MV", "MRER"))
   negative_FAT <- match.arg(negative_FAT, c("truncate", "exclude", "keep"))
+  if (missing(energy_equivalents)) .energy_default_message()
+  energy_equivalents <- match.arg(energy_equivalents)
 
   # Solve error: 'list' object cannot be coerced to type 'double'
   db_basal <- data.frame(db_basal)
@@ -178,7 +189,8 @@ MFO <- function(step_time,
   basal <- met_basal(step_time = step_time,
                      db = db_basal,
                      cv_var = cv_var,
-                     author = author)
+                     author = author,
+                     energy_equivalents = energy_equivalents)
 
   # Calculate CHO, FAT and Kcal for each step
   MFO_test <- calculate_vars(step_time = step_time,
@@ -187,7 +199,8 @@ MFO <- function(step_time,
                              author = author,
                              step_duration = step_duration,
                              steady_state_duration = steady_state_duration,
-                             RER_cutoff = RER_cutoff)
+                             RER_cutoff = RER_cutoff,
+                             energy_equivalents = energy_equivalents)
 
   # Build database with basal + exercise steps
   n_steps <- nrow(MFO_test)

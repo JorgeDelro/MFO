@@ -96,3 +96,60 @@ test_that("the resting row never triggers the Jeukendrup range warning", {
           author = "Jeukendrup", VO2max = 2600, include_basal = inc))
   }
 })
+
+
+# --- Energy equivalents (SPEC 19, finding 1) ---
+# Hand values. Frayn, VO2 = 1000, VCO2 = 850 ml/min:
+#   CHO = 4.55*0.85 - 3.21 = 0.6575; FAT = 1.67*0.15 = 0.2505
+#   classic: 0.6575*4 + 0.2505*9 = 4.8845
+#   source (Peronnet & Massicotte 1991, Table 1, package decision for Frayn):
+#            0.6575*3.8683 + 0.2505*9.7460 = 2.54340725 + 2.441373 = 4.98478025
+# Jeukendrup (Table 5), CHO/FAT from the test above:
+#   40 %: 0.75768*3.95 + 0.29898*9.75 = 2.992836 + 2.915055 = 5.907891
+#   60 %: 1.48860*4.07 + 0.29538*9.75 = 6.058602 + 2.879955 = 8.938557
+# Tolerance 1e-10: decimal arithmetic only.
+test_that("energy_equivalents 'classic' and 'source' give the hand values", {
+  f <- function(e) substrate_oxidation(1000, 850, "Frayn", energy_equivalents = e)$Kcal
+  expect_equal(f("classic"), 4.8845, tolerance = 1e-10)
+  expect_equal(f("source"), 4.98478025, tolerance = 1e-10)
+  expect_equal(substrate_oxidation(1000, 850, "Frayn")$Kcal, 4.8845)  # default
+
+  s_p <- substrate_oxidation(1000, 850, "Peronnet", energy_equivalents = "source")
+  expect_equal(s_p$Kcal, s_p$CHO * 3.8683 + s_p$FAT * 9.7460, tolerance = 1e-12)
+
+  s_j <- substrate_oxidation(VO2 = c(1200, 1800), VCO2 = c(1020, 1620),
+                             author = "Jeukendrup", VO2max = 3000,
+                             energy_equivalents = "source")
+  expect_equal(s_j$Kcal, c(5.907891, 8.938557), tolerance = 1e-10)
+
+  # Jeukendrup at rest: pure glucose pair -> Peronnet & Massicotte values
+  s_r <- substrate_oxidation(300, 240, "Jeukendrup", phase = "rest",
+                             energy_equivalents = "source")
+  expect_equal(s_r$Kcal, s_r$CHO * 3.8683 + s_r$FAT * 9.7460, tolerance = 1e-12)
+
+  expect_error(substrate_oxidation(1000, 850, "Frayn", energy_equivalents = "x"))
+})
+
+test_that("default energy_equivalents message is shown once per session", {
+  data(list = c("basal_df", "MFO_df", "VO2max_df"), package = "MFO",
+       envir = environment())
+  run <- function(...) suppressWarnings(
+    MFO(step_time = 20, db_MFO = MFO_df, db_basal = basal_df,
+        db_graded = VO2max_df, cv_var = "RER", author = "Frayn",
+        vo2max_window = 40, ...))  # 40 s = 2 records: no rounding message
+  rm(list = ls(.mfo_state), envir = .mfo_state)
+  expect_message(r_c <- run(), "will change to \"source\".*in MFO 0.3.0")
+  expect_no_message(run())
+  rm(list = ls(.mfo_state), envir = .mfo_state)
+  # Set explicitly: no message
+  expect_no_message(r_s <- run(energy_equivalents = "source"))
+  expect_no_message(run(energy_equivalents = "classic"))
+
+  # MFO and Fatmax do not depend on energy equivalents; Kcal does
+  expect_equal(r_s$MFO, r_c$MFO)
+  expect_equal(r_s$FAT_MAX, r_c$FAT_MAX)
+  # Truncated last step (FAT set to 0 after Kcal was computed) left out
+  db <- r_s$MFO_db[r_s$MFO_db$FAT > 0, ]
+  expect_equal(db$Kcal, db$CHO * 3.8683 + db$FAT * 9.7460, tolerance = 1e-12)
+  expect_false(isTRUE(all.equal(r_s$x_Kcal, r_c$x_Kcal)))
+})

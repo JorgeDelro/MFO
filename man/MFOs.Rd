@@ -32,7 +32,8 @@ MFOs(
   output_format = "xlsx",
   vo2max_window = 30,
   include_basal = FALSE,
-  fatmin_threshold = NULL
+  fatmin_threshold = NULL,
+  energy_equivalents = c("classic", "source")
 )
 }
 \arguments{
@@ -97,6 +98,8 @@ every participant and the graded databases are ignored.}
 
 \item{fatmin_threshold}{`NULL` (default, Fatmin at the second zero of the SIN) or
 a proportion of MFO in (0, 1). See [MFO_kinetics()].}
+
+\item{energy_equivalents}{"classic" (default in 0.2.x) or "source". See [MFO()].}
 }
 \value{
 {Data frame with one row per participant containing:
