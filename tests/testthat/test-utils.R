@@ -153,3 +153,26 @@ test_that("default energy_equivalents message is shown once per session", {
   expect_equal(db$Kcal, db$CHO * 3.8683 + db$FAT * 9.7460, tolerance = 1e-12)
   expect_false(isTRUE(all.equal(r_s$x_Kcal, r_c$x_Kcal)))
 })
+
+
+test_that("RER_cutoff accepts the named values of Amaro-Gahete et al. (2019)", {
+  # Five 1-min steps with RER 0.88, 0.92, 0.94, 0.97, 1.02
+  rer <- c(0.88, 0.92, 0.94, 0.97, 1.02)
+  vo2 <- c(1000, 1200, 1400, 1600, 1800)
+  db <- data.frame(VO2 = rep(vo2, each = 3), VCO2 = rep(vo2 * rer, each = 3),
+                   RER = rep(rer, each = 3), HR = 100)
+  n_kept <- function(cut) nrow(suppressMessages(
+    calculate_vars(20, db, VO2max = 3000, author = "Frayn", step_duration = 60,
+                   steady_state_duration = 60, RER_cutoff = cut)))
+  # classic 1.00 -> 4, safe 0.95 -> 3, sedentary 0.93 -> 2, trained 0.90 -> 1
+  expect_equal(sapply(c("classic", "safe", "sedentary", "trained"), n_kept),
+               c(classic = 4, safe = 3, sedentary = 2, trained = 1))
+  expect_equal(n_kept("safe"), n_kept(0.95))
+  expect_equal(n_kept(NULL), 5)
+  expect_message(calculate_vars(20, db, VO2max = 3000, author = "Frayn",
+                                step_duration = 60, steady_state_duration = 60,
+                                RER_cutoff = "safe"),
+                 "RER cutoff \\(0.95\\): removed 2 step")
+  expect_error(n_kept("strict"), "RER_cutoff must be")
+  expect_error(n_kept(c(0.9, 1)), "RER_cutoff must be")
+})

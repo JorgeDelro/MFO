@@ -26,7 +26,8 @@
 #'        a proportion of MFO in (0, 1). See [MFO_kinetics()].
 #' @param step_duration duration of each exercise step in seconds (default 180).
 #' @param steady_state_duration duration of steady-state period within each step in seconds (default 60).
-#' @param RER_cutoff RER value above which steps are excluded (default NULL).
+#' @param RER_cutoff RER value above which steps are excluded (default NULL), as a
+#'        number or "classic", "safe", "sedentary", "trained". See [MFO()].
 #' @param negative_FAT how to handle negative fat oxidation: "truncate", "exclude", or "keep".
 #' @param body_mass body mass in kg (optional).
 #' @param fat_free_mass fat-free mass in kg (optional).

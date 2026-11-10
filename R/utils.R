@@ -261,7 +261,8 @@ fat_oxidation_MRER <- function(VO2, RER) {
 #' @param db_MFO data frame with MFO test (columns: VO2, VCO2, RER, HR).
 #' @param VO2max maximum oxygen uptake in ml/min.
 #' @param author equation set: "Frayn", "Jeukendrup", or "Peronnet".
-#' @param RER_cutoff RER value above which data is excluded (default NULL = no cutoff).
+#' @param RER_cutoff RER value above which data is excluded (default NULL = no cutoff),
+#'        or one of "classic", "safe", "sedentary", "trained" (see [MFO()]).
 #' @param energy_equivalents "classic" (default) or "source"; see [substrate_oxidation()].
 #'
 #' @details With `author = "Jeukendrup"`, a single warning lists the steps (after
@@ -330,6 +331,7 @@ calculate_vars <- function(step_time,
   }
 
   # Apply RER cutoff if specified
+  RER_cutoff <- .resolve_RER_cutoff(RER_cutoff)
   if (!is.null(RER_cutoff)) {
     n_before <- nrow(db_vars)
     db_vars <- db_vars[db_vars$RER <= RER_cutoff, , drop = FALSE]
@@ -345,6 +347,25 @@ calculate_vars <- function(step_time,
   }
 
   return(db_vars)
+}
+
+
+# Named RER cutoffs, Amaro-Gahete et al. (2019, Front Physiol 10: 909,
+# doi:10.3389/fphys.2019.00909): 1.00 classic; 0.95 the safe end of the test
+# they recommend; 0.93 / 0.90 the mean RER at MFO in sedentary / trained people.
+.RER_cutoffs <- c(classic = 1.00, safe = 0.95, sedentary = 0.93, trained = 0.90)
+
+.resolve_RER_cutoff <- function(RER_cutoff) {
+  if (is.null(RER_cutoff)) return(NULL)
+  if (is.character(RER_cutoff) && length(RER_cutoff) == 1 &&
+      RER_cutoff %in% names(.RER_cutoffs)) {
+    return(.RER_cutoffs[[RER_cutoff]])
+  }
+  if (is.numeric(RER_cutoff) && length(RER_cutoff) == 1 && !is.na(RER_cutoff)) {
+    return(RER_cutoff)
+  }
+  stop("RER_cutoff must be NULL, a single number or one of ",
+       paste0("\"", names(.RER_cutoffs), "\"", collapse = ", "), ".", call. = FALSE)
 }
 
 

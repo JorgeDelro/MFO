@@ -52,8 +52,13 @@ See the section *Methods*.}
 
 \item{steady_state_duration}{duration of steady-state period to average within each step, in seconds (default 60).}
 
-\item{RER_cutoff}{RER value above which steps are excluded (default NULL = no cutoff).
-Recommended values: 1.0 (general), 0.93 (sedentary/obese), 0.90 (trained).}
+\item{RER_cutoff}{RER value above which steps are excluded (default NULL = no cutoff),
+as a number or by name, following Amaro-Gahete et al. (2019, Front Physiol
+10: 909, \doi{10.3389/fphys.2019.00909}):
+"classic" = 1.00 (Cheneviere et al. 2009 averaged only steps with RER <= 1.0);
+"safe" = 0.95, the end-of-test RER they recommend as safe to capture MFO;
+"sedentary" = 0.93 and "trained" = 0.90, the mean RER at MFO they report in
+those groups. Low cutoffs leave few steps (SPEC 4, 19 finding 2).}
 
 \item{negative_FAT}{how to handle negative fat oxidation values: "truncate" (set to 0, default),
 "exclude" (remove from fitting), or "keep" (include in fitting).}

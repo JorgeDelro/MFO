@@ -188,8 +188,10 @@ At high intensity, lactate buffering pushes RER above 1 and the equations
 return negative FAT. Two arguments control this:
 
 - `RER_cutoff`: steps with RER above this value are removed before fitting.
-  Use 1.00 (classic), or 0.93 (sedentary) / 0.90 (trained) following
-  Amaro-Gahete et al. (2019).
+  A number, or by name following Amaro-Gahete et al. (2019): `"classic"`
+  (1.00), `"safe"` (0.95, the end-of-test RER they recommend), `"sedentary"`
+  (0.93) or `"trained"` (0.90), the mean RER at MFO in those groups. In the
+  example data they leave 7, 6, 5 and 4 of the 8 steps.
 - `negative_FAT`: `"truncate"` negative values to 0 (default), `"exclude"`
   those steps, or `"keep"` them (inspection only).
 

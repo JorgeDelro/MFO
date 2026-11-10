@@ -28,7 +28,8 @@ calculate_vars(
 
 \item{steady_state_duration}{duration of steady-state period to average within each step, in seconds (default 60 = last minute).}
 
-\item{RER_cutoff}{RER value above which data is excluded (default NULL = no cutoff).}
+\item{RER_cutoff}{RER value above which data is excluded (default NULL = no cutoff),
+or one of "classic", "safe", "sedentary", "trained" (see [MFO()]).}
 
 \item{energy_equivalents}{"classic" (default) or "source"; see [substrate_oxidation()].}
 }

@@ -100,6 +100,11 @@ Target: v0.2.1 on CRAN. Scientific background and sources in `docs/SPEC.md`.
 
 ## New features
 
+* `RER_cutoff` accepts names from Amaro-Gahete et al. (2019): `"classic"`
+  = 1.00, `"safe"` = 0.95, `"sedentary"` = 0.93, `"trained"` = 0.90.
+  Numbers still work. Example data (Frayn, P3): 7, 6, 5 and 4 of 8 steps
+  kept; Fatmax 33.9, 35.7, 36.9 and 29.5 %VO2max (SPEC 19, finding 2).
+
 * `energy_equivalents` argument in `MFO()` and `MFOs()` for `Kcal` and
   `x_Kcal`: `"classic"` (4 kcal/g CHO, 9 kcal/g FAT, default in 0.2.x, as in
   v0.2.0) or `"source"`: Péronnet & Massicotte (1991, Table 1) 3.8683/9.7460

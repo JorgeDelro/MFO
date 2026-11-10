@@ -64,7 +64,8 @@ every participant and the graded databases are ignored.}
 
 \item{steady_state_duration}{duration of steady-state period within each step in seconds (default 60).}
 
-\item{RER_cutoff}{RER value above which steps are excluded (default NULL).}
+\item{RER_cutoff}{RER value above which steps are excluded (default NULL), as a
+number or "classic", "safe", "sedentary", "trained". See [MFO()].}
 
 \item{negative_FAT}{how to handle negative fat oxidation: "truncate", "exclude", or "keep".}
 
