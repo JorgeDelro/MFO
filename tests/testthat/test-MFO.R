@@ -120,13 +120,15 @@ test_that("MFO function works with Jeukendrup and Peronnet equations", {
 
   d <- create_test_data(42)
 
-  # Jeukendrup
-  result_j <- MFO(step_time = 20,
-                  db_MFO = d$exercise,
-                  db_basal = d$basal,
-                  cv_var = "VO2",
-                  author = "Jeukendrup",
-                  VO2max = d$VO2max)
+  # Jeukendrup: steps at 39.9 and 83.2 %VO2max are outside 40-75 %
+  expect_warning(
+    result_j <- MFO(step_time = 20,
+                    db_MFO = d$exercise,
+                    db_basal = d$basal,
+                    cv_var = "VO2",
+                    author = "Jeukendrup",
+                    VO2max = d$VO2max),
+    "2 step\\(s\\) outside this range")
 
   expect_type(result_j$MFO, "double")
 
@@ -346,8 +348,9 @@ test_that("MFO resting values use the same author equations as the test", {
   expect_equal(r_p$x_CHO, 0.13275, tolerance = 1e-10)
   expect_equal(r_p$x_FAT, 0.100092, tolerance = 1e-10)
 
-  r_j <- MFO(step_time = 20, db_MFO = d$exercise, db_basal = rest,
-             cv_var = "VO2", author = "Jeukendrup", VO2max = d$VO2max)
+  r_j <- suppressWarnings(  # exercise steps outside 40-75 %, tested in test-utils.R
+    MFO(step_time = 20, db_MFO = d$exercise, db_basal = rest,
+        cv_var = "VO2", author = "Jeukendrup", VO2max = d$VO2max))
   expect_equal(r_j$x_CHO, 0.1326538, tolerance = 1e-6)
   expect_equal(r_j$x_FAT, 0.1000929, tolerance = 1e-6)
 
@@ -359,4 +362,56 @@ test_that("MFO resting values use the same author equations as the test", {
   r_f2 <- MFO(step_time = 20, db_MFO = d$exercise, db_basal = d$basal,
               cv_var = "VO2", author = "Frayn", VO2max = d$VO2max)
   expect_equal(r_f$MFO, r_f2$MFO)
+})
+
+
+test_that("include_basal = FALSE reproduces v0.2.0 on the example data", {
+  data(list = c("basal_df", "MFO_df", "VO2max_df"), package = "MFO",
+       envir = environment())
+  r <- suppressWarnings(suppressMessages(
+    MFO(step_time = 20, db_MFO = MFO_df, db_basal = basal_df,
+        db_graded = VO2max_df, cv_var = "RER", author = "Frayn")))
+  # Expected values: output of main (commit 9b34ceb) on the same call; the
+  # change only makes the resting-row exclusion explicit (SPEC 9.5)
+  expect_equal(r$MFO, 0.316712001016, tolerance = 1e-10)
+  expect_equal(r$FAT_MAX, 36.170380668222, tolerance = 1e-10)
+  expect_equal(r$FatMax_zone_lower, 24.190646151430, tolerance = 1e-10)
+  expect_equal(r$FatMax_zone_upper, 48.340688602127, tolerance = 1e-10)
+  expect_equal(r$crossover_point, 24.848177391000, tolerance = 1e-10)
+  expect_equal(nrow(r$MFO_db), 8)
+  expect_false("basal" %in% r$MFO_db$Load)
+})
+
+
+test_that("include_basal = TRUE adds the resting row as step 0 of the fit", {
+  d <- create_test_data(42)
+  # Constant rest: VO2 = 300, VCO2 = 240 ml/min
+  # Frayn: FAT = 1.67 * 0.300 - 1.67 * 0.240 = 0.1002 g/min
+  # porc_VO2 = 300 / 2600 * 100 = 11.538462 %VO2max
+  rest <- data.frame(VO2 = rep(300, 48), VCO2 = rep(240, 48),
+                     RER = rep(0.8, 48), HR = rep(60, 48))
+
+  r_off <- MFO(step_time = 20, db_MFO = d$exercise, db_basal = rest,
+               cv_var = "VO2", author = "Frayn", VO2max = d$VO2max)
+  r_on <- MFO(step_time = 20, db_MFO = d$exercise, db_basal = rest,
+              cv_var = "VO2", author = "Frayn", VO2max = d$VO2max,
+              include_basal = TRUE)
+
+  # The resting row is kept although its HR is NA
+  expect_equal(nrow(r_on$MFO_db), nrow(r_off$MFO_db) + 1)
+  expect_equal(r_on$MFO_db$Load[1], "basal")
+  expect_true(is.na(r_on$MFO_db$HR[1]))
+  expect_equal(r_on$MFO_db$FAT[1], 0.1002, tolerance = 1e-10)
+  expect_equal(r_on$MFO_db$porc_VO2[1], 300 / 2600 * 100, tolerance = 1e-10)
+  expect_equal(r_on$MFO_db[-1, ], r_off$MFO_db, ignore_attr = TRUE)
+
+  # The P3 changes, and equals a cubic fitted by hand to rest + steps
+  expect_false(isTRUE(all.equal(r_on$FAT_MAX, r_off$FAT_MAX)))
+  pts <- rbind(data.frame(x = 300 / 2600 * 100, y = 0.1002),
+               data.frame(x = r_off$MFO_db$porc_VO2, y = r_off$MFO_db$FAT))
+  cf <- coef(lm(y ~ x + I(x^2) + I(x^3), data = pts))
+  p3 <- function(x) cf[1] + cf[2] * x + cf[3] * x^2 + cf[4] * x^3
+  opt <- optimize(p3, range(pts$x), maximum = TRUE)
+  expect_equal(r_on$FAT_MAX, opt$maximum, tolerance = 1e-4)
+  expect_equal(r_on$MFO, unname(opt$objective), tolerance = 1e-8)
 })

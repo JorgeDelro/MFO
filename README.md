@@ -97,14 +97,12 @@ The kinetics of the curve are described with the SIN model:
 ``` r
 kin <- MFO_kinetics(result$MFO_db)
 unlist(kin[c("d", "s", "t", "FatMax_SIN", "Fatmin", "R_squared")])
-#>           d           s           t  FatMax_SIN      Fatmin   R_squared 
-#>  0.14408038  0.93487545 -0.09259011 35.99157490 76.01287476  0.99727966
+#>          d          s          t FatMax_SIN     Fatmin  R_squared 
+#> -0.3848798  0.9096423  0.3551958 36.1821171 76.4426627  0.9654434
 ```
 
 ``` r
 kin$MFO_kinetics_plot
-#> Warning: Removed 24 rows containing missing values or values outside the scale range
-#> (`geom_line()`).
 ```
 
 <img src="man/figures/README-sin-plot-1.png" alt="Normalised fat oxidation (%MFO) against intensity (%VO2max): the basic SIN curve (d = 0, s = 1, t = 0) in grey and the curve fitted to the example participant in orange." width="100%" />
@@ -154,9 +152,10 @@ at which CHO exceeds FAT, by linear interpolation between steps.
 
 ### SIN model
 
-`MFO_kinetics()` normalises fat oxidation to %MFO and fits the
-three-parameter sine model of Chenevière et al. (2009, eq. 14) by
-non-linear least squares (`minpack.lm::nlsLM`):
+`MFO_kinetics()` normalises fat oxidation to %MFO (highest observed step
+= 100 %) and fits the three-parameter sine model of Chenevière et
+al. (2009, eq. 14) directly to the observed steps by non-linear least
+squares (`minpack.lm::nlsLM`), with no prior smoothing:
 
 $$
 \%\mathrm{MFO}(x) = \sin\left\{\left[\frac{\pi^{1/s}}{\pi + 2d}\left(Kx + d + t\right)\right]^{s}\right\},
@@ -170,6 +169,14 @@ $$
 
 With d = 0, s = 1 and t = 0 the curve is a half sine wave peaking at 50
 %VO2max.
+
+Fatmax and Fatmin follow in closed form from the equation: Fatmax =
+\[(π + 2d)·2^(−1/s) − d − t\]/K and Fatmin, the second zero of the
+curve, = (π + d − t)/K (`fatmin_threshold` gives a threshold instead,
+e.g. 0.05 of MFO). Chenevière et al. fitted only exercise steps with RER
+≤ 1.0: `RER_cutoff = 1` reproduces that selection, and
+`include_basal = TRUE` departs from it. The SIN is sensitive to how the
+last step is handled (`negative_FAT`); see `?MFO_kinetics`.
 
 ### Test termination and artefacts
 
@@ -204,17 +211,16 @@ These were found while verifying the code against the primary sources
 (see `docs/SPEC.md`, section 19) and are scheduled for v0.2.1. The SIN
 and MRER issues do not affect MFO and Fatmax obtained with P3 or P2.
 
-- **SIN model formula.** The code computes $(\pi^{1/s}/\pi) + 2d$
-  instead of $\pi^{1/s}/(\pi + 2d)$. Both agree when d = 0, but
-  otherwise the returned `d` is **not** comparable with values published
-  by Chenevière et al. The fit is also made on a P3-smoothed grid rather
-  than on the observed steps, and `Fatmin` uses a 5 % threshold instead
-  of the second zero of the curve.
+- **SIN parameters from v0.2.0 and earlier** are not comparable with
+  Chenevière et al. or with the development version: the old code
+  computed $(\pi^{1/s}/\pi) + 2d$ instead of $\pi^{1/s}/(\pi + 2d)$,
+  fitted a P3-smoothed grid and used a 5 % threshold for `Fatmin`. Fixed
+  in the development version.
 - **`method = "MRER"`** takes the observed maximum of 1.7 (1 − RER) VO2.
   This is a measured-values (MV) method, not the two-regression MRER
   procedure of Chenevière et al. (2009).
-- The **resting row** is not used in the curve fit (an `include_basal`
-  option is planned).
+- The **resting row** is not used in the curve fit unless
+  `include_basal = TRUE` (development version).
 - The `Load` column of `MFO_db` is a step label, not the measured
   external load.
 

@@ -12,6 +12,32 @@ Target: v0.2.1 on CRAN. Scientific background and sources in `docs/SPEC.md`.
 
 ## Bug fixes
 
+* SIN model: `MFO_kinetics()` now implements equation [14] of Chenevière
+  et al. (2009), `pi^(1/s) / (pi + 2*d)`; v0.1.0/v0.2.0 computed
+  `pi^(1/s) / pi + 2*d`. Both describe the same family of curves, so the
+  fitted curve can be the same, but `d` and `t` take different values: the
+  old `d` was not Chenevière's dilatation and is not comparable with
+  published values. With their Fig. 5 parameters (d = 0.18, s = 1.52,
+  t = 0.21) the old formula put Fatmax at 28.9 %VO2max instead of 58.2
+  (SPEC 6.5, 19 finding 5).
+* SIN fitting procedure: `MFO_kinetics()` now fits the model directly to the
+  observed steps (%MFO normalised to the highest observed step), as
+  Chenevière et al. (2009) did. v0.1.0/v0.2.0 fitted a grid of ≥ 50 points
+  predicted by a third-degree polynomial, which inflated n and shrank the
+  standard errors of d, s and t. `FatMax_SIN` and `Fatmin` now come from
+  closed forms derived from eq. [14], and `Fatmin` is the second zero of the
+  curve, (π + d − t)/K, instead of the first grid point below 5 % of MFO.
+  Example data (Frayn): d 0.144 -> −0.385, s 0.935 -> 0.910,
+  t −0.093 -> 0.355, FatMax_SIN 36.0 -> 36.2, Fatmin 76.0 -> 76.4 %VO2max,
+  R² 0.997 -> 0.965 (now on the observed steps); standard errors grow
+  20–60 fold to their honest size. With `negative_FAT = "exclude"` or
+  `RER_cutoff = 1` (Chenevière's step selection) the example gives
+  s = 0.54 and Fatmin = 85.3 %VO2max: the SIN is sensitive to the last step,
+  see `?MFO_kinetics` (SPEC 6.5, 19 findings 3 and 7).
+* `MFO_kinetics()` now distinguishes two warnings: with fewer than 4 steps the
+  SIN cannot be fitted (`convergence = FALSE`, as before); with 4 or 5 steps
+  it is fitted but warns that the fit is unreliable and that at least 6 steps
+  are recommended (SPEC 6.5).
 * VO2max from `db_graded` is now the highest rolling mean over the new
   `vo2max_window` argument (default 30 s) instead of the single highest
   record. If the window is not a multiple of `step_time`, the number of
@@ -30,6 +56,11 @@ Target: v0.2.1 on CRAN. Scientific background and sources in `docs/SPEC.md`.
   MFO and Fatmax are not affected because the resting row is not
   part of the fit. Example data with `"Peronnet"`: resting CHO
   0.130 -> 0.134 g/min, FAT 0.0726 -> 0.0723 g/min (SPEC 9.5).
+* With `author = "Jeukendrup"`, `MFO()` now warns once when exercise steps
+  fall outside 40–75 %VO2max, the range of the Jeukendrup & Wallis (2005,
+  Table 5) equations, and lists their intensities; those steps were
+  extrapolated silently before. Steps removed by `RER_cutoff` and the resting
+  row never warn. Values are unchanged (SPEC 3, 9.5).
 * `substrate_oxidation()` no longer fails on vectors with
   `author = "Jeukendrup"`; each value picks its own equation.
 * When both `VO2max` and `db_graded` are given, `VO2max` is now used and
@@ -46,6 +77,18 @@ Target: v0.2.1 on CRAN. Scientific background and sources in `docs/SPEC.md`.
 
 ## New features
 
+* `MFO_kinetics()` and `MFOs()` gain `fatmin_threshold` (default `NULL`,
+  Fatmin at the second zero of the SIN curve); a proportion of MFO such as
+  0.05 gives the intensity above Fatmax where fat oxidation falls to that
+  fraction, in closed form. The kinetics plot now shows the observed steps
+  and draws the fitted curve between its two zeros (SPEC 19, finding 3).
+* `MFO()` and `MFOs()` gain `include_basal` (default `FALSE`). With `TRUE`
+  the resting row enters `MFO_db` as step 0 and is part of the P3/P2 fit, as
+  in Montes de Oca et al. (2021). The default reproduces v0.1.0/v0.2.0, which
+  silently lost the resting row because its `HR` is `NA`; the exclusion is
+  now explicit and no longer depends on missing HR. Example data, Frayn, P3:
+  MFO 0.3167 -> 0.3225 g/min and Fatmax 36.17 -> 36.11 %VO2max with `TRUE`
+  (SPEC 9.5).
 * `MFO()` returns `VO2max`, `VO2max_window` (effective, s) and
   `VO2max_window_requested`; `MFOs()` gains `vo2max_window` and the columns
   `VO2max` and `VO2max_window`.
@@ -55,16 +98,9 @@ Target: v0.2.1 on CRAN. Scientific background and sources in `docs/SPEC.md`.
 Found while verifying the code against the primary sources (SPEC sections
 9.5 and 19):
 
-* The SIN model in `MFO_kinetics()` computes `pi^(1/s) / pi + 2*d` instead of
-  `pi^(1/s) / (pi + 2*d)` (Cheneviere et al., 2009, eq. 14). Values of `d`
-  from v0.1.0/v0.2.0 are not comparable with published values.
-* `MFO_kinetics()` fits the SIN model to a P3-smoothed synthetic grid instead
-  of the observed steps, and defines `Fatmin` with a 5 % threshold instead of
-  the second zero of the curve.
 * `method = "MRER"` is a measured-values method on `1.7 * (1 - RER) * VO2`,
   not the two-regression MRER procedure.
-* The resting row is dropped before the curve fit (`include_basal` option
-  planned); `MFO_db$Load` is a synthetic step index, not measured load.
+* `MFO_db$Load` is a synthetic step index, not measured load.
 * Péronnet & Massicotte (1991) print no equations: the package uses rounded
   constants instead of the coefficients derived from their Table 1
   (4.58519/3.22597; 1.69469/1.70130); energy equivalents are 4/9 kcal/g for all equations

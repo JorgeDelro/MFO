@@ -3,28 +3,80 @@
 #'
 #' Fit the SIN model (Cheneviere et al., 2009) to describe fat oxidation kinetics
 #' and extract three parameters: dilatation (d), symmetry (s), and translation (t).
-#' Also calculates Fatmin (the intensity where fat oxidation becomes negligible),
+#' Also calculates Fatmin (the intensity where fat oxidation reaches zero),
 #' which is a unique capability of the SIN model over polynomial methods.
 #'
+#' The model is equation \[14\] of Cheneviere et al. (2009, Med Sci Sports Exerc
+#' 41: 1615-1625, p. 1618, \doi{10.1249/MSS.0b013e31819e2f91}):
+#' \deqn{\%MFO = \sin\{[\pi^{1/s} / (\pi + 2d) \cdot (Kx + d + t)]^s\},
+#'       \quad K = \pi/100,}
+#' x in \% VO2max. Up to v0.2.0 the package computed (pi^(1/s)/pi) + 2d, so its
+#' `d` (and `t`) are not comparable with published values (SPEC 6.5, 19).
+#'
+#' @section Fitting procedure:
+#' As in Cheneviere et al. (2009), the model is fitted by non-linear least squares
+#' (Levenberg-Marquardt, [minpack.lm::nlsLM()], start d = 0, s = 1, t = 0)
+#' directly to the observed rows of `MFO_data`, with fat oxidation expressed as a
+#' proportion of the highest observed value (\%MFO / 100). There is no smoothing
+#' and no synthetic grid: v0.1.0/v0.2.0 fitted the SIN to a fine grid predicted by
+#' a third-degree polynomial, which inflated n and shrank the standard errors of
+#' d, s and t (SPEC 19, finding 7). R-squared and RMSE are computed on the
+#' observed proportions. At least 4 rows are needed for 3 parameters: with
+#' fewer the function warns and returns `convergence = FALSE`; with 4 or 5 it
+#' fits but warns that the fit is unreliable and that at least 6 steps are
+#' recommended (SPEC 6.5).
+#'
+#' `FatMax_SIN` and `Fatmin` come from closed forms derived from eq. \[14\]:
+#' Fatmax = \[(pi + 2d) 2^(-1/s) - d - t\] / K and, by default, Fatmin = second
+#' zero of the curve = (pi + d - t) / K, Cheneviere's definition (SPEC 19,
+#' finding 3). Fatmin can lie beyond the last observed step (extrapolation).
+#'
+#' @section Which rows are fitted:
+#' `MFO_kinetics()` fits every row it receives. Cheneviere et al. (2009)
+#' fitted exercise steps only, and averaged only steps with RER <= 1.0:
+#' \itemize{
+#' \item `MFO(..., RER_cutoff = 1)` reproduces their step selection;
+#' \item `MFO(..., include_basal = TRUE)` adds the resting row to `MFO_db`, so it
+#'   is also fitted here. This departs from Cheneviere's procedure in the SIN as
+#'   well as in the P3.
+#' }
+#' The SIN is sensitive to the last steps because the curve must reach zero:
+#' in the example data (`author = "Frayn"`) the last step (74.7 \% VO2max,
+#' RER 1.03) has negative fat oxidation.
+#' \itemize{
+#' \item `negative_FAT = "truncate"` (default) sets it to 0 and that point anchors
+#'   the second zero: d = -0.385, s = 0.910, t = 0.355, FatMax_SIN = 36.2,
+#'   Fatmin = 76.4 \% VO2max.
+#' \item `negative_FAT = "exclude"` or `RER_cutoff = 1` drops it: d = -0.440,
+#'   s = 0.539, t = 0.023, FatMax_SIN = 33.2, Fatmin = 85.3 \% VO2max.
+#' }
+#' Report which option was used when publishing SIN parameters.
+#'
 #' @param MFO_data a data frame obtained from the MFO function (must contain FAT and porc_VO2 columns).
+#' @param fatmin_threshold `NULL` (default) for Fatmin at the second zero of the
+#'        curve, or a proportion of MFO in (0, 1), e.g. 0.05, for the intensity
+#'        above Fatmax where fat oxidation falls to that fraction of MFO
+#'        (closed form: \[(pi + 2d) ((pi - asin(threshold)) / pi)^(1/s) - d - t\] / K).
+#'        v0.2.0 used a fixed 5 \% threshold searched on a grid.
 #'
 #' @importFrom minpack.lm nlsLM
 #' @importFrom tidyr pivot_longer
 #' @importFrom dplyr rename mutate pull
-#' @importFrom stats predict coef residuals
+#' @importFrom stats predict coef residuals complete.cases
 #' @import ggplot2
 #'
 #' @return {Returns a list which contains:
 #' \itemize{
-#' \item MFO_kinetics_data: database used to create the MFO kinetics plot (original data plus normalized \%MFO).
-#' \item MFO_kinetics_plot: ggplot object comparing basic and fitted SIN models.
-#' \item d: dilatation parameter (controls vertical scaling/width of the curve).
+#' \item MFO_kinetics_data: `MFO_data` plus normalized \%MFO (`porc_MFO`, 100 = highest observed FAT).
+#' \item MFO_kinetics_plot: ggplot object with the observed \%MFO, the basic SIN and the fitted SIN.
+#' \item d: dilatation parameter (width of the curve).
 #' \item t: translation parameter (horizontal shift along intensity axis).
 #' \item s: symmetry parameter (controls curve shape asymmetry; <1 left-skew, >1 right-skew).
-#' \item Fatmin: exercise intensity (\% VO2max) at which fat oxidation becomes negligible.
+#' \item Fatmin: exercise intensity (\% VO2max) at the second zero of the curve, or
+#'   at `fatmin_threshold` of MFO if given.
 #' \item FatMax_SIN: exercise intensity (\% VO2max) at peak fat oxidation from SIN model.
-#' \item R_squared: R-squared of the SIN model fit.
-#' \item RMSE: Root mean squared error of the SIN model fit.
+#' \item R_squared: R-squared of the SIN model fit (observed proportions of MFO).
+#' \item RMSE: Root mean squared error of the SIN model fit (proportion of MFO).
 #' \item d_se: standard error of dilatation parameter.
 #' \item s_se: standard error of symmetry parameter.
 #' \item t_se: standard error of translation parameter.
@@ -53,11 +105,20 @@
 #'
 #' # Calculate MFO Kinetics
 #' result_kinetics <- MFO_kinetics(result_MFO$MFO_db)
+#'
+#' # Fatmin at 5 % of MFO instead of the second zero
+#' MFO_kinetics(result_MFO$MFO_db, fatmin_threshold = 0.05)$Fatmin
 #' }
 #'
-MFO_kinetics <- function(MFO_data) {
+MFO_kinetics <- function(MFO_data, fatmin_threshold = NULL) {
 
-  # Normalize to %MFO
+  if (!is.null(fatmin_threshold) &&
+      !(is.numeric(fatmin_threshold) && length(fatmin_threshold) == 1 &&
+        isTRUE(fatmin_threshold > 0 && fatmin_threshold < 1))) {
+    stop("fatmin_threshold must be NULL or a single proportion of MFO in (0, 1), e.g. 0.05.")
+  }
+
+  # Normalize to %MFO with the highest observed value (SPEC 6.5)
   max_fat <- max(MFO_data$FAT, na.rm = TRUE)
   if (max_fat <= 0) {
     stop("Maximum FAT value is <= 0. Cannot normalize for SIN model.")
@@ -66,61 +127,58 @@ MFO_kinetics <- function(MFO_data) {
   MFO_kinetics_data <- MFO_data
   MFO_kinetics_data$porc_MFO <- (MFO_data$FAT * 100) / max_fat
 
-  # Fit cubic polynomial for smooth interpolation
-  mod <- lm(porc_MFO ~ poly(porc_VO2, 3), data = MFO_kinetics_data)
-
-  # Extract the last load step
-  last_step <- as.numeric(MFO_data$porc_VO2[nrow(MFO_data)])
-
-  # Create fine-grained data for SIN fitting
-  n_points <- max(as.integer(last_step), 50)
-  data_nls <- data.frame(porc_VO2 = seq(from = 0, to = last_step, length.out = n_points))
-
-  # Get smoothed values and normalize to 0-1
-  err <- predict(mod, newdata = data_nls, se.fit = FALSE)
-  data_nls$porc_MFO_kinetics <- ((err * 100) / max(err)) / 100
-
-  # Rename for SIN model fitting
-  colnames(data_nls)[1] <- "porc_VO2_kinetics"
+  # Observed rows only: no smoothing, no synthetic grid (SPEC 19, finding 7)
+  data_nls <- data.frame(porc_VO2_kinetics = MFO_data$porc_VO2,
+                         porc_MFO_kinetics = MFO_data$FAT / max_fat)
+  data_nls <- data_nls[complete.cases(data_nls), , drop = FALSE]
 
   # --- SIN model fitting ---
-  # %MFO = sin(( (pi^(1/s) / pi + 2*d) * (K*porc_VO2 + d + t) )^s)
-  # K = pi/100
+  # %MFO = sin([pi^(1/s) / (pi + 2d) * (K*porc_VO2 + d + t)]^s), K = pi/100
+  # Cheneviere et al. (2009), eq. [14]; see .sin_model() (SPEC 6.5)
 
   convergence <- TRUE
   d <- NA; s <- NA; t_param <- NA
   d_se <- NA; s_se <- NA; t_se <- NA
   R_squared_sin <- NA; RMSE_sin <- NA
 
-  tryCatch({
-    mod_nls <- nlsLM(
-      porc_MFO_kinetics ~ sin(((pi^(1/s) / pi + 2 * d) *
-                                  ((pi / 100) * porc_VO2_kinetics + d + t_param))^s),
-      start = list(d = 0, s = 1, t_param = 0),
-      data = data_nls,
-      control = list(maxiter = 200)
-    )
+  if (nrow(data_nls) < 4) {
+    warning("SIN model needs at least 4 steps to fit 3 parameters; ",
+            nrow(data_nls), " available.")
+    convergence <- FALSE
+  } else {
+    if (nrow(data_nls) < 6) {
+      warning("SIN model fitted to ", nrow(data_nls), " steps: the fit is possible ",
+              "but unreliable; at least 6 steps are recommended (SPEC 6.5).")
+    }
+    tryCatch({
+      mod_nls <- nlsLM(
+        porc_MFO_kinetics ~ .sin_model(porc_VO2_kinetics, d, s, t_param),
+        start = list(d = 0, s = 1, t_param = 0),
+        data = data_nls,
+        control = list(maxiter = 200)
+      )
 
-    # Extract parameters
-    coefs <- summary(mod_nls)$coefficients
-    d <- coefs["d", "Estimate"]
-    s <- coefs["s", "Estimate"]
-    t_param <- coefs["t_param", "Estimate"]
-    d_se <- coefs["d", "Std. Error"]
-    s_se <- coefs["s", "Std. Error"]
-    t_se <- coefs["t_param", "Std. Error"]
+      # Extract parameters
+      coefs <- summary(mod_nls)$coefficients
+      d <- coefs["d", "Estimate"]
+      s <- coefs["s", "Estimate"]
+      t_param <- coefs["t_param", "Estimate"]
+      d_se <- coefs["d", "Std. Error"]
+      s_se <- coefs["s", "Std. Error"]
+      t_se <- coefs["t_param", "Std. Error"]
 
-    # Goodness of fit
-    resid_sin <- residuals(mod_nls)
-    ss_res <- sum(resid_sin^2)
-    ss_tot <- sum((data_nls$porc_MFO_kinetics - mean(data_nls$porc_MFO_kinetics))^2)
-    R_squared_sin <- 1 - ss_res / ss_tot
-    RMSE_sin <- sqrt(mean(resid_sin^2))
+      # Goodness of fit on the observed proportions of MFO
+      resid_sin <- residuals(mod_nls)
+      ss_res <- sum(resid_sin^2)
+      ss_tot <- sum((data_nls$porc_MFO_kinetics - mean(data_nls$porc_MFO_kinetics))^2)
+      R_squared_sin <- 1 - ss_res / ss_tot
+      RMSE_sin <- sqrt(mean(resid_sin^2))
 
-  }, error = function(e) {
-    warning(paste("SIN model did not converge:", e$message))
-    convergence <<- FALSE
-  })
+    }, error = function(e) {
+      warning(paste("SIN model did not converge:", e$message))
+      convergence <<- FALSE
+    })
+  }
 
   # Post-convergence quality check: if parameters stayed at initial values
   # or R-squared is negative, the fit is meaningless
@@ -135,57 +193,35 @@ MFO_kinetics <- function(MFO_data) {
     }
   }
 
-  # --- Calculate FatMax from SIN model ---
+  # --- FatMax and Fatmin: closed forms derived from eq. [14] (SPEC 6.5) ---
   FatMax_SIN <- NA
-  if (convergence) {
-    sin_fn <- function(x) {
-      sin(((pi^(1/s) / pi + 2 * d) * ((pi / 100) * x + d + t_param))^s)
-    }
-    # Find maximum by optimization
-    opt <- optimize(sin_fn, interval = c(0, 100), maximum = TRUE)
-    FatMax_SIN <- opt$maximum
-  }
-
-  # --- Calculate Fatmin (intensity where fat ox becomes negligible) ---
   Fatmin <- NA
-  if (convergence && !is.na(FatMax_SIN)) {
-    sin_fn <- function(x) {
-      sin(((pi^(1/s) / pi + 2 * d) * ((pi / 100) * x + d + t_param))^s)
-    }
-    # Fatmin: find where SIN curve crosses near 0 above FatMax
-    tryCatch({
-      x_search <- seq(FatMax_SIN, 100, length.out = 500)
-      y_search <- sin_fn(x_search)
-      # Find first crossing below a threshold (5% of max)
-      threshold <- 0.05
-      below <- which(y_search < threshold)
-      if (length(below) > 0) {
-        Fatmin <- x_search[below[1]]
-      }
-    }, error = function(e) {
-      # Fatmin cannot be determined
-    })
+  if (convergence) {
+    FatMax_SIN <- .sin_fatmax(d, s, t_param)
+    Fatmin <- .sin_fatmin(d, s, t_param, threshold = fatmin_threshold)
   }
 
   # --- Basic SIN curve (reference: d=0, s=1, t=0) ---
   porc_VO2_100 <- seq(from = 0, to = 100, length.out = 100)
-  porc_MFO_basic <- sin(((pi^(1/1) / pi + 2 * 0) * ((pi / 100) * porc_VO2_100 + 0 + 0))^1)
+  plot_data <- data.frame(porc_VO2 = porc_VO2_100,
+                          values = pmax(.sin_model(porc_VO2_100, d = 0, s = 1, t = 0), 0),
+                          curve = "Basic SIN")
 
-  # --- Fitted SIN curve ---
+  # --- Fitted SIN curve, drawn between its two zeros ---
   if (convergence) {
-    porc_MFO_fitted <- sin(((pi^(1/s) / pi + 2 * d) *
-                              ((pi / 100) * porc_VO2_100 + d + t_param))^s)
-  } else {
-    porc_MFO_fitted <- rep(NA, 100)
+    x_from <- max(0, -(d + t_param) / (pi / 100))
+    x_to <- min(100, .sin_fatmin(d, s, t_param))
+    x_fit <- seq(from = x_from, to = x_to, length.out = 100)
+    y_fit <- .sin_model(x_fit, d, s, t_param)
+    y_fit[is.nan(y_fit) | y_fit < 0] <- 0  # rounding at the zeros
+    plot_data <- rbind(plot_data,
+                       data.frame(porc_VO2 = x_fit, values = y_fit,
+                                  curve = "Fitted SIN"))
   }
-
-  # --- Prepare plot data ---
-  plot_data <- data.frame(
-    porc_VO2 = rep(porc_VO2_100, 2),
-    values = c(porc_MFO_basic, porc_MFO_fitted),
-    curve = factor(rep(c("Basic SIN", "Fitted SIN"), each = 100),
-                   levels = c("Basic SIN", "Fitted SIN"))
-  )
+  plot_data$curve <- factor(plot_data$curve, levels = c("Basic SIN", "Fitted SIN"))
+  observed <- data.frame(porc_VO2 = data_nls$porc_VO2_kinetics,
+                         values = data_nls$porc_MFO_kinetics)
+  observed <- observed[observed$values >= 0, , drop = FALSE]
 
   # --- Plot ---
   d_text <- paste("d == ~", round(d, 2))
@@ -195,6 +231,8 @@ MFO_kinetics <- function(MFO_data) {
   MFO_kinetics_plot <- ggplot(plot_data, aes(x = porc_VO2, y = values,
                                               group = curve, colour = curve)) +
     geom_line(linewidth = 0.8) +
+    geom_point(data = observed, aes(x = porc_VO2, y = values),
+               inherit.aes = FALSE, colour = "black", size = 2) +
     scale_color_manual(values = c("Basic SIN" = "grey60", "Fitted SIN" = "darkorange")) +
     ylim(0, 1.01) +
     xlim(0, 100) +
@@ -219,8 +257,8 @@ MFO_kinetics <- function(MFO_data) {
              label = s_text,
              parse = TRUE, hjust = 0, size = 3.5)
 
-  # Add Fatmin annotation if available
-  if (!is.na(Fatmin)) {
+  # Add Fatmin annotation if available and inside the plotted range
+  if (!is.na(Fatmin) && Fatmin <= 100) {
     fatmin_text <- paste("Fatmin == ~", round(Fatmin, 1), "*'% VO'[2]*'max'")
     MFO_kinetics_plot <- MFO_kinetics_plot +
       geom_vline(xintercept = Fatmin, linetype = "dashed", color = "red", linewidth = 0.4) +

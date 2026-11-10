@@ -30,7 +30,9 @@ MFOs(
   save_plot = TRUE,
   save_result = TRUE,
   output_format = "xlsx",
-  vo2max_window = 30
+  vo2max_window = 30,
+  include_basal = FALSE,
+  fatmin_threshold = NULL
 )
 }
 \arguments{
@@ -89,6 +91,12 @@ every participant and the graded databases are ignored.}
 
 \item{vo2max_window}{averaging window in seconds for VO2max from the graded database
 (default 30). See [MFO()].}
+
+\item{include_basal}{logical; include the resting row as step 0 in the fit
+(default `FALSE`). See [MFO()].}
+
+\item{fatmin_threshold}{`NULL` (default, Fatmin at the second zero of the SIN) or
+a proportion of MFO in (0, 1). See [MFO_kinetics()].}
 }
 \value{
 {Data frame with one row per participant containing:
