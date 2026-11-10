@@ -25,19 +25,24 @@ Target: v0.2.1 on CRAN. Scientific background and sources in `docs/SPEC.md`.
   same `author` equations as the test; it always used Frayn before.
   Jeukendrup & Wallis (2005) propose no resting equation: with
   `author = "Jeukendrup"` the package uses the 100 % glucose pair derived
-  from their Table 4 (CHO = 4.585 VCO2 − 3.226 VO2, FAT = 1.695 VO2 −
-  1.701 VCO2). MFO and Fatmax are not affected because the resting row is not
+  from their Table 4 constants (CHO = 4.58519 VCO2 − 3.22597 VO2,
+  FAT = 1.69469 VO2 − 1.70130 VCO2), documented as a package decision.
+  MFO and Fatmax are not affected because the resting row is not
   part of the fit. Example data with `"Peronnet"`: resting CHO
   0.130 -> 0.134 g/min, FAT 0.0726 -> 0.0723 g/min (SPEC 9.5).
-* Jeukendrup & Wallis (2005) coefficients are now derived in code from the
-  O2/CO2 constants of their Table 4 (glucose/glycogen mix 50/50 for
-  40–50 %VO2max, 20/80 for 50–75 %VO2max) instead of the rounded published
-  values (differences ≤ 0.005). Example data with `"Jeukendrup"`: MFO 0.3163
-  -> 0.3158 g/min, Fatmax 35.36 -> 35.29 %VO2max (SPEC 19).
 * `substrate_oxidation()` no longer fails on vectors with
   `author = "Jeukendrup"`; each value picks its own equation.
 * When both `VO2max` and `db_graded` are given, `VO2max` is now used and
   `db_graded` is ignored with a warning (v0.2.0 silently used `db_graded`).
+
+## Coefficient policy
+
+* Coefficients printed in the source are used as printed and cited by table
+  or equation; derived coefficients are used only where the source prints no
+  equation, with the derivation explained in the documentation (SPEC 19).
+  Exercise equations of Jeukendrup & Wallis (2005, Table 5) and Frayn (1983)
+  are used as printed; their derivation from the published O2/CO2 constants
+  is kept as a cross-check test.
 
 ## New features
 
@@ -60,8 +65,9 @@ Found while verifying the code against the primary sources (SPEC sections
   not the two-regression MRER procedure.
 * The resting row is dropped before the curve fit (`include_basal` option
   planned); `MFO_db$Load` is a synthetic step index, not measured load.
-* Péronnet–Massicotte coefficients are rounded constants rather than derived
-  from their Table 1; energy equivalents are 4/9 kcal/g for all equations
+* Péronnet & Massicotte (1991) print no equations: the package uses rounded
+  constants instead of the coefficients derived from their Table 1
+  (4.58519/3.22597; 1.69469/1.70130); energy equivalents are 4/9 kcal/g for all equations
   (Jeukendrup & Wallis 2005, Table 5, give CHO 3.95 kcal/g at 40–50 %VO2max,
   4.07 kcal/g at 50–75 % and fat 9.75 kcal/g).
 

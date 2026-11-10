@@ -31,17 +31,21 @@ Calculate fat and carbohydrate oxidation from VO2 and VCO2 using
 different stoichiometric equations.
 }
 \details{
-**Jeukendrup & Wallis (2005)** (Int J Sports Med 26 Suppl 1: S28-S37). The
-coefficients are derived in code from the O2/CO2 constants of their Table 4
-(glucose 0.7455/0.7426, glycogen 0.8283/0.8251, fatty acid 2.0092/1.4136 L/g)
-by solving the 2x2 system, for a glucose/glycogen mix of:
+Rule: a coefficient printed in the source is used as printed; a derived
+coefficient is used only where the source prints no equation (SPEC 19).
+
+**Jeukendrup & Wallis (2005)** (Int J Sports Med 26 Suppl 1: S28-S37), with the
+coefficients printed in their Table 5:
 \itemize{
-\item 50/50 below 50 \% VO2max (40-50 \% set; published CHO = 4.344 VCO2 - 3.061 VO2);
-\item 20/80 at or above 50 \% VO2max (50-75 \% set, Table 4 eq. 11;
-  CHO = 4.2105 VCO2 - 2.9623 VO2);
-\item 100/0 with `phase = "rest"`. Jeukendrup & Wallis propose no resting
-  equation; this is a package decision (pure glucose, no glycogen use at rest),
-  giving CHO = 4.585 VCO2 - 3.226 VO2 and FAT = 1.695 VO2 - 1.701 VCO2.
+\item below 50 \% VO2max (40-50 \% set): CHO = 4.344 VCO2 - 3.061 VO2;
+\item at or above 50 \% VO2max (50-75 \% set): CHO = 4.210 VCO2 - 2.962 VO2;
+\item FAT = 1.695 VO2 - 1.701 VCO2 in both.
 }
-Derived and published coefficients agree within 0.005 (rounding in the article).
+With `phase = "rest"` there is no printed equation: Jeukendrup & Wallis propose
+none. As a package decision (pure glucose, no glycogen use at rest), the pair is
+derived from the O2/CO2 constants of their Table 4 (glucose 0.7455/0.7426,
+fatty acid 2.0092/1.4136 L/g) by solving the 2x2 system:
+CHO = 4.58519 VCO2 - 3.22597 VO2, FAT = 1.69469 VO2 - 1.70130 VCO2.
+The same derivation with 50/50 and 20/80 glucose/glycogen reproduces the
+Table 5 coefficients within 0.005 and is kept as a cross-check in the tests.
 }

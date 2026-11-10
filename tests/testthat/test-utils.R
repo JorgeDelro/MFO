@@ -34,16 +34,15 @@ test_that("met_basal uses the requested author equations", {
 })
 
 test_that("substrate_oxidation picks the Jeukendrup set per value", {
-  # 1200 / 3000 = 40 % -> 50/50 mix: O2 0.7869, CO2 0.78385 L/g, det = 0.46255
-  #   CHO = (2.0092*1.020 - 1.4136*1.200) / det = 0.7632998
-  #   FAT = (0.78385*1.200 - 0.7869*1.020) / det = 0.2983075
-  # 1800 / 3000 = 60 % -> 20/80 mix: O2 0.81174, CO2 0.8086 L/g, det = 0.47716
-  #   CHO = (2.0092*1.620 - 1.4136*1.800) / det = 1.4888483
-  #   FAT = (0.8086*1.800 - 0.81174*1.620) / det = 0.2943671
+  # Coefficients printed in Jeukendrup & Wallis (2005), Table 5
+  # 1200 / 3000 = 40 % -> CHO = 4.344*1.020 - 3.061*1.200 = 0.75768
+  #                       FAT = 1.695*1.200 - 1.701*1.020 = 0.29898
+  # 1800 / 3000 = 60 % -> CHO = 4.210*1.620 - 2.962*1.800 = 1.48860
+  #                       FAT = 1.695*1.800 - 1.701*1.620 = 0.29538
   s <- substrate_oxidation(VO2 = c(1200, 1800), VCO2 = c(1020, 1620),
                            author = "Jeukendrup", VO2max = 3000)
-  expect_equal(s$CHO, c(0.7632998, 1.4888483), tolerance = 1e-6)
-  expect_equal(s$FAT, c(0.2983075, 0.2943671), tolerance = 1e-6)
+  expect_equal(s$CHO, c(0.75768, 1.4886), tolerance = 1e-10)
+  expect_equal(s$FAT, c(0.29898, 0.29538), tolerance = 1e-10)
 
   expect_error(substrate_oxidation(1200, 1020, "Jeukendrup"), "VO2max is required")
 })

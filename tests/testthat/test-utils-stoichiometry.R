@@ -1,7 +1,8 @@
-# Expected values: published coefficients of Jeukendrup & Wallis (2005,
-# Int J Sports Med 26 Suppl 1, Table 4). The article rounds them, so the
-# derived coefficients are compared with an absolute tolerance of 0.006
-# (largest gap: 50/50 cho_VO2, derived 3.0561 vs published 3.061).
+# Cross-check: coefficients derived from the Table 4 constants of Jeukendrup &
+# Wallis (2005, Int J Sports Med 26 Suppl 1) against those printed in their
+# Table 5, which the package uses for exercise. The article rounds them, so
+# the comparison uses an absolute tolerance of 0.006 (largest gap: 50/50
+# cho_VO2, derived 3.0561 vs printed 3.061).
 expect_close <- function(object, expected, tol = 0.006) {
   expect_true(all(abs(object - expected) < tol),
               info = paste(round(object, 5), collapse = " / "))
@@ -13,9 +14,9 @@ test_that("50/50 glucose/glycogen reproduces the 40-50 % VO2max set", {
   expect_close(k[c("fat_VO2", "fat_VCO2")], c(1.695, 1.701))
 })
 
-test_that("20/80 glucose/glycogen reproduces Table 4 eq. 11 (50-75 % VO2max)", {
+test_that("20/80 glucose/glycogen reproduces the 50-75 % VO2max set", {
   k <- .jeukendrup_coefficients(0.2)
-  expect_close(k[c("cho_VCO2", "cho_VO2")], c(4.2105, 2.9623))
+  expect_close(k[c("cho_VCO2", "cho_VO2")], c(4.210, 2.962))
   expect_close(k[c("fat_VO2", "fat_VCO2")], c(1.695, 1.701))
 })
 

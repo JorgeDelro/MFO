@@ -37,10 +37,11 @@
 #' Jeukendrup & Wallis (2005) equations for a glucose/glycogen mix
 #'
 #' Carbohydrate is a mix of `glucose_fraction` glucose and the rest glycogen.
-#' Jeukendrup & Wallis (2005, Table 4) use 50/50 for 40-50 \% VO2max
-#' (CHO = 4.344 VCO2 - 3.061 VO2) and 20/80 for 50-75 \% VO2max (eq. 11,
-#' CHO = 4.2105 VCO2 - 2.9623 VO2). 100/0 (pure glucose) is the package's
-#' choice for resting values: the article does not propose a resting equation.
+#' Only 100/0 (pure glucose) is used in calculations: it is the package's choice
+#' for resting values, because the article proposes no resting equation. For
+#' exercise the package uses the coefficients printed in Table 5; 50/50
+#' (40-50 \% VO2max) and 20/80 (50-75 \% VO2max) are derived only to cross-check
+#' them in the tests.
 #'
 #' @param glucose_fraction fraction of carbohydrate oxidised as glucose (0-1).
 #'
