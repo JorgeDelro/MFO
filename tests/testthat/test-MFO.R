@@ -488,3 +488,46 @@ test_that("MV and MRER on the example data (regression, SPEC 6.1)", {
   expect_equal(mrer$FatMax_zone_method, "fitted curve")
   expect_equal(mrer$method, "MRER")
 })
+
+
+# --- HR never decides which steps are dropped (SPEC 9.5, "HR ausente") ---
+# Reference: the same call with complete HR (example data, Frayn, P3);
+# expected MFO/Fatmax are those of the reference run, tolerance 1e-10.
+.example_MFO <- function(db_MFO, ...) {
+  data(list = c("basal_df", "VO2max_df"), package = "MFO", envir = environment())
+  MFO(step_time = 20, db_MFO = db_MFO, db_basal = basal_df,
+      db_graded = VO2max_df, cv_var = "RER", author = "Frayn",
+      energy_equivalents = "classic", ...)
+}
+
+test_that("without an HR column MFO() fits all steps and warns once", {
+  data(MFO_df, package = "MFO", envir = environment())
+  ref <- suppressWarnings(suppressMessages(.example_MFO(MFO_df)))
+  no_hr <- MFO_df
+  no_hr$HR <- NULL
+  w <- capture_warnings(suppressMessages(.example_MFO(no_hr)))
+  expect_equal(sum(grepl("No HR data in db_MFO", w)), 1)
+  r <- suppressWarnings(suppressMessages(.example_MFO(no_hr)))
+  expect_equal(nrow(r$MFO_db), 8)
+  expect_equal(r$MFO, ref$MFO, tolerance = 1e-10)
+  expect_equal(r$FAT_MAX, ref$FAT_MAX, tolerance = 1e-10)
+  expect_true(is.na(r$FAT_MAX_HR))
+  expect_true(all(is.na(r$MFO_db$HR)))
+})
+
+test_that("a step without HR stays in the fit and is named in the warning", {
+  data(MFO_df, package = "MFO", envir = environment())
+  ref <- suppressWarnings(suppressMessages(.example_MFO(MFO_df)))
+  one_gap <- MFO_df
+  one_gap$HR[19:27] <- NA # the whole of step 3 (9 records of 20 s)
+  w <- capture_warnings(suppressMessages(.example_MFO(one_gap)))
+  expect_match(w, "1 exercise step\\(s\\) without HR \\(at 32\\.1 %VO2max\\)",
+               all = FALSE)
+  r <- suppressWarnings(suppressMessages(.example_MFO(one_gap)))
+  expect_equal(nrow(r$MFO_db), 8)
+  expect_true(is.na(r$MFO_db$HR[3]))
+  expect_equal(r$MFO, ref$MFO, tolerance = 1e-10)
+  expect_equal(r$FAT_MAX, ref$FAT_MAX, tolerance = 1e-10)
+  # HR at Fatmax is interpolated between the neighbouring steps with HR
+  expect_false(is.na(r$FAT_MAX_HR))
+})

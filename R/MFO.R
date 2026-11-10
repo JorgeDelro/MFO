@@ -233,10 +233,13 @@ MFO <- function(step_time,
   MFO_db$porc_VO2 <- (MFO_db$VO2 * 100) / VO2max
 
   # The resting row (row 1) is kept or dropped explicitly, not through its
-  # missing HR; v0.2.0 lost it in na.omit(), i.e. include_basal = FALSE (SPEC 9.5)
+  # missing HR; v0.2.0 lost it in na.omit(), i.e. include_basal = FALSE (SPEC 9.5).
+  # HR never decides which steps are dropped (SPEC 9.5, HR ausente)
   basal_row <- MFO_db[1, , drop = FALSE]
-  MFO_db <- na.omit(MFO_db[-1, , drop = FALSE])
-  attr(MFO_db, "na.action") <- NULL
+  MFO_db <- MFO_db[-1, , drop = FALSE]
+  MFO_db <- MFO_db[stats::complete.cases(MFO_db[, setdiff(names(MFO_db), "HR")]), ,
+                   drop = FALSE]
+  .warn_missing_HR(MFO_db$HR, MFO_db$porc_VO2)
   if (isTRUE(include_basal)) {
     MFO_db <- rbind(basal_row, MFO_db)
   }
@@ -326,6 +329,24 @@ MFO <- function(step_time,
               x_CHO = basal$x_CHO,
               x_FAT = basal$x_FAT,
               x_Kcal = basal$x_Kcal))
+}
+
+
+# --- Internal helper: warn when HR is missing (SPEC 9.5) ---
+# HR outputs become NA or are interpolated from fewer steps; the fit is unchanged
+.warn_missing_HR <- function(HR, porc_VO2) {
+  missing_hr <- which(is.na(HR))
+  if (length(missing_hr) == length(HR)) {
+    warning("No HR data in db_MFO: FAT_MAX_HR and FAT_MAX_porcHRmax are NA. ",
+            "MFO and Fatmax are not affected.", call. = FALSE)
+  } else if (length(missing_hr) > 0) {
+    warning(sprintf(paste0("%d exercise step(s) without HR (at %s %%VO2max): kept in ",
+                           "the fit; FAT_MAX_HR is interpolated from the steps with HR."),
+                    length(missing_hr),
+                    paste(sprintf("%.1f", porc_VO2[missing_hr]), collapse = ", ")),
+            call. = FALSE)
+  }
+  invisible(missing_hr)
 }
 
 

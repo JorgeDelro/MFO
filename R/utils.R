@@ -313,7 +313,8 @@ calculate_vars <- function(step_time,
 
     mean_VO2 <- mean(step_data$VO2, na.rm = TRUE)
     mean_VCO2 <- mean(step_data$VCO2, na.rm = TRUE)
-    mean_HR <- mean(step_data$HR, na.rm = TRUE)
+    # HR is optional: a missing column or a step without HR gives NA
+    mean_HR <- .mean_or_na(step_data[["HR"]])
     mean_RER <- mean(step_data$RER, na.rm = TRUE)
 
     # Calculate substrate oxidation
@@ -347,6 +348,14 @@ calculate_vars <- function(step_time,
   }
 
   return(db_vars)
+}
+
+
+# Mean of the non-missing values; NA (not NaN or a warning) if there are none
+.mean_or_na <- function(x) {
+  x <- suppressWarnings(as.numeric(x))
+  if (length(x) == 0 || all(is.na(x))) return(NA_real_)
+  mean(x, na.rm = TRUE)
 }
 
 
@@ -489,9 +498,12 @@ read_MFO_databases <- function(from = c("folder", "files"),
       db <- db[-c(remove_rows), , drop = FALSE]
     }
 
-    # Convert to numeric
-    db <- as.data.frame(apply(db, 2, as.numeric))
-    db <- na.omit(db)
+    # Convert to numeric; only the gas columns decide which rows are dropped,
+    # a missing HR value never removes a row (it would shift the steps)
+    db <- as.data.frame(lapply(db, function(x) suppressWarnings(as.numeric(x))))
+    gas <- intersect(c("VO2", "VCO2", "RER"), colnames(db))
+    db <- db[stats::complete.cases(db[, gas, drop = FALSE]), , drop = FALSE]
+    rownames(db) <- NULL
     return(db)
   }
 

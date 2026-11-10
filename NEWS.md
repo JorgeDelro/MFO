@@ -65,6 +65,15 @@ Target: v0.2.1 on CRAN. Scientific background and sources in `docs/SPEC.md`.
   `author = "Jeukendrup"`; each value picks its own equation.
 * When both `VO2max` and `db_graded` are given, `VO2max` is now used and
   `db_graded` is ignored with a warning (v0.2.0 silently used `db_graded`).
+* Heart rate never decides which rows or steps are dropped. In v0.2.0 a test
+  without an HR column made `MFO()` fail (`0 (non-NA) cases`; in `MFOs()`
+  an empty row with no explanation), a step without HR was silently removed
+  from the fit, and `read_MFO_databases()` deleted every row with a missing
+  HR value, shifting all later steps (an empty HR column deleted the whole
+  table). Now only VO2, VCO2 and RER remove rows, MFO and Fatmax are
+  computed as usual, and a warning says that `FAT_MAX_HR` and
+  `FAT_MAX_porcHRmax` are `NA` (no HR) or interpolated from fewer steps
+  (some steps without HR, listed by %VO2max) (SPEC 9.5).
 
 ## Coefficient policy
 

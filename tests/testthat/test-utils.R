@@ -176,3 +176,26 @@ test_that("RER_cutoff accepts the named values of Amaro-Gahete et al. (2019)", {
   expect_error(n_kept("strict"), "RER_cutoff must be")
   expect_error(n_kept(c(0.9, 1)), "RER_cutoff must be")
 })
+
+
+test_that("sporadic or empty HR in the xlsx never removes rows (SPEC 9.5)", {
+  data(list = c("basal_df", "MFO_df", "VO2max_df"), package = "MFO",
+       envir = environment())
+  dir <- withr::local_tempdir()
+  sporadic <- data.frame(MFO_df)
+  sporadic$HR[c(5, 20, 61)] <- NA
+  empty <- data.frame(basal_df)
+  empty$HR <- NA
+  openxlsx::write.xlsx(sporadic, file.path(dir, "MFO_df.xlsx"))
+  openxlsx::write.xlsx(empty, file.path(dir, "basal_df.xlsx"))
+  openxlsx::write.xlsx(data.frame(VO2max_df), file.path(dir, "VO2max_df.xlsx"))
+
+  dbs <- read_MFO_databases(from = "folder", path = dir,
+                            db_basal_name = "basal_df", db_MFO_name = "MFO_df",
+                            db_graded_name = "VO2max_df")
+  # v0.2.0 dropped 3 MFO rows (shifting every later step) and all basal rows
+  expect_equal(nrow(dbs$participant_db_MFO), nrow(MFO_df))
+  expect_equal(nrow(dbs$participant_db_basal), nrow(basal_df))
+  expect_equal(sum(is.na(dbs$participant_db_MFO$HR)), 3)
+  expect_equal(dbs$participant_db_MFO$VO2, MFO_df$VO2)
+})
