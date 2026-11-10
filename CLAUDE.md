@@ -60,7 +60,8 @@ the source in the roxygen block and adding a unit test against the paper's numbe
    2x2 system; same for Frayn from his Table 1. Unit test: derived values equal
    4.58519/3.22597 and 1.69469/1.70130. SPEC 19 (finding 6).
 7e. `feat:` `energy_equivalents` argument with per-equation defaults (Péronnet 3.8683/9.7460
-   kcal/g; Jeukendrup 4.15/9.75; Frayn: product decision pending, see SPEC 19 finding 1).
+   kcal/g; Jeukendrup 3.95 (40–50 %) / 4.07 (50–75 %) CHO and 9.75 fat, J&W 2005 Table 5;
+   Frayn: product decision pending, see SPEC 19 finding 1).
    `RER_cutoff` accepts named values "classic" 1.00, "safe" 0.95, "sedentary" 0.93,
    "trained" 0.90 (Amaro-Gahete 2019). SPEC 19 (findings 1, 2).
 8. `feat:` warn on incomplete last step and on missing HR; `min_steps` (default 6) warning;
