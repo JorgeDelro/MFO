@@ -68,7 +68,9 @@ Supports all parameters from the MFO() and MFO_kinetics() functions.</p>
 <span>  save_plot <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  save_result <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  output_format <span class="op">=</span> <span class="st">"xlsx"</span>,</span>
-<span>  vo2max_window <span class="op">=</span> <span class="fl">30</span></span>
+<span>  vo2max_window <span class="op">=</span> <span class="fl">30</span>,</span>
+<span>  include_basal <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  fatmin_threshold <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -182,6 +184,16 @@ every participant and the graded databases are ignored.</p></dd>
 <dt id="arg-vo-max-window">vo2max_window<a class="anchor" aria-label="anchor" href="#arg-vo-max-window"></a></dt>
 <dd><p>averaging window in seconds for VO2max from the graded database
 (default 30). See [MFO()].</p></dd>
+
+
+<dt id="arg-include-basal">include_basal<a class="anchor" aria-label="anchor" href="#arg-include-basal"></a></dt>
+<dd><p>logical; include the resting row as step 0 in the fit
+(default `FALSE`). See [MFO()].</p></dd>
+
+
+<dt id="arg-fatmin-threshold">fatmin_threshold<a class="anchor" aria-label="anchor" href="#arg-fatmin-threshold"></a></dt>
+<dd><p>`NULL` (default, Fatmin at the second zero of the SIN) or
+a proportion of MFO in (0, 1). See [MFO_kinetics()].</p></dd>
 
 </dl></div>
     <div class="section level2">

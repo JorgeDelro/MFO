@@ -52,3 +52,9 @@ calculate_vars(
 
 data frame with columns: VO2, VCO2, HR, RER, CHO, FAT, Kcal (one row per
 step)
+
+## Details
+
+With \`author = "Jeukendrup"\`, a single warning lists the steps (after
+\`RER_cutoff\`) whose intensity is outside 40-75 % VO2max, the range of
+the Jeukendrup & Wallis (2005, Table 5) equations (SPEC 3, 9.5).

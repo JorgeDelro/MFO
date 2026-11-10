@@ -24,7 +24,8 @@ MFO(
   body_mass = NULL,
   fat_free_mass = NULL,
   HRmax = NULL,
-  vo2max_window = 30
+  vo2max_window = 30,
+  include_basal = FALSE
 )
 ```
 
@@ -56,6 +57,9 @@ MFO(
 - author:
 
   author to estimate MFO. Can be: "Frayn", "Jeukendrup" or "Peronnet".
+  "Jeukendrup" warns when an exercise step is outside 40-75 % VO2max,
+  the range of Jeukendrup & Wallis (2005, Table 5); the resting row
+  never warns.
 
 - VO2max:
 
@@ -109,12 +113,24 @@ MFO(
   is rounded up (30 s with 20-s records uses 2 records = 40 s). See SPEC
   9.5 and 14.
 
+- include_basal:
+
+  logical. If \`TRUE\`, the resting row (from \`db_basal\`) enters
+  \`MFO_db\` as step 0 and is part of the curve fit, as in Montes de Oca
+  et al. (2021, Eur J Sport Sci,
+  [doi:10.1080/17461391.2020.1788650](https://doi.org/10.1080/17461391.2020.1788650)
+  ). Default \`FALSE\` fits exercise steps only and reproduces
+  v0.1.0/v0.2.0, which dropped the resting row. With \`TRUE\` the P3/P2
+  fit changes; the resting row has \`HR = NA\` and \`Load = "basal"\`.
+  See SPEC 9.5.
+
 ## Value
 
 Returns a list which contains:
 
 - MFO_db: database with Load, VO2, VCO2, HR, RER, CHO, FAT, Kcal,
-  porc_VO2.
+  porc_VO2 (one row per exercise step, plus the resting row first if
+  \`include_basal = TRUE\`).
 
 - MFO_plot: ggplot object with the MFO plot including FAT and CHO
   curves.
