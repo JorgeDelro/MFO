@@ -46,6 +46,13 @@ Target: v0.2.1 on CRAN. Scientific background and sources in `docs/SPEC.md`.
 
 ## New features
 
+* `MFO()` and `MFOs()` gain `include_basal` (default `FALSE`). With `TRUE`
+  the resting row enters `MFO_db` as step 0 and is part of the P3/P2 fit, as
+  in Montes de Oca et al. (2021). The default reproduces v0.1.0/v0.2.0, which
+  silently lost the resting row because its `HR` is `NA`; the exclusion is
+  now explicit and no longer depends on missing HR. Example data, Frayn, P3:
+  MFO 0.3167 -> 0.3225 g/min and Fatmax 36.17 -> 36.11 %VO2max with `TRUE`
+  (SPEC 9.5).
 * `MFO()` returns `VO2max`, `VO2max_window` (effective, s) and
   `VO2max_window_requested`; `MFOs()` gains `vo2max_window` and the columns
   `VO2max` and `VO2max_window`.
@@ -63,8 +70,7 @@ Found while verifying the code against the primary sources (SPEC sections
   the second zero of the curve.
 * `method = "MRER"` is a measured-values method on `1.7 * (1 - RER) * VO2`,
   not the two-regression MRER procedure.
-* The resting row is dropped before the curve fit (`include_basal` option
-  planned); `MFO_db$Load` is a synthetic step index, not measured load.
+* `MFO_db$Load` is a synthetic step index, not measured load.
 * Péronnet & Massicotte (1991) print no equations: the package uses rounded
   constants instead of the coefficients derived from their Table 1
   (4.58519/3.22597; 1.69469/1.70130); energy equivalents are 4/9 kcal/g for all equations

@@ -19,6 +19,8 @@
 #'        every participant and the graded databases are ignored.
 #' @param vo2max_window averaging window in seconds for VO2max from the graded database
 #'        (default 30). See [MFO()].
+#' @param include_basal logical; include the resting row as step 0 in the fit
+#'        (default `FALSE`). See [MFO()].
 #' @param step_duration duration of each exercise step in seconds (default 180).
 #' @param steady_state_duration duration of steady-state period within each step in seconds (default 60).
 #' @param RER_cutoff RER value above which steps are excluded (default NULL).
@@ -109,7 +111,8 @@ MFOs <- function(from = c("folder", "files"),
                  save_plot = TRUE,
                  save_result = TRUE,
                  output_format = "xlsx",
-                 vo2max_window = 30) {
+                 vo2max_window = 30,
+                 include_basal = FALSE) {
 
   from <- match.arg(from)
   output_format <- match.arg(output_format, c("xlsx", "csv", "rds"))
@@ -161,7 +164,8 @@ MFOs <- function(from = c("folder", "files"),
         body_mass = body_mass,
         fat_free_mass = fat_free_mass,
         HRmax = HRmax,
-        vo2max_window = vo2max_window
+        vo2max_window = vo2max_window,
+        include_basal = include_basal
       )
 
       # Save MFO plot

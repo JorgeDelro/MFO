@@ -20,7 +20,8 @@ MFO(
   body_mass = NULL,
   fat_free_mass = NULL,
   HRmax = NULL,
-  vo2max_window = 30
+  vo2max_window = 30,
+  include_basal = FALSE
 )
 }
 \arguments{
@@ -62,11 +63,19 @@ Recommended values: 1.0 (general), 0.93 (sedentary/obese), 0.90 (trained).}
 \item{vo2max_window}{averaging window in seconds for VO2max from `db_graded` (default 30).
 If it is not a multiple of `step_time`, the number of records is rounded up
 (30 s with 20-s records uses 2 records = 40 s). See SPEC 9.5 and 14.}
+
+\item{include_basal}{logical. If `TRUE`, the resting row (from `db_basal`) enters
+`MFO_db` as step 0 and is part of the curve fit, as in Montes de Oca et al.
+(2021, Eur J Sport Sci, \doi{10.1080/17461391.2020.1788650}). Default `FALSE`
+fits exercise steps only and reproduces v0.1.0/v0.2.0, which dropped the
+resting row. With `TRUE` the P3/P2 fit changes; the resting row has `HR = NA`
+and `Load = "basal"`. See SPEC 9.5.}
 }
 \value{
 {Returns a list which contains:
 \itemize{
-\item MFO_db: database with Load, VO2, VCO2, HR, RER, CHO, FAT, Kcal, porc_VO2.
+\item MFO_db: database with Load, VO2, VCO2, HR, RER, CHO, FAT, Kcal, porc_VO2
+  (one row per exercise step, plus the resting row first if `include_basal = TRUE`).
 \item MFO_plot: ggplot object with the MFO plot including FAT and CHO curves.
 \item MFO: Maximal fat oxidation (g/min).
 \item MFO_relative: MFO relative to body mass (mg/kg/min), if body_mass provided.
