@@ -61,7 +61,9 @@ Found while verifying the code against the primary sources (SPEC sections
 * The resting row is dropped before the curve fit (`include_basal` option
   planned); `MFO_db$Load` is a synthetic step index, not measured load.
 * Péronnet–Massicotte coefficients are rounded constants rather than derived
-  from their Table 1; energy equivalents are 4/9 kcal/g for all equations.
+  from their Table 1; energy equivalents are 4/9 kcal/g for all equations
+  (Jeukendrup & Wallis 2005, Table 5, give CHO 3.95 kcal/g at 40–50 %VO2max,
+  4.07 kcal/g at 50–75 % and fat 9.75 kcal/g).
 
 # MFO 0.2.0
 
