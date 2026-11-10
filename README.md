@@ -213,9 +213,8 @@ and MRER issues do not affect MFO and Fatmax obtained with P3 or P2.
 - **`method = "MRER"`** takes the observed maximum of 1.7 (1 − RER) VO2.
   This is a measured-values (MV) method, not the two-regression MRER
   procedure of Chenevière et al. (2009).
-- **Resting values** are always computed with Frayn’s equations,
-  whatever `author` is, and the resting row is not used in the curve
-  fit.
+- The **resting row** is not used in the curve fit (an `include_basal`
+  option is planned).
 - The `Load` column of `MFO_db` is a step label, not the measured
   external load.
 

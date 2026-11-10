@@ -21,6 +21,14 @@ Target: v0.2.1 on CRAN. Scientific background and sources in `docs/SPEC.md`.
   is unchanged. In the example data VO2max drops from 3442 to 3315 ml/min and
   Fatmax moves from 34.8 to 36.2 %VO2max. Use `vo2max_window = step_time` to
   reproduce v0.2.0 (SPEC 9.5, 14).
+* Resting substrate oxidation (`x_CHO`, `x_FAT`, `x_Kcal`) now uses the
+  same `author` equations as the test; it always used Frayn before. With
+  `author = "Jeukendrup"` the low-intensity (40–50 %VO2max) set is
+  extrapolated to rest. MFO and Fatmax are not affected because the resting
+  row is not part of the fit. Example data with `"Peronnet"`: resting CHO
+  0.130 -> 0.134 g/min, FAT 0.0726 -> 0.0723 g/min (SPEC 9.5).
+* `substrate_oxidation()` no longer fails on vectors with
+  `author = "Jeukendrup"`; each value picks its own CHO equation.
 * When both `VO2max` and `db_graded` are given, `VO2max` is now used and
   `db_graded` is ignored with a warning (v0.2.0 silently used `db_graded`).
 
@@ -43,8 +51,8 @@ Found while verifying the code against the primary sources (SPEC sections
   the second zero of the curve.
 * `method = "MRER"` is a measured-values method on `1.7 * (1 - RER) * VO2`,
   not the two-regression MRER procedure.
-* Resting values always use Frayn's equations, and the resting row is dropped
-  before the curve fit.
+* The resting row is dropped before the curve fit (`include_basal` option
+  planned); `MFO_db$Load` is a synthetic step index, not measured load.
 * Péronnet–Massicotte coefficients are rounded constants rather than derived
   from their Table 1; energy equivalents are 4/9 kcal/g for all equations.
 

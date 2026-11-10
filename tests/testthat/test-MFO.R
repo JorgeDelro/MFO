@@ -333,3 +333,30 @@ test_that("a supplied VO2max wins over db_graded with a warning", {
   expect_true(is.na(result$VO2max_window))
   expect_true(is.na(result$VO2max_window_requested))
 })
+
+
+test_that("MFO resting values use the same author equations as the test", {
+  d <- create_test_data(42)
+  # Constant rest: VO2 = 300, VCO2 = 240 ml/min; hand values in test-utils.R
+  rest <- data.frame(VO2 = rep(300, 48), VCO2 = rep(240, 48),
+                     RER = rep(0.8, 48), HR = rep(60, 48))
+
+  r_p <- MFO(step_time = 20, db_MFO = d$exercise, db_basal = rest,
+             cv_var = "VO2", author = "Peronnet", VO2max = d$VO2max)
+  expect_equal(r_p$x_CHO, 0.13275, tolerance = 1e-10)
+  expect_equal(r_p$x_FAT, 0.100092, tolerance = 1e-10)
+
+  r_j <- MFO(step_time = 20, db_MFO = d$exercise, db_basal = rest,
+             cv_var = "VO2", author = "Jeukendrup", VO2max = d$VO2max)
+  expect_equal(r_j$x_CHO, 0.12426, tolerance = 1e-10)
+  expect_equal(r_j$x_FAT, 0.10026, tolerance = 1e-10)
+
+  r_f <- MFO(step_time = 20, db_MFO = d$exercise, db_basal = rest,
+             cv_var = "VO2", author = "Frayn", VO2max = d$VO2max)
+  expect_equal(r_f$x_FAT, 0.1002, tolerance = 1e-10)
+
+  # The resting row is not part of the fit, so MFO does not depend on it
+  r_f2 <- MFO(step_time = 20, db_MFO = d$exercise, db_basal = d$basal,
+              cv_var = "VO2", author = "Frayn", VO2max = d$VO2max)
+  expect_equal(r_f$MFO, r_f2$MFO)
+})

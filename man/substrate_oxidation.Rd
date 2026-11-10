@@ -7,9 +7,9 @@
 substrate_oxidation(VO2, VCO2, author, VO2max = NULL)
 }
 \arguments{
-\item{VO2}{oxygen consumption in ml/min}
+\item{VO2}{oxygen consumption in ml/min (scalar or vector)}
 
-\item{VCO2}{carbon dioxide production in ml/min}
+\item{VCO2}{carbon dioxide production in ml/min (same length as VO2)}
 
 \item{author}{equation set: "Frayn", "Jeukendrup", or "Peronnet"}
 

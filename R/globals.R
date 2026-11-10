@@ -19,9 +19,6 @@ utils::globalVariables(c(
   "values",
   "curve",
   # Substrate oxidation variables
-  "CHO_Frayn",
-  "FAT_Frayn",
-  "Kcal_total_Frayn",
   "CHO_Jeukendrup_40_50_VO2",
   "FAT_Jeukendrup_40_50_VO2",
   "CHO_Jeukendrup_50_75_VO2",

@@ -8,11 +8,18 @@
 #' @param db a data frame with columns VO2, VCO2, RER, HR.
 #' @param cv_var variable to calculate coefficient of variation: "VO2", "VCO2" or "RER".
 #' @param window_duration duration of the stable window in seconds (default 300 = 5 min).
+#' @param author equation set used for resting substrate oxidation: "Frayn" (default),
+#'        "Jeukendrup" or "Peronnet". `MFO()` passes its own `author`, so resting and
+#'        exercise values use the same equations (SPEC 9.5). With "Jeukendrup" the resting
+#'        point (~5-10 \% VO2max) falls below the 40-75 \% range of the equations and the
+#'        low-intensity (40-50 \%) set is extrapolated.
+#' @param VO2max maximum oxygen uptake in ml/min (required for "Jeukendrup").
 #'
 #' @importFrom dplyr pull mutate
 #' @importFrom tibble add_column
 #'
-met_basal <- function(step_time, db, cv_var, window_duration = 300) {
+met_basal <- function(step_time, db, cv_var, window_duration = 300,
+                      author = "Frayn", VO2max = NULL) {
 
   # Number of records in the stable window
   window_size <- as.integer(window_duration / step_time)
@@ -50,18 +57,20 @@ met_basal <- function(step_time, db, cv_var, window_duration = 300) {
     db_5min <- db_stable[best_start:best_end, , drop = FALSE]
   }
 
-  # Calculate substrate oxidation for the stable window (Frayn, 1983)
+  # Substrate oxidation for the stable window, same equations as the test
   db_5min_calc <- db_5min
-  db_5min_calc$CHO_Frayn <- (4.55 * db_5min_calc$VCO2 - 3.21 * db_5min_calc$VO2) / 1000
-  db_5min_calc$FAT_Frayn <- (1.67 * db_5min_calc$VO2 - 1.67 * db_5min_calc$VCO2) / 1000
-  db_5min_calc$Kcal_total_Frayn <- db_5min_calc$CHO_Frayn * 4 + db_5min_calc$FAT_Frayn * 9
+  subs <- substrate_oxidation(VO2 = db_5min_calc$VO2, VCO2 = db_5min_calc$VCO2,
+                              author = author, VO2max = VO2max)
+  db_5min_calc$CHO <- subs$CHO
+  db_5min_calc$FAT <- subs$FAT
+  db_5min_calc$Kcal <- subs$Kcal
 
   # Return means
   x_VO2 <- mean(db_5min_calc$VO2)
   x_RER <- mean(db_5min_calc$RER)
-  x_CHO <- mean(db_5min_calc$CHO_Frayn)
-  x_FAT <- mean(db_5min_calc$FAT_Frayn)
-  x_Kcal <- mean(db_5min_calc$Kcal_total_Frayn)
+  x_CHO <- mean(db_5min_calc$CHO)
+  x_FAT <- mean(db_5min_calc$FAT)
+  x_Kcal <- mean(db_5min_calc$Kcal)
 
   return(list(db = db,
               db_5min = db_5min_calc,
@@ -78,8 +87,8 @@ met_basal <- function(step_time, db, cv_var, window_duration = 300) {
 #' Calculate fat and carbohydrate oxidation from VO2 and VCO2 using
 #' different stoichiometric equations.
 #'
-#' @param VO2 oxygen consumption in ml/min
-#' @param VCO2 carbon dioxide production in ml/min
+#' @param VO2 oxygen consumption in ml/min (scalar or vector)
+#' @param VCO2 carbon dioxide production in ml/min (same length as VO2)
 #' @param author equation set: "Frayn", "Jeukendrup", or "Peronnet"
 #' @param VO2max maximum oxygen uptake in ml/min (required for Jeukendrup)
 #'
@@ -103,11 +112,10 @@ substrate_oxidation <- function(VO2, VCO2, author, VO2max = NULL) {
 
     FAT <- 1.695 * vo2 - 1.701 * vco2
 
-    if (pct_vo2 < 50) {
-      CHO <- 4.344 * vco2 - 3.061 * vo2
-    } else {
-      CHO <- 4.210 * vco2 - 2.962 * vo2
-    }
+    # Vectorised: each value picks the 40-50 % or 50-75 % VO2max set
+    CHO <- ifelse(pct_vo2 < 50,
+                  4.344 * vco2 - 3.061 * vo2,
+                  4.210 * vco2 - 2.962 * vo2)
 
   } else if (author == "Peronnet") {
     # Peronnet & Massicotte (1991)

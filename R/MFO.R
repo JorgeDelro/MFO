@@ -54,7 +54,7 @@
 #' \item VO2max: VO2max used to express intensity (ml/min).
 #' \item VO2max_window: effective averaging window for VO2max (s); NA if VO2max was supplied.
 #' \item VO2max_window_requested: `vo2max_window` as requested (s); NA if VO2max was supplied.
-#' \item x_CHO: carbohydrates in basal metabolism (g/min).
+#' \item x_CHO: carbohydrates in basal metabolism (g/min), with the same `author` equations as the test.
 #' \item x_FAT: fat in basal metabolism (g/min).
 #' \item x_Kcal: Kcal in basal metabolism (kcal/min).
 #' }}
@@ -142,7 +142,9 @@ MFO <- function(step_time,
   # Get basal data
   basal <- met_basal(step_time = step_time,
                      db = db_basal,
-                     cv_var = cv_var)
+                     cv_var = cv_var,
+                     author = author,
+                     VO2max = VO2max)
 
   # Calculate CHO, FAT and Kcal for each step
   MFO_test <- calculate_vars(step_time = step_time,

@@ -83,7 +83,7 @@ If it is not a multiple of `step_time`, the number of records is rounded up
 \item VO2max: VO2max used to express intensity (ml/min).
 \item VO2max_window: effective averaging window for VO2max (s); NA if VO2max was supplied.
 \item VO2max_window_requested: `vo2max_window` as requested (s); NA if VO2max was supplied.
-\item x_CHO: carbohydrates in basal metabolism (g/min).
+\item x_CHO: carbohydrates in basal metabolism (g/min), with the same `author` equations as the test.
 \item x_FAT: fat in basal metabolism (g/min).
 \item x_Kcal: Kcal in basal metabolism (kcal/min).
 }}
