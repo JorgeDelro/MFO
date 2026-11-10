@@ -4,6 +4,10 @@ Target: v0.2.1 on CRAN. Scientific background and sources in `docs/SPEC.md`.
 
 ## Infrastructure
 
+* Tests for `MFOs()` in both modes (`"folder"` and `"files"`), checked
+  against `MFO()` participant by participant; coverage of `R/MFOs.R` goes
+  from 0 to 99 %.
+
 * GitHub Actions: `R CMD check` on macOS, Windows and Ubuntu (R devel,
   release, oldrel-1), test coverage with Codecov, and a pkgdown site
   deployed to <https://jorgedelro.github.io/MFO/>.
