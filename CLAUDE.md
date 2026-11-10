@@ -55,12 +55,16 @@ the source in the roxygen block and adding a unit test against the paper's numbe
    (linear fits of (1-RER) and VO2 vs intensity, vertex of their product). Current `MRER`
    behaviour becomes `MV`; keep `MRER` string working with a deprecation message for one release.
    SPEC 6.1 / 19 (finding 4).
-7d. `fix:` Péronnet–Massicotte coefficients derived in code from their Table 1 constants
-   (O2 0.7455 / CO2 0.7426 L per g glucose; 2.0092 / 1.4136 L per g fatty acid) by solving the
-   2x2 system; same for Frayn from his Table 1. Unit test: derived values equal
-   4.58519/3.22597 and 1.69469/1.70130. SPEC 19 (finding 6).
+7d. `fix:` Rule: **printed coefficient in the source > derived coefficient; derive only where
+   the source prints no equation** (SPEC 19). Péronnet–Massicotte print no equations, so use
+   coefficients derived in code from their Table 1 constants (O2 0.7455 / CO2 0.7426 L per g
+   glucose; 2.0092 / 1.4136 L per g fatty acid) with `.derive_oxidation_coefficients()`, the
+   derivation explained in roxygen; unit test: 4.58519/3.22597 and 1.69469/1.70130. Frayn prints
+   his equations, so keep 4.55/3.21 and 1.67/1.67 as printed; the derivation from his Table 1 is
+   only a cross-check test. SPEC 19 (finding 6).
 7e. `feat:` `energy_equivalents` argument with per-equation defaults (Péronnet 3.8683/9.7460
-   kcal/g; Jeukendrup 4.15/9.75; Frayn: product decision pending, see SPEC 19 finding 1).
+   kcal/g; Jeukendrup 3.95 (40–50 %) / 4.07 (50–75 %) CHO and 9.75 fat, J&W 2005 Table 5;
+   Frayn: product decision pending, see SPEC 19 finding 1).
    `RER_cutoff` accepts named values "classic" 1.00, "safe" 0.95, "sedentary" 0.93,
    "trained" 0.90 (Amaro-Gahete 2019). SPEC 19 (findings 1, 2).
 8. `feat:` warn on incomplete last step and on missing HR; `min_steps` (default 6) warning;

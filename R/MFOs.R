@@ -15,7 +15,10 @@
 #' @param cv_var variable to estimate coefficient of variation. Can be: "VO2", "VCO2" or "RER".
 #' @param author equation set: "Frayn", "Jeukendrup" or "Peronnet".
 #' @param method curve-fitting method: "P3", "P2", or "MRER". Default "P3".
-#' @param VO2max VO2max can be passed directly (ml/min). Default NULL.
+#' @param VO2max VO2max can be passed directly (ml/min). Default NULL. If given, it is used for
+#'        every participant and the graded databases are ignored.
+#' @param vo2max_window averaging window in seconds for VO2max from the graded database
+#'        (default 30). See [MFO()].
 #' @param step_duration duration of each exercise step in seconds (default 180).
 #' @param steady_state_duration duration of steady-state period within each step in seconds (default 60).
 #' @param RER_cutoff RER value above which steps are excluded (default NULL).
@@ -44,6 +47,8 @@
 #' \item MFO_g_min: Maximal fat oxidation (g/min).
 #' \item MFO_relative: MFO relative to body mass (mg/kg/min), if body_mass provided.
 #' \item MFO_FFM: MFO relative to fat-free mass (mg/kgFFM/min), if fat_free_mass provided.
+#' \item VO2max: VO2max used (ml/min).
+#' \item VO2max_window: effective averaging window for VO2max (s); NA if VO2max was supplied.
 #' \item FAT_MAX_perVO2max: FatMax as \% VO2max.
 #' \item FAT_MAX_HR: Heart rate at FatMax (bpm).
 #' \item FAT_MAX_porcHRmax: FatMax as \% HRmax, if HRmax provided.
@@ -103,7 +108,8 @@ MFOs <- function(from = c("folder", "files"),
                  col_name_HR = "HR",
                  save_plot = TRUE,
                  save_result = TRUE,
-                 output_format = "xlsx") {
+                 output_format = "xlsx",
+                 vo2max_window = 30) {
 
   from <- match.arg(from)
   output_format <- match.arg(output_format, c("xlsx", "csv", "rds"))
@@ -142,7 +148,8 @@ MFOs <- function(from = c("folder", "files"),
         step_time = step_time,
         db_MFO = participant_dbs$participant_db_MFO,
         db_basal = participant_dbs$participant_db_basal,
-        db_graded = participant_dbs$participant_db_graded,
+        # A supplied VO2max wins; skip db_graded to avoid a warning per participant
+        db_graded = if (is.null(VO2max)) participant_dbs$participant_db_graded else NULL,
         cv_var = cv_var,
         author = author,
         VO2max = VO2max,
@@ -153,7 +160,8 @@ MFOs <- function(from = c("folder", "files"),
         negative_FAT = negative_FAT,
         body_mass = body_mass,
         fat_free_mass = fat_free_mass,
-        HRmax = HRmax
+        HRmax = HRmax,
+        vo2max_window = vo2max_window
       )
 
       # Save MFO plot
@@ -187,6 +195,8 @@ MFOs <- function(from = c("folder", "files"),
                                     participant_result_MFO$MFO_relative), 2),
         MFO_FFM = round(ifelse(is.na(participant_result_MFO$MFO_FFM), NA,
                                participant_result_MFO$MFO_FFM), 2),
+        VO2max = round(participant_result_MFO$VO2max, 1),
+        VO2max_window = participant_result_MFO$VO2max_window,
         FAT_MAX_perVO2max = round(participant_result_MFO$FAT_MAX, 2),
         FAT_MAX_HR = round(ifelse(is.na(participant_result_MFO$FAT_MAX_HR), NA,
                                   participant_result_MFO$FAT_MAX_HR), 1),
@@ -221,6 +231,7 @@ MFOs <- function(from = c("folder", "files"),
       results_list[[i]] <<- data.frame(
         ID = ID_participant,
         MFO_g_min = NA, MFO_relative = NA, MFO_FFM = NA,
+        VO2max = NA, VO2max_window = NA,
         FAT_MAX_perVO2max = NA, FAT_MAX_HR = NA, FAT_MAX_porcHRmax = NA,
         FatMax_zone_lower = NA, FatMax_zone_upper = NA,
         crossover_point = NA, R_squared = NA, method = method,

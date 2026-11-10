@@ -8,11 +8,17 @@
 #' @param db a data frame with columns VO2, VCO2, RER, HR.
 #' @param cv_var variable to calculate coefficient of variation: "VO2", "VCO2" or "RER".
 #' @param window_duration duration of the stable window in seconds (default 300 = 5 min).
+#' @param author equation set used for resting substrate oxidation: "Frayn" (default),
+#'        "Jeukendrup" or "Peronnet". `MFO()` passes its own `author`, so resting and
+#'        exercise values use the same equations (SPEC 9.5). Jeukendrup & Wallis (2005)
+#'        propose no resting equation; with "Jeukendrup" the package uses the 100 \% glucose
+#'        pair derived from their Table 4 (see [substrate_oxidation()], `phase = "rest"`).
 #'
 #' @importFrom dplyr pull mutate
 #' @importFrom tibble add_column
 #'
-met_basal <- function(step_time, db, cv_var, window_duration = 300) {
+met_basal <- function(step_time, db, cv_var, window_duration = 300,
+                      author = "Frayn") {
 
   # Number of records in the stable window
   window_size <- as.integer(window_duration / step_time)
@@ -50,18 +56,20 @@ met_basal <- function(step_time, db, cv_var, window_duration = 300) {
     db_5min <- db_stable[best_start:best_end, , drop = FALSE]
   }
 
-  # Calculate substrate oxidation for the stable window (Frayn, 1983)
+  # Substrate oxidation for the stable window, same equations as the test
   db_5min_calc <- db_5min
-  db_5min_calc$CHO_Frayn <- (4.55 * db_5min_calc$VCO2 - 3.21 * db_5min_calc$VO2) / 1000
-  db_5min_calc$FAT_Frayn <- (1.67 * db_5min_calc$VO2 - 1.67 * db_5min_calc$VCO2) / 1000
-  db_5min_calc$Kcal_total_Frayn <- db_5min_calc$CHO_Frayn * 4 + db_5min_calc$FAT_Frayn * 9
+  subs <- substrate_oxidation(VO2 = db_5min_calc$VO2, VCO2 = db_5min_calc$VCO2,
+                              author = author, phase = "rest")
+  db_5min_calc$CHO <- subs$CHO
+  db_5min_calc$FAT <- subs$FAT
+  db_5min_calc$Kcal <- subs$Kcal
 
   # Return means
   x_VO2 <- mean(db_5min_calc$VO2)
   x_RER <- mean(db_5min_calc$RER)
-  x_CHO <- mean(db_5min_calc$CHO_Frayn)
-  x_FAT <- mean(db_5min_calc$FAT_Frayn)
-  x_Kcal <- mean(db_5min_calc$Kcal_total_Frayn)
+  x_CHO <- mean(db_5min_calc$CHO)
+  x_FAT <- mean(db_5min_calc$FAT)
+  x_Kcal <- mean(db_5min_calc$Kcal)
 
   return(list(db = db,
               db_5min = db_5min_calc,
@@ -78,14 +86,37 @@ met_basal <- function(step_time, db, cv_var, window_duration = 300) {
 #' Calculate fat and carbohydrate oxidation from VO2 and VCO2 using
 #' different stoichiometric equations.
 #'
-#' @param VO2 oxygen consumption in ml/min
-#' @param VCO2 carbon dioxide production in ml/min
+#' @param VO2 oxygen consumption in ml/min (scalar or vector)
+#' @param VCO2 carbon dioxide production in ml/min (same length as VO2)
 #' @param author equation set: "Frayn", "Jeukendrup", or "Peronnet"
-#' @param VO2max maximum oxygen uptake in ml/min (required for Jeukendrup)
+#' @param VO2max maximum oxygen uptake in ml/min (required for Jeukendrup during exercise)
+#' @param phase "exercise" (default) or "rest". Only changes "Jeukendrup".
+#'
+#' @details
+#' Rule: a coefficient printed in the source is used as printed; a derived
+#' coefficient is used only where the source prints no equation (SPEC 19).
+#'
+#' **Jeukendrup & Wallis (2005)** (Int J Sports Med 26 Suppl 1: S28-S37), with the
+#' coefficients printed in their Table 5:
+#' \itemize{
+#' \item below 50 \% VO2max (40-50 \% set): CHO = 4.344 VCO2 - 3.061 VO2;
+#' \item at or above 50 \% VO2max (50-75 \% set): CHO = 4.210 VCO2 - 2.962 VO2;
+#' \item FAT = 1.695 VO2 - 1.701 VCO2 in both.
+#' }
+#' With `phase = "rest"` there is no printed equation: Jeukendrup & Wallis propose
+#' none. As a package decision (pure glucose, no glycogen use at rest), the pair is
+#' derived from the O2/CO2 constants of their Table 4 (glucose 0.7455/0.7426,
+#' fatty acid 2.0092/1.4136 L/g) by solving the 2x2 system:
+#' CHO = 4.58519 VCO2 - 3.22597 VO2, FAT = 1.69469 VO2 - 1.70130 VCO2.
+#' The same derivation with 50/50 and 20/80 glucose/glycogen reproduces the
+#' Table 5 coefficients within 0.005 and is kept as a cross-check in the tests.
 #'
 #' @return Named list with CHO (g/min), FAT (g/min), Kcal (kcal/min)
 #'
-substrate_oxidation <- function(VO2, VCO2, author, VO2max = NULL) {
+substrate_oxidation <- function(VO2, VCO2, author, VO2max = NULL,
+                                phase = c("exercise", "rest")) {
+
+  phase <- match.arg(phase)
 
   # Convert to L/min for equations (inputs are in ml/min)
   vo2 <- VO2 / 1000
@@ -98,15 +129,20 @@ substrate_oxidation <- function(VO2, VCO2, author, VO2max = NULL) {
 
   } else if (author == "Jeukendrup") {
     # Jeukendrup & Wallis (2005) - Int J Sports Med
-    if (is.null(VO2max)) stop("VO2max is required for Jeukendrup equations")
-    pct_vo2 <- (VO2 / VO2max) * 100
-
-    FAT <- 1.695 * vo2 - 1.701 * vco2
-
-    if (pct_vo2 < 50) {
-      CHO <- 4.344 * vco2 - 3.061 * vo2
+    if (phase == "rest") {
+      # No published resting equation: 100 % glucose pair derived from Table 4
+      k <- .jeukendrup_coefficients(glucose_fraction = 1)
+      CHO <- k[["cho_VCO2"]] * vco2 - k[["cho_VO2"]] * vo2
+      FAT <- k[["fat_VO2"]] * vo2 - k[["fat_VCO2"]] * vco2
     } else {
-      CHO <- 4.210 * vco2 - 2.962 * vo2
+      # Coefficients as printed in Table 5
+      if (is.null(VO2max)) stop("VO2max is required for Jeukendrup equations")
+      pct_vo2 <- (VO2 / VO2max) * 100
+      FAT <- 1.695 * vo2 - 1.701 * vco2
+      # Vectorised: each value picks the 40-50 % or 50-75 % VO2max set
+      CHO <- ifelse(pct_vo2 < 50,
+                    4.344 * vco2 - 3.061 * vo2,
+                    4.210 * vco2 - 2.962 * vo2)
     }
 
   } else if (author == "Peronnet") {
