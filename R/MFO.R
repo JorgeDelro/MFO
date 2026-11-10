@@ -51,6 +51,12 @@
 #'        0.3.0, and a message says so once per session when the argument is not
 #'        set. MFO and Fatmax (g/min) do not depend on it. See
 #'        [substrate_oxidation()] and SPEC 19 (finding 1).
+#' @param use_incomplete_step logical. Records left after the last complete step
+#'        (fewer than `step_duration` s) always give a warning stating "X s of Y s".
+#'        With `FALSE` (default, as in v0.2.0) they are dropped. With `TRUE` that
+#'        incomplete step is used only if it lasts at least `steady_state_duration`;
+#'        its last `steady_state_duration` s are averaged, as for complete steps,
+#'        although VO2 may not have reached its plateau. See SPEC 9.5.
 #'
 #' @section Methods:
 #' \itemize{
@@ -159,7 +165,8 @@ MFO <- function(step_time,
                 HRmax = NULL,
                 vo2max_window = 30,
                 include_basal = FALSE,
-                energy_equivalents = c("classic", "source")) {
+                energy_equivalents = c("classic", "source"),
+                use_incomplete_step = FALSE) {
 
   # Validate inputs
   method <- match.arg(method, c("P3", "P2", "MV", "MRER"))
@@ -205,7 +212,8 @@ MFO <- function(step_time,
                              step_duration = step_duration,
                              steady_state_duration = steady_state_duration,
                              RER_cutoff = RER_cutoff,
-                             energy_equivalents = energy_equivalents)
+                             energy_equivalents = energy_equivalents,
+                             use_incomplete_step = use_incomplete_step)
 
   # Build database with basal + exercise steps
   n_steps <- nrow(MFO_test)

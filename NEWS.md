@@ -109,6 +109,13 @@ Target: v0.2.1 on CRAN. Scientific background and sources in `docs/SPEC.md`.
 
 ## New features
 
+* Incomplete last step: records left after the last complete step now always
+  give a warning ("Last step incomplete (120 s of 180 s)"); v0.2.0 dropped
+  them silently. The new `use_incomplete_step` argument of `MFO()` and
+  `MFOs()` (default `FALSE`, results as in v0.2.0) uses that step only if
+  it lasts at least `steady_state_duration`, averaging its last
+  `steady_state_duration` s (SPEC 9.5).
+
 * `RER_cutoff` accepts names from Amaro-Gahete et al. (2019): `"classic"`
   = 1.00, `"safe"` = 0.95, `"sedentary"` = 0.93, `"trained"` = 0.90.
   Numbers still work. Example data (Frayn, P3): 7, 6, 5 and 4 of 8 steps

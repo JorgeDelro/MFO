@@ -22,7 +22,8 @@ MFO(
   HRmax = NULL,
   vo2max_window = 30,
   include_basal = FALSE,
-  energy_equivalents = c("classic", "source")
+  energy_equivalents = c("classic", "source"),
+  use_incomplete_step = FALSE
 )
 }
 \arguments{
@@ -88,6 +89,13 @@ package decision, "Frayn"; Jeukendrup & Wallis 2005, Table 5, for
 0.3.0, and a message says so once per session when the argument is not
 set. MFO and Fatmax (g/min) do not depend on it. See
 [substrate_oxidation()] and SPEC 19 (finding 1).}
+
+\item{use_incomplete_step}{logical. Records left after the last complete step
+(fewer than `step_duration` s) always give a warning stating "X s of Y s".
+With `FALSE` (default, as in v0.2.0) they are dropped. With `TRUE` that
+incomplete step is used only if it lasts at least `steady_state_duration`;
+its last `steady_state_duration` s are averaged, as for complete steps,
+although VO2 may not have reached its plateau. See SPEC 9.5.}
 }
 \value{
 {Returns a list which contains:

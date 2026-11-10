@@ -199,3 +199,62 @@ test_that("sporadic or empty HR in the xlsx never removes rows (SPEC 9.5)", {
   expect_equal(sum(is.na(dbs$participant_db_MFO$HR)), 3)
   expect_equal(dbs$participant_db_MFO$VO2, MFO_df$VO2)
 })
+
+
+# --- Incomplete last step (SPEC 9.5, "Escalones incompletos") ---
+# Example data: 72 records of 20 s = 8 complete 180-s steps. Extra records
+# are constant (VO2 2600, VCO2 2700, RER 1.04, HR 175), so a used ninth step
+# must average exactly those values (tolerance 1e-10).
+.with_tail <- function(n_extra) {
+  data(MFO_df, package = "MFO", envir = environment())
+  tail_rows <- MFO_df[seq_len(n_extra), ]
+  tail_rows$VO2 <- 2600; tail_rows$VCO2 <- 2700
+  tail_rows$RER <- 1.04; tail_rows$HR <- 175
+  rbind(data.frame(MFO_df), data.frame(tail_rows))
+}
+.cv <- function(db, ...) {
+  calculate_vars(step_time = 20, db_MFO = db, VO2max = 3315, author = "Frayn", ...)
+}
+
+test_that("complete steps give no incomplete-step warning", {
+  data(MFO_df, package = "MFO", envir = environment())
+  expect_no_warning(r <- .cv(data.frame(MFO_df)))
+  expect_equal(nrow(r), 8)
+})
+
+test_that("an incomplete step holding the steady state is dropped by default", {
+  expect_warning(r <- .cv(.with_tail(6)),
+                 paste0("Last step incomplete \\(120 s of 180 s\\): dropped\\. ",
+                        "It holds the 60-s steady-state segment; set ",
+                        "use_incomplete_step = TRUE"))
+  expect_equal(nrow(r), 8)
+})
+
+test_that("use_incomplete_step = TRUE averages its last steady-state seconds", {
+  expect_warning(r <- .cv(.with_tail(6), use_incomplete_step = TRUE),
+                 "Last step incomplete \\(120 s of 180 s\\): used, averaging its last 60 s")
+  expect_equal(nrow(r), 9)
+  expect_equal(r$VO2[9], 2600, tolerance = 1e-10)
+  expect_equal(r$VCO2[9], 2700, tolerance = 1e-10)
+  expect_equal(r$HR[9], 175, tolerance = 1e-10)
+  # the first 8 steps are untouched
+  data(MFO_df, package = "MFO", envir = environment())
+  expect_equal(r[1:8, ], .cv(data.frame(MFO_df)), tolerance = 1e-10)
+})
+
+test_that("an incomplete step shorter than the steady state is never used", {
+  expect_warning(r <- .cv(.with_tail(2), use_incomplete_step = TRUE),
+                 paste0("Last step incomplete \\(40 s of 180 s\\): dropped\\. It is ",
+                        "shorter than steady_state_duration \\(60 s\\)"))
+  expect_equal(nrow(r), 8)
+})
+
+test_that("MFO() passes use_incomplete_step to the step averaging", {
+  data(list = c("basal_df", "VO2max_df"), package = "MFO", envir = environment())
+  r <- suppressWarnings(suppressMessages(
+    MFO(step_time = 20, db_MFO = .with_tail(6), db_basal = basal_df,
+        db_graded = VO2max_df, cv_var = "RER", author = "Frayn",
+        energy_equivalents = "classic", use_incomplete_step = TRUE)))
+  expect_equal(nrow(r$MFO_db), 9)
+  expect_equal(r$MFO_db$VO2[9], 2600, tolerance = 1e-10)
+})

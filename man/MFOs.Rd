@@ -33,7 +33,8 @@ MFOs(
   vo2max_window = 30,
   include_basal = FALSE,
   fatmin_threshold = NULL,
-  energy_equivalents = c("classic", "source")
+  energy_equivalents = c("classic", "source"),
+  use_incomplete_step = FALSE
 )
 }
 \arguments{
@@ -101,6 +102,9 @@ number or "classic", "safe", "sedentary", "trained". See [MFO()].}
 a proportion of MFO in (0, 1). See [MFO_kinetics()].}
 
 \item{energy_equivalents}{"classic" (default in 0.2.x) or "source". See [MFO()].}
+
+\item{use_incomplete_step}{logical; use an incomplete last step that holds the
+steady-state segment (default `FALSE`). See [MFO()].}
 }
 \value{
 {Data frame with one row per participant containing:

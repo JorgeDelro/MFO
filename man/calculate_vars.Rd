@@ -12,7 +12,8 @@ calculate_vars(
   step_duration = 180,
   steady_state_duration = 60,
   RER_cutoff = NULL,
-  energy_equivalents = "classic"
+  energy_equivalents = "classic",
+  use_incomplete_step = FALSE
 )
 }
 \arguments{
@@ -32,6 +33,8 @@ calculate_vars(
 or one of "classic", "safe", "sedentary", "trained" (see [MFO()]).}
 
 \item{energy_equivalents}{"classic" (default) or "source"; see [substrate_oxidation()].}
+
+\item{use_incomplete_step}{logical (default `FALSE`). See [MFO()].}
 }
 \value{
 data frame with columns: VO2, VCO2, HR, RER, CHO, FAT, Kcal (one row per step)
