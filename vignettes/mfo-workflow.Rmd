@@ -1,0 +1,504 @@
+---
+title: "From gas exchange to Fatmax"
+output: rmarkdown::html_vignette
+bibliography: references.bib
+link-citations: true
+vignette: >
+  %\VignetteIndexEntry{From gas exchange to Fatmax}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 4.5,
+  out.width = "100%"
+)
+```
+
+```{r setup}
+library(MFO)
+```
+
+This vignette follows one participant of the example data from the raw gas
+exchange to the numbers you would report in a paper. Every intermediate
+object is computed in plain R, so you can see each formula at work, and it is
+checked against what `MFO()` returns. Every number in the text is computed
+when the vignette is built.
+
+## 1. What the test measures
+
+Fat oxidation is not measured directly; it is inferred from oxygen uptake
+(VO2) and carbon dioxide output (VCO2). Oxidising 1 g of glucose consumes
+0.746 L of O2 and produces 0.746 L of CO2, a respiratory exchange ratio (RER)
+of 1.00; oxidising 1 g of fat consumes 2.03 L of O2 and produces 1.43 L of
+CO2, an RER of about 0.70 [@frayn1983, Table 1]. Solving these two balances
+for the two unknowns gives the stoichiometric equations that turn VO2 and
+VCO2 into grams of carbohydrate (CHO) and fat (FAT) oxidised per minute
+[@frayn1983]. The package uses them with urinary nitrogen set to zero, i.e.
+it ignores protein oxidation.
+<!-- TODO: source (validity of the RER as a tissue respiratory quotient only at steady state, without bicarbonate buffering or hyperventilation; SPEC 3 cites no reference for it) -->
+
+In a graded test the participant exercises in steps of increasing intensity,
+classically 3 min with 35 W increments [@achten2002]; @cheneviere2009 used
+3 min with 20 W. Plotted against intensity, fat oxidation rises, reaches a
+peak, the **maximal fat oxidation** rate (MFO, g/min), and falls towards zero.
+The intensity at the peak is **Fatmax**, expressed as %VO2max. In the sample
+of @achten2002 Fatmax was 64 %VO2max (74 %HRmax), and Fatmax usually lies
+between 45 and 65 %VO2max [@achten2002; @maunder2018]. The intensity at which
+fat oxidation becomes negligible is **Fatmin**: 89 ± 3 %VO2max in
+@achten2002 and 90.1 ± 14.1 %VO2max in @cheneviere2009, who defined it as the
+second zero of their SIN model.
+
+@achten2002 also defined the **Fatmax zone**, the
+range of intensities at which fat oxidation is within 10 % of the peak rate
+(mean zone 55–72 %VO2max in their sample). The package therefore needs three
+recordings per participant: a resting measurement (the basal state), the
+graded MFO test, and a maximal test (or a known VO2max) to express every step
+as %VO2max.
+
+## 2. Input data
+
+The three tables shipped with the package are anonymised recordings of one
+participant, averaged every 20 s (`step_time = 20`).
+
+```{r data}
+head(basal_df)   # resting measurement, 45 records = 15 min
+head(MFO_df)     # graded MFO test, 72 records = 8 steps of 3 min
+head(VO2max_df)  # maximal graded test
+```
+
+Each table must have, at regular intervals of `step_time` seconds, the columns
+
+| Column | Unit | Used for |
+| --- | --- | --- |
+| `VO2` | mL/min | substrate oxidation, %VO2max |
+| `VCO2` | mL/min | substrate oxidation |
+| `RER` | — (VCO2/VO2) | basal window, `RER_cutoff` |
+| `HR` | beats/min | heart rate at Fatmax (optional) |
+
+Other columns (`Time`, `BF`, `VE`, `PETCO2`, `Load`) are ignored. Columns with
+other names are mapped with the `col_name_*` arguments of `MFOs()`. Heart rate
+never decides which rows or steps are dropped: without HR, `MFO()` warns and
+returns `NA` for the heart-rate outputs, and MFO and Fatmax do not change.
+
+## 3. Step by step
+
+`MFO()` runs the whole pipeline in one call. Here each step is rebuilt by
+hand, with the same defaults: Frayn equations, 3-min steps, the last 60 s of
+each step, P3 fit.
+
+### 3.1 VO2max
+
+VO2max is the highest rolling mean of VO2 in the maximal test over
+`vo2max_window` seconds (default 30). With 20-s records a 30-s window is
+rounded up to 2 records (40 s). This averaging is a rule of the package.
+<!-- TODO: source (VO2max as the mean of the last 15-30 s / highest 30-s rolling mean, SPEC 4 and 9.5) -->
+
+```{r vo2max}
+step_time <- 20
+n_vo2max <- ceiling(30 / step_time)                         # 2 records
+VO2max <- max(stats::filter(VO2max_df$VO2, rep(1 / n_vo2max, n_vo2max), sides = 1),
+              na.rm = TRUE)
+c(VO2max = VO2max, instantaneous_max = max(VO2max_df$VO2))
+```
+
+### 3.2 Basal window
+
+The first 5 min of the resting recording are discarded. In the rest, the
+package takes the 5-min window with the lowest coefficient of variation
+(CV = SD / mean) of `cv_var`, here RER. Both durations are rules of the
+package.
+
+```{r basal}
+window <- 300 / step_time                                   # 15 records = 5 min
+rest <- basal_df[-seq_len(window), ]                        # drop the first 5 min
+cv <- sapply(seq_len(nrow(rest) - window + 1), function(i) {
+  x <- rest$RER[i:(i + window - 1)]
+  sd(x) / mean(x)
+})
+best <- which.min(cv)
+basal_window <- rest[best:(best + window - 1), c("VO2", "VCO2", "RER", "HR")]
+basal <- colMeans(basal_window)
+round(basal, 3)
+```
+
+### 3.3 Step averaging
+
+Each 3-min step has 9 records; only the last `steady_state_duration` seconds
+(60 s = 3 records) are averaged, as @cheneviere2009 did with the last minute
+of each step.
+
+```{r steps}
+records_per_step <- 180 / step_time                         # 9
+records_steady <- 60 / step_time                            # 3
+mfo <- data.frame(MFO_df)
+mfo$step <- rep(seq_len(nrow(mfo) %/% records_per_step), each = records_per_step)
+position <- ave(mfo$step, mfo$step, FUN = seq_along)
+steady <- mfo[position > records_per_step - records_steady, ]
+steps <- aggregate(cbind(VO2, VCO2, RER, HR) ~ step, data = steady, FUN = mean)
+steps$porc_VO2 <- steps$VO2 / VO2max * 100
+round(steps, 2)
+```
+
+If the recording ends in the middle of a step, `MFO()` warns with the length
+of that incomplete step and drops it, unless `use_incomplete_step = TRUE`.
+Here 72 records are exactly 8 steps.
+
+### 3.4 Stoichiometric equation
+
+With VO2 and VCO2 in L/min, the equations of @frayn1983 (the default,
+`author = "Frayn"`) are
+
+$$\text{CHO} = 4.55\,\dot{V}\text{CO}_2 - 3.21\,\dot{V}\text{O}_2,
+\qquad \text{FAT} = 1.67\,\dot{V}\text{O}_2 - 1.67\,\dot{V}\text{CO}_2 .$$
+
+`author = "Peronnet"` uses the coefficients derived from Table 1 of
+@peronnet1991 (4.58519 / 3.22597 and 1.69469 / 1.70130), because the article
+prints no equation. `author = "Jeukendrup"` uses the exercise equations
+printed by @jeukendrup2005 (Table 5), one CHO equation for 40–50 % and one for
+50–75 %VO2max; it needs VO2max and warns for steps outside 40–75 %VO2max.
+The same equation is applied to the basal window.
+
+```{r equation}
+frayn <- function(VO2, VCO2) {
+  data.frame(CHO = 4.55 * VCO2 / 1000 - 3.21 * VO2 / 1000,
+             FAT = 1.67 * VO2 / 1000 - 1.67 * VCO2 / 1000)
+}
+steps <- cbind(steps, frayn(steps$VO2, steps$VCO2))
+basal_ox <- frayn(basal[["VO2"]], basal[["VCO2"]])
+round(steps[, c("step", "porc_VO2", "RER", "CHO", "FAT")], 3)
+round(basal_ox, 3)
+```
+
+Energy expenditure (`Kcal` in the output) uses 4 kcal/g CHO and 9 kcal/g fat
+with `energy_equivalents = "classic"`, the default in 0.2.x. With `"source"`
+it uses the values of the equation's source: 3.8683 / 9.7460 kcal/g
+[@peronnet1991], also for Frayn, who gives none, or 3.95 (40–50 %VO2max) /
+4.07 (50–75 %VO2max) and 9.75 kcal/g [@jeukendrup2005, Table 5]. MFO and
+Fatmax do not depend on this choice.
+
+### 3.5 RER cutoff and negative fat oxidation
+
+With Frayn's coefficients FAT = 1.67 VO2 (1 − RER), so any step with RER > 1
+gives a negative fat oxidation, which is an artefact. Two arguments handle
+it. `RER_cutoff` removes the steps above a threshold before anything else
+(section 6). `negative_FAT` decides what happens to the remaining negative
+values: `"truncate"` (default) sets them to 0, `"exclude"` drops the step and
+`"keep"` leaves them.
+
+```{r negative}
+steps[steps$FAT < 0, c("step", "RER", "FAT")]
+steps$FAT[steps$FAT < 0] <- 0                                # negative_FAT = "truncate"
+```
+
+By default the basal point is not part of the fit (`include_basal = FALSE`,
+section 6).
+
+### 3.6 Curve fit
+
+The default method, P3, fits a third-degree polynomial of FAT on %VO2max.
+Fatmax is the root of its derivative that gives the highest FAT within the
+measured range, and MFO is the fitted FAT at that root.
+
+```{r fit}
+p3 <- lm(FAT ~ porc_VO2 + I(porc_VO2^2) + I(porc_VO2^3), data = steps)
+b <- coef(p3)
+roots <- Re(polyroot(c(b[2], 2 * b[3], 3 * b[4])))           # FAT'(x) = 0
+roots <- roots[roots >= min(steps$porc_VO2) & roots <= max(steps$porc_VO2)]
+fat_at <- function(x) predict(p3, newdata = data.frame(porc_VO2 = x))
+Fatmax <- roots[which.max(fat_at(roots))]
+MFO_hand <- unname(fat_at(Fatmax))
+c(MFO = MFO_hand, Fatmax = Fatmax, R2 = summary(p3)$r.squared)
+```
+
+### 3.7 Outputs
+
+The Fatmax zone is the range of fitted intensities with FAT ≥ 90 % of MFO
+[@achten2002], searched on a grid of 1000 points. The crossover point is the
+intensity at which CHO overtakes FAT, interpolated linearly between the two
+steps where FAT − CHO changes sign.
+<!-- TODO: source (crossover concept, Brooks & Mercier 1994, not in SPEC 19) -->
+Heart rate at Fatmax is interpolated linearly from the step values.
+
+```{r outputs}
+grid <- seq(min(steps$porc_VO2), max(steps$porc_VO2), length.out = 1000)
+zone <- range(grid[fat_at(grid) >= 0.9 * MFO_hand])
+diff_ox <- steps$FAT - steps$CHO
+i <- which(diff(sign(diff_ox)) != 0)[1]
+crossover <- approx(diff_ox[i:(i + 1)], steps$porc_VO2[i:(i + 1)], xout = 0)$y
+HR_Fatmax <- approx(steps$porc_VO2, steps$HR, xout = Fatmax)$y
+round(c(zone_lower = zone[1], zone_upper = zone[2],
+        crossover = crossover, HR_Fatmax = HR_Fatmax), 2)
+```
+
+The same analysis in one call:
+
+```{r mfo-call}
+res <- MFO(step_time = 20, db_MFO = MFO_df, db_basal = basal_df,
+           db_graded = VO2max_df, cv_var = "RER", author = "Frayn",
+           energy_equivalents = "classic")
+hand <- c(VO2max, MFO_hand, Fatmax, zone, crossover, HR_Fatmax,
+          basal_ox$CHO, basal_ox$FAT)
+package <- c(res$VO2max, res$MFO, res$FAT_MAX, res$FatMax_zone_lower,
+             res$FatMax_zone_upper, res$crossover_point, res$FAT_MAX_HR,
+             res$x_CHO, res$x_FAT)
+all.equal(unname(hand), unname(package))
+```
+
+The warning reports the step with RER > 1 that was truncated (3.5); the
+message reports the effective VO2max window (3.1). `res$MFO_db` is the step
+table that entered the fit. Its `Load` column is a step index, not the
+measured load.
+
+```{r mfo-db}
+res$MFO_db
+res$MFO_plot
+```
+
+## 4. Choosing a method
+
+`method` chooses how the peak is located:
+
+- **P3** (default): third-degree polynomial; it can fit an asymmetric curve.
+- **P2**: second-degree polynomial; its vertex forces a symmetric curve.
+- **MV** (measured values): the step with the highest observed FAT, no fit;
+  its resolution is one step, and the Fatmax zone is interpolated linearly
+  between steps.
+- **MRER**: following @perezmartin2001, as described by @cheneviere2009,
+  (1 − RER) and VO2 are fitted as straight lines of intensity and Fatmax is
+  the vertex of FAT = 1.7 (1 − RER) VO2, whatever `author` says. It falls back
+  to MV with a warning if the vertex is not a maximum inside the measured
+  range. Until v0.2.0 the method called `"MRER"` was in fact MV.
+
+To compare them, a small helper runs `MFO()` with the example data and keeps
+the warnings as text:
+
+```{r helper}
+run_MFO <- function(...) {
+  warnings <- character(0)
+  out <- withCallingHandlers(
+    suppressMessages(MFO(step_time = 20, db_MFO = MFO_df, db_basal = basal_df,
+                         db_graded = VO2max_df, cv_var = "RER", author = "Frayn",
+                         energy_equivalents = "classic", ...)),
+    warning = function(w) {
+      warnings <<- c(warnings, conditionMessage(w))
+      invokeRestart("muffleWarning")
+    })
+  out$warnings <- warnings
+  out
+}
+```
+
+```{r methods}
+methods <- c("P3", "P2", "MV", "MRER")
+by_method <- lapply(methods, function(m) run_MFO(method = m))
+knitr::kable(data.frame(
+  method = methods,
+  MFO = sapply(by_method, `[[`, "MFO"),
+  Fatmax = sapply(by_method, `[[`, "FAT_MAX"),
+  zone_lower = sapply(by_method, `[[`, "FatMax_zone_lower"),
+  zone_upper = sapply(by_method, `[[`, "FatMax_zone_upper"),
+  zone_method = sapply(by_method, `[[`, "FatMax_zone_method"),
+  R2 = sapply(by_method, `[[`, "R_squared"),
+  RMSE = sapply(by_method, `[[`, "RMSE")
+), digits = 3, caption = "MFO (g/min) and Fatmax and zone (%VO2max) by method.")
+```
+
+In the comparison by @cheneviere2009, MRER was less accurate than SIN and P3.
+Whatever method you choose, look at the observed steps next to the fitted
+value: the difference shows how much the fit adds.
+
+## 5. Fat oxidation kinetics with the SIN model
+
+@cheneviere2009 describe the whole curve, normalised to %MFO, with a sine
+function of three parameters (their eq. [14]):
+
+$$\%\text{MFO}(x) = \sin\left\{\left[\frac{\pi^{1/s}}{\pi + 2d}\,(Kx + d + t)\right]^{s}\right\},
+\qquad K = \frac{\pi}{100},\quad x = \%\dot{V}\text{O}_{2\max}.$$
+
+With d = 0, s = 1 and t = 0 it is a half sine wave with its peak at
+50 %VO2max and zeros at 0 and 100 %VO2max. **d** (dilatation) widens (d > 0)
+or narrows (d < 0) the curve; **s** (symmetry) skews it: s > 1 is a rightward
+asymmetry and 0 < s < 1 a leftward one [@cheneviere2009]; **t** (translation)
+shifts the whole curve left (t > 0) or right (t < 0). `MFO_kinetics()` fits
+the model by nonlinear least squares directly to the observed steps,
+normalised to the highest observed step, without smoothing, as
+@cheneviere2009 did. Fatmax_SIN and Fatmin come from closed forms of eq. [14];
+Fatmin is the second zero of the curve (set `fatmin_threshold` to use a
+proportion of MFO instead).
+
+```{r sin}
+kin <- MFO_kinetics(res$MFO_db)
+knitr::kable(data.frame(
+  parameter = c("d", "s", "t"),
+  estimate = c(kin$d, kin$s, kin$t),
+  std_error = c(kin$d_se, kin$s_se, kin$t_se)
+), digits = 3)
+round(c(FatMax_SIN = kin$FatMax_SIN, Fatmin = kin$Fatmin, R2 = kin$R_squared), 2)
+kin$MFO_kinetics_plot
+```
+
+`MFO_kinetics()` fits every row it receives, so the SIN inherits the choices
+made in `MFO()`. In this example the last step has RER > 1: truncated to zero
+it is a point of the curve, excluded it is not. `RER_cutoff = 1` gives the
+selection of @cheneviere2009, who averaged only the steps with RER ≤ 1.0.
+
+```{r sin-sensitivity}
+sin_row <- function(label, fit) {
+  k <- suppressWarnings(MFO_kinetics(fit$MFO_db))
+  data.frame(setting = label, steps = nrow(fit$MFO_db), d = k$d, s = k$s,
+             t = k$t, FatMax_SIN = k$FatMax_SIN, Fatmin = k$Fatmin)
+}
+knitr::kable(rbind(
+  sin_row("negative_FAT = \"truncate\"", res),
+  sin_row("negative_FAT = \"exclude\"", run_MFO(negative_FAT = "exclude")),
+  sin_row("RER_cutoff = 1", run_MFO(RER_cutoff = 1))
+), digits = 3, caption = "SIN parameters; Fatmax_SIN and Fatmin in %VO2max.")
+```
+
+A single step moves Fatmin by several points here, which is why the setting
+must be reported. With fewer than 4 steps the SIN is not fitted
+(`convergence = FALSE`); with 4–5 steps it is fitted with a warning, and
+6 or more steps are recommended.
+
+## 6. Sensitivity to protocol decisions
+
+### RER cutoff
+
+`RER_cutoff` accepts a number or a name. `"classic"` is 1.00; `"safe"` is
+0.95, the threshold @amarogahete2019 recommend to end the test safely;
+`"sedentary"` (0.93) and `"trained"` (0.90) are the mean RER at MFO they
+found in sedentary and trained people. Lower cutoffs leave fewer steps:
+
+```{r rer-cutoff}
+cutoffs <- list(none = NULL, classic = "classic", safe = "safe",
+                sedentary = "sedentary", trained = "trained")
+by_cutoff <- lapply(cutoffs, function(cut) run_MFO(RER_cutoff = cut))
+knitr::kable(data.frame(
+  RER_cutoff = names(cutoffs),
+  steps = sapply(by_cutoff, function(r) nrow(r$MFO_db)),
+  MFO = sapply(by_cutoff, `[[`, "MFO"),
+  Fatmax = sapply(by_cutoff, `[[`, "FAT_MAX"),
+  R2 = sapply(by_cutoff, `[[`, "R_squared"),
+  warnings = sapply(by_cutoff, function(r) length(r$warnings)),
+  row.names = NULL
+), digits = 3)
+by_cutoff$trained$warnings
+```
+
+With `"trained"` only 4 steps remain and `MFO()` warns that at least
+`min_steps` (default 6) are recommended. Its R² of 1 is not a good fit: four
+points and four coefficients make the polynomial pass through every point. A
+low cutoff only works if the protocol provides enough steps below it.
+
+### Basal point as step 0
+
+`include_basal = TRUE` adds the resting point as step 0 of the fit, and of
+the SIN model, which departs from @cheneviere2009. The default `FALSE`
+reproduces the results of MFO 0.1.0 and 0.2.0.
+<!-- TODO: source (include_basal = TRUE as the practice of Montes de Oca et al. 2021; the article is not in SPEC 19) -->
+
+```{r include-basal}
+by_basal <- list(`FALSE` = res, `TRUE` = run_MFO(include_basal = TRUE))
+knitr::kable(data.frame(
+  include_basal = names(by_basal),
+  rows = sapply(by_basal, function(r) nrow(r$MFO_db)),
+  MFO = sapply(by_basal, `[[`, "MFO"),
+  Fatmax = sapply(by_basal, `[[`, "FAT_MAX"),
+  R2 = sapply(by_basal, `[[`, "R_squared"),
+  FatMax_SIN = sapply(by_basal, function(r)
+    suppressWarnings(MFO_kinetics(r$MFO_db))$FatMax_SIN),
+  row.names = NULL
+), digits = 3)
+```
+
+## 7. Reporting
+
+The paragraph below is generated from the results of this example; replace
+the protocol details (in brackets) with your own. HRmax is taken here as the
+highest 20-s heart rate of the maximal test.
+
+```{r report-values}
+HRmax <- max(VO2max_df$HR)
+final <- run_MFO(HRmax = HRmax)
+n_steps <- sum(final$MFO_db$Load != "basal")
+```
+
+```{r report, results = "asis", echo = FALSE}
+paragraph <- sprintf(paste(
+  "Substrate oxidation was computed from the mean VO2 and VCO2 of the last %d s",
+  "of each %d-min step with the equations of Frayn (1983), with urinary nitrogen",
+  "set to zero. VO2max (%.0f mL/min) was the highest %d-s rolling mean of VO2 in",
+  "the maximal test. The resting value was the mean of the 5-min window with the",
+  "lowest coefficient of variation of RER after discarding the first 5 min.",
+  "Negative fat oxidation rates (RER > 1) were set to zero and the resting point",
+  "was not included in the fit. MFO and Fatmax were determined with a",
+  "third-degree polynomial of fat oxidation on %%VO2max fitted to %d steps",
+  "(R² = %.2f). The Fatmax zone was defined as the intensities eliciting at least",
+  "90%% of MFO (Achten et al., 2002). Fat oxidation kinetics were described with",
+  "the SIN model (Chenevière et al., 2009). MFO was %.2f g/min at %.1f%% VO2max",
+  "(%.0f bpm, %.1f%% HRmax; Fatmax zone %.1f–%.1f%% VO2max); the SIN parameters",
+  "were d = %.2f, s = %.2f and t = %.2f, with Fatmin at %.1f%% VO2max. Analyses",
+  "were run with the R package MFO, version %s, [protocol: ergometer, initial",
+  "load and increment, fasting and pre-test conditions]."),
+  60, 3, final$VO2max, final$VO2max_window, n_steps, final$R_squared,
+  final$MFO, final$FAT_MAX, final$FAT_MAX_HR, final$FAT_MAX_porcHRmax,
+  final$FatMax_zone_lower, final$FatMax_zone_upper, kin$d, kin$s, kin$t,
+  kin$Fatmin, as.character(utils::packageVersion("MFO")))
+cat("> ", paragraph, "\n")
+```
+
+Add MFO relative to body mass or fat-free mass when you have them
+(`body_mass`, `fat_free_mass`). Also report the day-to-day error of the
+measure when you interpret individual values: in @chrzanowski2020 (n = 99)
+the coefficient of variation was 21 % for MFO and 26 % for Fatmax, and in
+@croci2014 (n = 15) the CV of Fatmax was 16.4 % with SIN, 18.6 % with P3 and
+20.8 % with MV.
+
+## 8. Batch processing with `MFOs()`
+
+`MFOs()` applies the same analysis to many participants and returns one row
+per participant. With `from = "folder"` each participant has a subfolder
+with three xlsx files; with `from = "files"` each participant has one xlsx
+file with three sheets. The example builds two participants in a temporary
+folder: P01 is the example data and P02 the same data with VO2 and VCO2
+scaled by 1.1 (same RER), so that the two rows differ.
+
+```{r batch-data}
+root <- file.path(tempdir(), "mfo-batch")
+dir.create(root, showWarnings = FALSE)
+scale_gas <- function(db, k) transform(db, VO2 = VO2 * k, VCO2 = VCO2 * k)
+for (id in c("P01", "P02")) {
+  k <- if (id == "P01") 1 else 1.1
+  dir.create(file.path(root, id), showWarnings = FALSE)
+  openxlsx::write.xlsx(scale_gas(basal_df, k), file.path(root, id, "basal_df.xlsx"))
+  openxlsx::write.xlsx(scale_gas(MFO_df, k), file.path(root, id, "MFO_df.xlsx"))
+  openxlsx::write.xlsx(scale_gas(VO2max_df, k), file.path(root, id, "VO2max_df.xlsx"))
+}
+list.files(root, recursive = TRUE)
+```
+
+`save_plot` and `save_result` write the plots and the summary table to the
+working directory; they are switched off here. Every warning is repeated with
+the participant ID in front.
+
+```{r batch}
+batch <- MFOs(from = "folder", path = root,
+              db_basal_name = "basal_df", db_MFO_name = "MFO_df",
+              db_graded_name = "VO2max_df", step_time = 20, cv_var = "RER",
+              author = "Frayn", energy_equivalents = "classic",
+              save_plot = FALSE, save_result = FALSE)
+knitr::kable(batch[, c("ID", "MFO_g_min", "FAT_MAX_perVO2max", "VO2max",
+                       "FatMax_zone_lower", "FatMax_zone_upper", "d", "s", "t",
+                       "Fatmin")], digits = 3)
+```
+
+```{r cleanup, include = FALSE}
+unlink(root, recursive = TRUE)
+```
+
+## References

@@ -45,5 +45,6 @@ URL: https://github.com/JorgeDelro/MFO, https://jorgedelro.github.io/MFO/
 BugReports: https://github.com/JorgeDelro/MFO/issues
 Imports: stats, dplyr, ggplot2, tibble, minpack.lm, openxlsx, readxl, tidyr
 Depends: R (>= 4.1.0)
-Suggests: covr, testthat (>= 3.0.0), withr
+Suggests: covr, knitr, rmarkdown, testthat (>= 3.0.0), withr
+VignetteBuilder: knitr
 Config/testthat/edition: 3
