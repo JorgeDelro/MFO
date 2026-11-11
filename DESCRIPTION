@@ -1,6 +1,7 @@
 Package: MFO
 Title: Maximal Fat Oxidation and Kinetics Calculation
-Version: 0.2.0.9000
+Version: 0.2.1
+Date: 2026-11-11
 Authors@R:
     c(person("Jorge R",
              "Fernandez-Santos",
@@ -27,18 +28,21 @@ Authors@R:
              "Perez-Bey",
              role = "ctb",
              comment = c(ORCID = "https://orcid.org/0000-0002-9849-5544")))
-Description: Calculate the maximal fat oxidation (MFO), the exercise intensity that elicits
-              MFO (FatMax), the FatMax zone, the crossover point, and the SIN model to
-              represent fat oxidation kinetics. Supports multiple curve-fitting methods
-              (P3, P2, MRER) and stoichiometric equations (Frayn, Jeukendrup, Peronnet).
-              Three variables can be obtained from the SIN model: dilatation, symmetry and
-              translation, plus Fatmin (intensity at negligible fat oxidation).
-              Examples of these methods can be found in Montes de Oca et al (2021)
-              <doi:10.1080/17461391.2020.1788650>, Cheneviere et al. (2009)
-              <doi:10.1249/MSS.0b013e31819e2f91>, and Achten et al. (2002)
-              <doi:10.1097/00005768-200201000-00015>.
+Description: Computes the maximal fat oxidation (MFO), the exercise intensity
+    that elicits it (Fatmax), the Fatmax zone and the crossover point from
+    indirect calorimetry data of a graded exercise test. Substrate oxidation is
+    estimated with the stoichiometric equations of Frayn (1983), Peronnet and
+    Massicotte (1991) or Jeukendrup and Wallis (2005), and Fatmax is located
+    with a third- or second-degree polynomial, the measured values or the MRER
+    method. Fat oxidation kinetics are described with the SIN model of
+    Cheneviere et al. (2009) <doi:10.1249/MSS.0b013e31819e2f91>, which returns
+    dilatation, symmetry and translation, together with the intensity at which
+    fat oxidation becomes negligible (Fatmin). Applications of these methods
+    are given in Achten et al. (2002) <doi:10.1097/00005768-200201000-00015>
+    and Montes de Oca et al. (2021) <doi:10.1080/17461391.2020.1788650>.
 License: MIT + file LICENSE
 Encoding: UTF-8
+Language: en-GB
 LazyData: true
 RoxygenNote: 7.3.3
 URL: https://github.com/JorgeDelro/MFO, https://jorgedelro.github.io/MFO/
