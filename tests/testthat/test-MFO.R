@@ -345,8 +345,9 @@ test_that("MFO resting values use the same author equations as the test", {
 
   r_p <- MFO(step_time = 20, db_MFO = d$exercise, db_basal = rest,
              cv_var = "VO2", author = "Peronnet", VO2max = d$VO2max)
-  expect_equal(r_p$x_CHO, 0.13275, tolerance = 1e-10)
-  expect_equal(r_p$x_FAT, 0.100092, tolerance = 1e-10)
+  # Peronnet derived from Table 1 (SPEC 19, finding 6); tolerance 1e-6 as there
+  expect_equal(r_p$x_CHO, 0.1326538, tolerance = 1e-6)
+  expect_equal(r_p$x_FAT, 0.1000929, tolerance = 1e-6)
 
   r_j <- suppressWarnings(  # exercise steps outside 40-75 %, tested in test-utils.R
     MFO(step_time = 20, db_MFO = d$exercise, db_basal = rest,
@@ -414,4 +415,76 @@ test_that("include_basal = TRUE adds the resting row as step 0 of the fit", {
   opt <- optimize(p3, range(pts$x), maximum = TRUE)
   expect_equal(r_on$FAT_MAX, opt$maximum, tolerance = 1e-4)
   expect_equal(r_on$MFO, unname(opt$objective), tolerance = 1e-8)
+})
+
+
+# --- Methods MV and MRER (SPEC 6.1, 19 finding 4) ---
+
+# Steps on two known straight lines of %VO2max:
+# 1 - RER = 0.3 - 0.004 x and VO2 = 500 + 30 x (ml/min). Their product is
+# 150 + 7 x - 0.12 x^2, vertex x = 7 / 0.24 = 29.1667 %VO2max, and
+# MFO = 1.7 * 252.0833 / 1000 = 0.4285417 g/min (worked by hand).
+mrer_steps <- function(x = seq(20, 70, by = 10), b1 = -0.004) {
+  one_minus_rer <- 0.3 + b1 * x
+  VO2 <- 500 + 30 * x
+  data.frame(porc_VO2 = x, VO2 = VO2, RER = 1 - one_minus_rer,
+             FAT = 1.67 * one_minus_rer * VO2 / 1000,  # Frayn, n = 0
+             CHO = x / 50, HR = 100 + x)
+}
+
+test_that("MRER takes the vertex of the product of the two fitted lines", {
+  r <- .fit_MRER(mrer_steps())
+  # Exact lines: tolerance 1e-10 (floating point)
+  expect_equal(r$FAT_MAX, 7 / 0.24, tolerance = 1e-10)
+  expect_equal(r$MFO, 1.7 * 252.083333333 / 1000, tolerance = 1e-10)
+  expect_equal(r$R_squared, 1, tolerance = 1e-10)
+  expect_equal(r$method, "MRER")
+  # Fatmax lies between steps: MV could only return 30 %VO2max
+  expect_equal(.fit_MV(mrer_steps())$FAT_MAX, 30)
+})
+
+test_that("MRER falls back to MV when the parabola has no usable maximum", {
+  # 1 - RER rising with intensity: b1 * b2 > 0, no maximum
+  expect_warning(r <- .fit_MRER(mrer_steps(b1 = 0.001)), "no maximum")
+  expect_equal(r$method, "MV")
+  # Vertex at 29.17 %VO2max, outside 40-70
+  expect_warning(r <- .fit_MRER(mrer_steps(x = seq(40, 70, by = 10))), "outside")
+  expect_equal(r$FAT_MAX, 40)
+})
+
+test_that("MV returns the highest observed step and a linearly interpolated zone", {
+  db <- data.frame(porc_VO2 = c(20, 40, 60), FAT = c(0.2, 0.4, 0.2),
+                   CHO = c(0.1, 0.5, 1.5))
+  r <- .fit_MV(db)
+  expect_equal(c(r$MFO, r$FAT_MAX), c(0.4, 40))
+  expect_true(is.na(r$R_squared) && is.na(r$RMSE))
+  # 90 % of MFO = 0.36, reached at 36 and 44 %VO2max on the straight segments;
+  # tolerance 0.05 = spacing of the 1000-point search grid
+  z <- .calculate_fatmax_zone(r$fat_predict_fn, r$MFO, r$FAT_MAX, db)
+  expect_equal(c(z$lower, z$upper), c(36, 44), tolerance = 0.05 / 36)
+})
+
+test_that("MV and MRER on the example data (regression, SPEC 6.1)", {
+  data(list = c("basal_df", "MFO_df", "VO2max_df"), package = "MFO",
+       envir = environment())
+  run <- function(...) suppressWarnings(suppressMessages(
+    MFO(step_time = 20, db_MFO = MFO_df, db_basal = basal_df,
+        db_graded = VO2max_df, cv_var = "RER", author = "Frayn", ...)))
+
+  mv <- run(method = "MV")
+  # Highest observed Frayn FAT: step 4 (40.98 %VO2max, 0.3268 g/min)
+  expect_equal(mv$FAT_MAX, mv$MFO_db$porc_VO2[4])
+  expect_equal(mv$MFO, max(mv$MFO_db$FAT))
+  expect_equal(mv$MFO, 0.3268, tolerance = 1e-3)
+  expect_equal(mv$FatMax_zone_method, "linear interpolation")
+  expect_true(is.na(mv$R_squared))
+  labels <- unlist(lapply(mv$MFO_plot$layers, function(l) l$aes_params$label))
+  expect_true(any(grepl("Fatmax zone: linear interpolation", labels)))
+
+  mrer <- run(method = "MRER")
+  # Values of this implementation (vertex of the two lines); tolerance 1e-4
+  expect_equal(mrer$FAT_MAX, 35.79, tolerance = 1e-3)
+  expect_equal(mrer$MFO, 0.3266, tolerance = 1e-3)
+  expect_equal(mrer$FatMax_zone_method, "fitted curve")
+  expect_equal(mrer$method, "MRER")
 })

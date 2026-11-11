@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{fat_oxidation_MRER}
 \alias{fat_oxidation_MRER}
-\title{Calculate MFO using the MRER method (Perez-Martin et al.)}
+\title{Fat oxidation with the RER simplification (MRER)}
 \usage{
 fat_oxidation_MRER(VO2, RER)
 }
@@ -15,5 +15,7 @@ fat_oxidation_MRER(VO2, RER)
 fat oxidation rate in g/min
 }
 \description{
-Calculate MFO using the MRER method (Perez-Martin et al.)
+FAT (mg/min) = 1.7 (1 - RER) VO2 (ml/min), the simplification of the
+Peronnet & Massicotte (1991) equation used by Perez-Martin et al. (2001) and
+Cheneviere et al. (2009, p. 1617). Used by `method = "MRER"` in [MFO()].
 }

@@ -32,7 +32,8 @@ MFOs(
   output_format = "xlsx",
   vo2max_window = 30,
   include_basal = FALSE,
-  fatmin_threshold = NULL
+  fatmin_threshold = NULL,
+  energy_equivalents = c("classic", "source")
 )
 }
 \arguments{
@@ -54,7 +55,7 @@ same participant are stored in one file but in different sheets)}
 
 \item{author}{equation set: "Frayn", "Jeukendrup" or "Peronnet".}
 
-\item{method}{curve-fitting method: "P3", "P2", or "MRER". Default "P3".}
+\item{method}{method to locate MFO: "P3" (default), "P2", "MV" or "MRER". See [MFO()].}
 
 \item{VO2max}{VO2max can be passed directly (ml/min). Default NULL. If given, it is used for
 every participant and the graded databases are ignored.}
@@ -63,7 +64,8 @@ every participant and the graded databases are ignored.}
 
 \item{steady_state_duration}{duration of steady-state period within each step in seconds (default 60).}
 
-\item{RER_cutoff}{RER value above which steps are excluded (default NULL).}
+\item{RER_cutoff}{RER value above which steps are excluded (default NULL), as a
+number or "classic", "safe", "sedentary", "trained". See [MFO()].}
 
 \item{negative_FAT}{how to handle negative fat oxidation: "truncate", "exclude", or "keep".}
 
@@ -97,6 +99,8 @@ every participant and the graded databases are ignored.}
 
 \item{fatmin_threshold}{`NULL` (default, Fatmin at the second zero of the SIN) or
 a proportion of MFO in (0, 1). See [MFO_kinetics()].}
+
+\item{energy_equivalents}{"classic" (default in 0.2.x) or "source". See [MFO()].}
 }
 \value{
 {Data frame with one row per participant containing:

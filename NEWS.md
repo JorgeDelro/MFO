@@ -68,6 +68,16 @@ Target: v0.2.1 on CRAN. Scientific background and sources in `docs/SPEC.md`.
 
 ## Coefficient policy
 
+* Péronnet & Massicotte (1991) print no oxidation equations: `"Peronnet"` now
+  derives them in code from the O2/CO2 constants of their Table 1 (glucose
+  0.7455/0.7426, fatty acid 2.0092/1.4136 L/g): CHO = 4.58519 VCO2 −
+  3.22597 VO2, FAT = 1.69469 VO2 − 1.70130 VCO2, instead of the rounded
+  4.585/3.2255/1.6946/1.7012. Changes are in the 4th decimal: example data,
+  Fatmax 35.288 -> 35.285 %VO2max, MFO unchanged at 0.3158 g/min, resting CHO
+  0.13369 -> 0.13361 g/min. Frayn (1983) prints his equations, which stay as
+  printed (4.55/3.21; 1.67/1.67); their derivation from his Table 1 is a
+  cross-check test (SPEC 19, finding 6).
+
 * Coefficients printed in the source are used as printed and cited by table
   or equation; derived coefficients are used only where the source prints no
   equation, with the derivation explained in the documentation (SPEC 19).
@@ -75,7 +85,42 @@ Target: v0.2.1 on CRAN. Scientific background and sources in `docs/SPEC.md`.
   are used as printed; their derivation from the published O2/CO2 constants
   is kept as a cross-check test.
 
+## Breaking changes
+
+* `method = "MRER"` now implements the MRER of Chenevière et al. (2009,
+  p. 1617): (1 − RER) and VO2 are fitted as straight lines of %VO2max and
+  Fatmax is the vertex of their product, 1.7 (1 − RER) VO2. **In v0.2.0,
+  `"MRER"` was a different method**: it returned the step with the highest
+  observed 1.7 (1 − RER) VO2, a measured-values (MV) method. That behaviour
+  is now `method = "MV"`, which uses the `author` equation (same step; MFO
+  differs by the ratio of coefficients, e.g. 1.67/1.7 with Frayn). In the
+  example data (Frayn) `"MRER"` moves from Fatmax 41.0 %VO2max /
+  MFO 0.339 g/min to 35.8 %VO2max / 0.327 g/min; `"MV"` gives
+  41.0 %VO2max / 0.327 g/min (SPEC 6.1, 19 finding 4).
+
 ## New features
+
+* `RER_cutoff` accepts names from Amaro-Gahete et al. (2019): `"classic"`
+  = 1.00, `"safe"` = 0.95, `"sedentary"` = 0.93, `"trained"` = 0.90.
+  Numbers still work. Example data (Frayn, P3): 7, 6, 5 and 4 of 8 steps
+  kept; Fatmax 33.9, 35.7, 36.9 and 29.5 %VO2max (SPEC 19, finding 2).
+
+* `energy_equivalents` argument in `MFO()` and `MFOs()` for `Kcal` and
+  `x_Kcal`: `"classic"` (4 kcal/g CHO, 9 kcal/g FAT, default in 0.2.x, as in
+  v0.2.0) or `"source"`: Péronnet & Massicotte (1991, Table 1) 3.8683/9.7460
+  kcal/g for `"Peronnet"` and, as a package decision, `"Frayn"` (Frayn 1983
+  gives none); Jeukendrup & Wallis (2005, Table 5) CHO 3.95 kcal/g below
+  50 %VO2max and 4.07 at or above, fat 9.75 kcal/g, for `"Jeukendrup"`
+  (resting row: Péronnet & Massicotte values). MFO and Fatmax are not
+  affected. In the example data (Frayn) `"source"` changes step `Kcal` by
+  −1.9 % to +5.3 %. **The default will change to `"source"` in 0.3.0**; when
+  the argument is not set, a message says so once per session
+  (SPEC 19, finding 1).
+
+* `method = "MV"` (measured values) in `MFO()` and `MFOs()`: Fatmax is the
+  step with the highest observed FAT. `R_squared` and `RMSE` are `NA`; the
+  Fatmax zone uses linear interpolation between steps and is labelled so in
+  the plot and in the new `FatMax_zone_method` element (SPEC 6.1).
 
 * `MFO_kinetics()` and `MFOs()` gain `fatmin_threshold` (default `NULL`,
   Fatmin at the second zero of the SIN curve); a proportion of MFO such as

@@ -4,7 +4,14 @@
 \alias{met_basal}
 \title{Basal metabolic rate}
 \usage{
-met_basal(step_time, db, cv_var, window_duration = 300, author = "Frayn")
+met_basal(
+  step_time,
+  db,
+  cv_var,
+  window_duration = 300,
+  author = "Frayn",
+  energy_equivalents = "classic"
+)
 }
 \arguments{
 \item{step_time}{how often the data was collected (in seconds).}
@@ -20,6 +27,8 @@ met_basal(step_time, db, cv_var, window_duration = 300, author = "Frayn")
 exercise values use the same equations (SPEC 9.5). Jeukendrup & Wallis (2005)
 propose no resting equation; with "Jeukendrup" the package uses the 100 \% glucose
 pair derived from their Table 4 (see [substrate_oxidation()], `phase = "rest"`).}
+
+\item{energy_equivalents}{"classic" (default) or "source"; see [substrate_oxidation()].}
 }
 \description{
 Calculate basal metabolism from rest test data using a rolling window

@@ -21,6 +21,36 @@
 }
 
 
+#' Peronnet & Massicotte (1991) constants, Table 1
+#'
+#' Litres of O2 consumed / CO2 produced per g of glucose and of fatty acid
+#' (Peronnet F, Massicotte D. Can J Sport Sci 1991; 16: 23-29, Table 1).
+#' The article prints no oxidation equations, so the package derives them
+#' from these constants with [.derive_oxidation_coefficients()] (SPEC 19,
+#' finding 6): CHO = 4.58519 VCO2 - 3.22597 VO2, FAT = 1.69469 VO2 - 1.70130 VCO2.
+#' The values often quoted as Peronnet's (4.585 / 3.2255 / 1.6946 / 1.7012),
+#' used up to v0.2.0, are these numbers rounded by later authors.
+#'
+#' @noRd
+.peronnet_constants <- list(
+  glucose = c(O2 = 0.7455, CO2 = 0.7426),
+  fatty_acid = c(O2 = 2.0092, CO2 = 1.4136)
+)
+
+
+#' Peronnet & Massicotte (1991) oxidation coefficients
+#'
+#' Derived from [.peronnet_constants] by solving the 2x2 system (see there).
+#'
+#' @noRd
+.peronnet_coefficients <- function() {
+  k <- .peronnet_constants
+  .derive_oxidation_coefficients(cho_O2 = k$glucose[["O2"]], cho_CO2 = k$glucose[["CO2"]],
+                                 fat_O2 = k$fatty_acid[["O2"]],
+                                 fat_CO2 = k$fatty_acid[["CO2"]])
+}
+
+
 #' Jeukendrup & Wallis (2005) constants, Table 4
 #'
 #' Litres of O2 / CO2 per g of glucose, glycogen and fatty acid (Jeukendrup AE,

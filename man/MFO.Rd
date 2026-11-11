@@ -21,7 +21,8 @@ MFO(
   fat_free_mass = NULL,
   HRmax = NULL,
   vo2max_window = 30,
-  include_basal = FALSE
+  include_basal = FALSE,
+  energy_equivalents = c("classic", "source")
 )
 }
 \arguments{
@@ -43,15 +44,21 @@ of Jeukendrup & Wallis (2005, Table 5); the resting row never warns.}
 \item{VO2max}{VO2max can be passed directly (ml/min) instead of using db_graded.
 If both are given, `VO2max` is used as is and `db_graded` is ignored with a warning.}
 
-\item{method}{curve-fitting method: "P3" (3rd-degree polynomial, default), "P2" (2nd-degree polynomial),
-or "MRER" (RER-based method of Perez-Martin et al.).}
+\item{method}{method to locate MFO and Fatmax: "P3" (3rd-degree polynomial, default),
+"P2" (2nd-degree polynomial), "MV" (measured values) or "MRER" (RER method).
+See the section *Methods*.}
 
 \item{step_duration}{duration of each exercise step in seconds (default 180 = 3 min).}
 
 \item{steady_state_duration}{duration of steady-state period to average within each step, in seconds (default 60).}
 
-\item{RER_cutoff}{RER value above which steps are excluded (default NULL = no cutoff).
-Recommended values: 1.0 (general), 0.93 (sedentary/obese), 0.90 (trained).}
+\item{RER_cutoff}{RER value above which steps are excluded (default NULL = no cutoff),
+as a number or by name, following Amaro-Gahete et al. (2019, Front Physiol
+10: 909, \doi{10.3389/fphys.2019.00909}):
+"classic" = 1.00 (Cheneviere et al. 2009 averaged only steps with RER <= 1.0);
+"safe" = 0.95, the end-of-test RER they recommend as safe to capture MFO;
+"sedentary" = 0.93 and "trained" = 0.90, the mean RER at MFO they report in
+those groups. Low cutoffs leave few steps (SPEC 4, 19 finding 2).}
 
 \item{negative_FAT}{how to handle negative fat oxidation values: "truncate" (set to 0, default),
 "exclude" (remove from fitting), or "keep" (include in fitting).}
@@ -72,6 +79,15 @@ If it is not a multiple of `step_time`, the number of records is rounded up
 fits exercise steps only and reproduces v0.1.0/v0.2.0, which dropped the
 resting row. With `TRUE` the P3/P2 fit changes; the resting row has `HR = NA`
 and `Load = "basal"`. See SPEC 9.5.}
+
+\item{energy_equivalents}{kcal per g used for `Kcal` and `x_Kcal`: "classic"
+(4 kcal/g CHO, 9 kcal/g FAT, as in v0.2.0) or "source" (values of the
+source of `author`: Peronnet & Massicotte 1991 for "Peronnet" and, as a
+package decision, "Frayn"; Jeukendrup & Wallis 2005, Table 5, for
+"Jeukendrup"). Default "classic" in 0.2.x; it will change to "source" in
+0.3.0, and a message says so once per session when the argument is not
+set. MFO and Fatmax (g/min) do not depend on it. See
+[substrate_oxidation()] and SPEC 19 (finding 1).}
 }
 \value{
 {Returns a list which contains:
@@ -87,9 +103,10 @@ and `Load = "basal"`. See SPEC 9.5.}
 \item FAT_MAX_porcHRmax: FatMax as \% HRmax, if HRmax provided.
 \item FatMax_zone_lower: Lower bound of FatMax zone (\% VO2max).
 \item FatMax_zone_upper: Upper bound of FatMax zone (\% VO2max).
+\item FatMax_zone_method: "fitted curve", or "linear interpolation" for `method = "MV"`.
 \item crossover_point: Intensity at which CHO > FAT (\% VO2max).
-\item R_squared: R-squared of the fitted model.
-\item RMSE: Root mean squared error of the fitted model.
+\item R_squared: R-squared of the fitted model (`NA` for "MV").
+\item RMSE: Root mean squared error of the fitted model (`NA` for "MV").
 \item method: Method used for curve fitting.
 \item VO2max: VO2max used to express intensity (ml/min).
 \item VO2max_window: effective averaging window for VO2max (s); NA if VO2max was supplied.
@@ -102,9 +119,34 @@ and `Load = "basal"`. See SPEC 9.5.}
 \description{
 Calculate Maximal Fat Oxidation (MFO), the exercise intensity that elicits
 MFO (FatMax), the FatMax zone, and the crossover point. Supports multiple
-curve-fitting methods (P3, P2, SIN, MRER) and stoichiometric equations
+methods to locate MFO (P3, P2, MV, MRER) and stoichiometric equations
 (Frayn, Jeukendrup, Peronnet).
 }
+\section{Methods}{
+
+\itemize{
+\item `"P3"`, `"P2"`: least-squares polynomial of FAT on \% VO2max; Fatmax is
+  the maximum of the fitted curve within the measured range (SPEC 6.2, 6.3).
+\item `"MV"` (measured values): Fatmax is the step with the highest observed
+  FAT, computed with the `author` equations; MFO is that FAT. No model is
+  fitted, so `R_squared` and `RMSE` are `NA`; the curve drawn and the Fatmax
+  zone use linear interpolation between steps (`FatMax_zone_method =
+  "linear interpolation"`). SPEC 6.1.
+\item `"MRER"`: procedure of Cheneviere et al. (2009, p. 1617,
+  \doi{10.1249/MSS.0b013e31819e2f91}), after Perez-Martin et al. (2001).
+  (1 - RER) and VO2 are fitted as straight lines of \% VO2max,
+  1 - RER = a1 + b1 x and VO2 = a2 + b2 x, so fat oxidation
+  1.7 (1 - RER) VO2 is a parabola whose vertex,
+  x = -(a1 b2 + a2 b1) / (2 b1 b2), gives Fatmax, and its value MFO (g/min).
+  This uses the 1.7 (1 - RER) VO2 simplification of Peronnet & Massicotte
+  whatever `author` is. If the parabola has no maximum or the vertex lies
+  outside the measured range, `"MV"` is used with a warning. SPEC 3, 6.1.
+}
+Up to v0.2.0, `"MRER"` returned the step with the highest observed
+1.7 (1 - RER) VO2, which is a measured-values method: use `"MV"` for that
+behaviour (same step; MFO from the `author` equation). SPEC 19, finding 4.
+}
+
 \examples{
 
 \dontrun{
