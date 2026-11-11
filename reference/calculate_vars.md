@@ -13,7 +13,8 @@ calculate_vars(
   author,
   step_duration = 180,
   steady_state_duration = 60,
-  RER_cutoff = NULL
+  RER_cutoff = NULL,
+  energy_equivalents = "classic"
 )
 ```
 
@@ -46,7 +47,12 @@ calculate_vars(
 
 - RER_cutoff:
 
-  RER value above which data is excluded (default NULL = no cutoff).
+  RER value above which data is excluded (default NULL = no cutoff), or
+  one of "classic", "safe", "sedentary", "trained" (see \[MFO()\]).
+
+- energy_equivalents:
+
+  "classic" (default) or "source"; see \[substrate_oxidation()\].
 
 ## Value
 

@@ -155,10 +155,10 @@
 <p>Fat (FAT) and carbohydrate (CHO) oxidation in g/min are computed from VO2 and VCO2 in L/min, assuming negligible protein oxidation during exercise. Choose the equation set with <code>author</code>:</p>
 <table class="table">
 <colgroup>
-<col width="10%">
-<col width="53%">
-<col width="16%">
-<col width="19%">
+<col width="8%">
+<col width="46%">
+<col width="15%">
+<col width="29%">
 </colgroup>
 <thead><tr>
 <th><code>author</code></th>
@@ -175,9 +175,9 @@
 </tr>
 <tr>
 <td><code>"Peronnet"</code></td>
-<td>4.585 VCO2 − 3.2255 VO2</td>
-<td>1.6946 VO2 − 1.7012 VCO2</td>
-<td>Péronnet &amp; Massicotte (1991)</td>
+<td>4.58519 VCO2 − 3.22597 VO2</td>
+<td>1.69469 VO2 − 1.70130 VCO2</td>
+<td>Péronnet &amp; Massicotte (1991), derived from Table 1</td>
 </tr>
 <tr>
 <td><code>"Jeukendrup"</code></td>
@@ -187,7 +187,7 @@
 </tr>
 </tbody>
 </table>
-<p><code>"Jeukendrup"</code> needs VO2max to pick the CHO equation for each step. Energy expenditure is CHO × 4 + FAT × 9 kcal/min. Always report which equation you used: differences are small for FAT but grow for CHO and the crossover point.</p>
+<p><code>"Jeukendrup"</code> needs VO2max to pick the CHO equation for each step. Energy expenditure (<code>Kcal</code>) is CHO × 4 + FAT × 9 kcal/min with <code>energy_equivalents = "classic"</code>, the default in 0.2.x; <code>"source"</code> uses the values of each equation’s source (Péronnet &amp; Massicotte 3.8683/9.7460 kcal/g, also for Frayn, who gives none; Jeukendrup &amp; Wallis 3.95 or 4.07/9.75 kcal/g). The default will change to <code>"source"</code> in 0.3.0. Always report which equation you used: differences are small for FAT but grow for CHO and the crossover point.</p>
 </div>
 <div class="section level3">
 <h3 id="locating-mfo-and-fatmax">Locating MFO and Fatmax<a class="anchor" aria-label="anchor" href="#locating-mfo-and-fatmax"></a>
@@ -199,9 +199,11 @@
 <li>
 <strong><code>"P2"</code></strong>: parabola, Fatmax <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>=</mo><mi>−</mi><mi>b</mi><mi>/</mi><mn>2</mn><mi>c</mi></mrow><annotation encoding="application/x-tex">= -b / 2c</annotation></semantics></math>. More stable with few steps, but forces a symmetric curve.</li>
 <li>
-<strong><code>"MRER"</code></strong>: the step with the highest observed <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">F</mi><mi mathvariant="normal">A</mi><mi mathvariant="normal">T</mi></mrow><mo>=</mo><mn>1.7</mn><mspace width="0.167em"></mspace><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mrow><mi mathvariant="normal">R</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">R</mi></mrow><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><mrow><mi mathvariant="normal">V</mi><msub><mi mathvariant="normal">O</mi><mn mathvariant="normal">2</mn></msub></mrow></mrow><annotation encoding="application/x-tex">\mathrm{FAT} = 1.7\,(1 - \mathrm{RER})\,\mathrm{VO_2}</annotation></semantics></math> (see <a href="#known-issues-in-v02x">Known issues</a>).</li>
+<strong><code>"MV"</code></strong> (measured values): the step with the highest observed FAT (<code>author</code> equations). No curve is fitted: <code>R_squared</code> and <code>RMSE</code> are <code>NA</code> and the Fatmax zone uses linear interpolation between steps.</li>
+<li>
+<strong><code>"MRER"</code></strong> (Chenevière et al., 2009): <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><mrow><mi mathvariant="normal">R</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">R</mi></mrow><mo>=</mo><msub><mi>a</mi><mn>1</mn></msub><mo>+</mo><msub><mi>b</mi><mn>1</mn></msub><mi>x</mi></mrow><annotation encoding="application/x-tex">1 - \mathrm{RER} = a_1 + b_1x</annotation></semantics></math> and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">V</mi><msub><mi mathvariant="normal">O</mi><mn mathvariant="normal">2</mn></msub></mrow><mo>=</mo><msub><mi>a</mi><mn>2</mn></msub><mo>+</mo><msub><mi>b</mi><mn>2</mn></msub><mi>x</mi></mrow><annotation encoding="application/x-tex">\mathrm{VO_2} = a_2 + b_2x</annotation></semantics></math> are fitted as straight lines, so <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">F</mi><mi mathvariant="normal">A</mi><mi mathvariant="normal">T</mi></mrow><mo>=</mo><mn>1.7</mn><mspace width="0.167em"></mspace><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mrow><mi mathvariant="normal">R</mi><mi mathvariant="normal">E</mi><mi mathvariant="normal">R</mi></mrow><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><mrow><mi mathvariant="normal">V</mi><msub><mi mathvariant="normal">O</mi><mn mathvariant="normal">2</mn></msub></mrow></mrow><annotation encoding="application/x-tex">\mathrm{FAT} = 1.7\,(1 - \mathrm{RER})\,\mathrm{VO_2}</annotation></semantics></math> is a parabola with Fatmax at its vertex, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>x</mi><mo>=</mo><mi>−</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>a</mi><mn>1</mn></msub><msub><mi>b</mi><mn>2</mn></msub><mo>+</mo><msub><mi>a</mi><mn>2</mn></msub><msub><mi>b</mi><mn>1</mn></msub><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mn>2</mn><msub><mi>b</mi><mn>1</mn></msub><msub><mi>b</mi><mn>2</mn></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">x = -(a_1b_2 + a_2b_1)/(2b_1b_2)</annotation></semantics></math>. Falls back to MV with a warning if the vertex is not a maximum inside the measured range. Up to v0.2.0 <code>"MRER"</code> returned the highest observed step, which is now <code>"MV"</code>.</li>
 </ul>
-<p>For P3 and P2 the fit’s <code>R_squared</code> and <code>RMSE</code> are returned. The <strong>Fatmax zone</strong> is the range of intensities where the fitted FAT is ≥ 90 % of MFO (Achten et al., 2002). The <strong>crossover point</strong> is the intensity at which CHO exceeds FAT, by linear interpolation between steps.</p>
+<p>For P3, P2 and MRER the fit’s <code>R_squared</code> and <code>RMSE</code> are returned. The <strong>Fatmax zone</strong> is the range of intensities where the fitted FAT is ≥ 90 % of MFO (Achten et al., 2002). The <strong>crossover point</strong> is the intensity at which CHO exceeds FAT, by linear interpolation between steps.</p>
 </div>
 <div class="section level3">
 <h3 id="sin-model">SIN model<a class="anchor" aria-label="anchor" href="#sin-model"></a>
@@ -228,7 +230,7 @@
 <p>At high intensity, lactate buffering pushes RER above 1 and the equations return negative FAT. Two arguments control this:</p>
 <ul>
 <li>
-<code>RER_cutoff</code>: steps with RER above this value are removed before fitting. Use 1.00 (classic), or 0.93 (sedentary) / 0.90 (trained) following Amaro-Gahete et al. (2019).</li>
+<code>RER_cutoff</code>: steps with RER above this value are removed before fitting. A number, or by name following Amaro-Gahete et al. (2019): <code>"classic"</code> (1.00), <code>"safe"</code> (0.95, the end-of-test RER they recommend), <code>"sedentary"</code> (0.93) or <code>"trained"</code> (0.90), the mean RER at MFO in those groups. In the example data they leave 7, 6, 5 and 4 of the 8 steps.</li>
 <li>
 <code>negative_FAT</code>: <code>"truncate"</code> negative values to 0 (default), <code>"exclude"</code> those steps, or <code>"keep"</code> them (inspection only).</li>
 </ul>
@@ -323,7 +325,7 @@
 <li>
 <strong>SIN parameters from v0.2.0 and earlier</strong> are not comparable with Chenevière et al. or with the development version: the old code computed <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msup><mi>π</mi><mrow><mn>1</mn><mi>/</mi><mi>s</mi></mrow></msup><mi>/</mi><mi>π</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mn>2</mn><mi>d</mi></mrow><annotation encoding="application/x-tex">(\pi^{1/s}/\pi) + 2d</annotation></semantics></math> instead of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>π</mi><mrow><mn>1</mn><mi>/</mi><mi>s</mi></mrow></msup><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mi>π</mi><mo>+</mo><mn>2</mn><mi>d</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\pi^{1/s}/(\pi + 2d)</annotation></semantics></math>, fitted a P3-smoothed grid and used a 5 % threshold for <code>Fatmin</code>. Fixed in the development version.</li>
 <li>
-<strong><code>method = "MRER"</code></strong> takes the observed maximum of 1.7 (1 − RER) VO2. This is a measured-values (MV) method, not the two-regression MRER procedure of Chenevière et al. (2009).</li>
+<strong><code>method = "MRER"</code> in v0.2.0</strong> took the observed maximum of 1.7 (1 − RER) VO2, a measured-values method. The development version implements the two-regression MRER of Chenevière et al. (2009) and adds <code>method = "MV"</code>.</li>
 <li>The <strong>resting row</strong> is not used in the curve fit unless <code>include_basal = TRUE</code> (development version).</li>
 <li>The <code>Load</code> column of <code>MFO_db</code> is a step label, not the measured external load.</li>
 </ul>

@@ -35,7 +35,8 @@ MFOs(
   output_format = "xlsx",
   vo2max_window = 30,
   include_basal = FALSE,
-  fatmin_threshold = NULL
+  fatmin_threshold = NULL,
+  energy_equivalents = c("classic", "source")
 )
 ```
 
@@ -79,7 +80,8 @@ MFOs(
 
 - method:
 
-  curve-fitting method: "P3", "P2", or "MRER". Default "P3".
+  method to locate MFO: "P3" (default), "P2", "MV" or "MRER". See
+  \[MFO()\].
 
 - VO2max:
 
@@ -97,7 +99,8 @@ MFOs(
 
 - RER_cutoff:
 
-  RER value above which steps are excluded (default NULL).
+  RER value above which steps are excluded (default NULL), as a number
+  or "classic", "safe", "sedentary", "trained". See \[MFO()\].
 
 - negative_FAT:
 
@@ -162,6 +165,10 @@ MFOs(
 
   \`NULL\` (default, Fatmin at the second zero of the SIN) or a
   proportion of MFO in (0, 1). See \[MFO_kinetics()\].
+
+- energy_equivalents:
+
+  "classic" (default in 0.2.x) or "source". See \[MFO()\].
 
 ## Value
 

@@ -17,7 +17,7 @@
 - [`calculate_vars()`](https://jorgedelro.github.io/MFO/reference/calculate_vars.md)
   : Calculate step means from raw data
 - [`fat_oxidation_MRER()`](https://jorgedelro.github.io/MFO/reference/fat_oxidation_MRER.md)
-  : Calculate MFO using the MRER method (Perez-Martin et al.)
+  : Fat oxidation with the RER simplification (MRER)
 - [`met_basal()`](https://jorgedelro.github.io/MFO/reference/met_basal.md)
   : Basal metabolic rate
 - [`preprocess_bxb()`](https://jorgedelro.github.io/MFO/reference/preprocess_bxb.md)

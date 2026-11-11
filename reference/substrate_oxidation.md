@@ -11,7 +11,8 @@ substrate_oxidation(
   VCO2,
   author,
   VO2max = NULL,
-  phase = c("exercise", "rest")
+  phase = c("exercise", "rest"),
+  energy_equivalents = c("classic", "source")
 )
 ```
 
@@ -38,6 +39,11 @@ substrate_oxidation(
 
   "exercise" (default) or "rest". Only changes "Jeukendrup".
 
+- energy_equivalents:
+
+  kcal per g of CHO and FAT used for \`Kcal\`: "classic" (default, 4
+  and 9) or "source" (values of the equation's source, see Details).
+
 ## Value
 
 Named list with CHO (g/min), FAT (g/min), Kcal (kcal/min)
@@ -46,6 +52,20 @@ Named list with CHO (g/min), FAT (g/min), Kcal (kcal/min)
 
 Rule: a coefficient printed in the source is used as printed; a derived
 coefficient is used only where the source prints no equation (SPEC 19).
+
+\*\*Frayn (1983)\*\* (J Appl Physiol 55: 628-634, eqs. 5 and 6, n = 0),
+as printed: CHO = 4.55 VCO2 - 3.21 VO2, FAT = 1.67 VO2 - 1.67 VCO2.
+Deriving them from his Table 1 constants (glucose 0.746/0.746, fat
+2.03/1.43 L/g) gives 4.535/3.195 and 1.667/1.667; this is only a
+cross-check in the tests.
+
+\*\*Peronnet & Massicotte (1991)\*\* (Can J Sport Sci 16: 23-29) print
+no equations. The package derives them from the O2/CO2 constants of
+their Table 1 (glucose 0.7455/0.7426, fatty acid 2.0092/1.4136 L/g) by
+solving VO2 = 0.7455 CHO + 2.0092 FAT and VCO2 = 0.7426 CHO + 1.4136 FAT
+for CHO and FAT: CHO = 4.58519 VCO2 - 3.22597 VO2, FAT = 1.69469 VO2 -
+1.70130 VCO2. Up to v0.2.0 the rounded 4.585 / 3.2255 / 1.6946 / 1.7012
+were used (SPEC 19, finding 6).
 
 \*\*Jeukendrup & Wallis (2005)\*\* (Int J Sports Med 26 Suppl 1:
 S28-S37), with the coefficients printed in their Table 5:
@@ -70,3 +90,24 @@ The Table 5 sets are defined for 40-75 % VO2max only. Below 40 % the
 \[calculate_vars()\] warns when an exercise step falls outside the range
 (SPEC 3, 9.5). Resting values (\`phase = "rest"\`) never trigger that
 warning.
+
+\*\*Energy equivalents\*\* (\`Kcal = CHO \* e_cho + FAT \* e_fat\`, SPEC
+19, finding 1):
+
+- "classic": 4 kcal/g CHO and 9 kcal/g FAT for every equation (v0.2.0).
+  Default in 0.2.x; the default will change to "source" in 0.3.0.
+
+- "source", \`author = "Peronnet"\`: glucose 3.8683 and fat 9.7460
+  kcal/g (Peronnet & Massicotte 1991, Table 1).
+
+- "source", \`author = "Frayn"\`: Frayn (1983, p. 632) gives no energy
+  equivalents; as a package decision the Peronnet & Massicotte values
+  are used.
+
+- "source", \`author = "Jeukendrup"\`: Jeukendrup & Wallis (2005, Table
+  5), CHO 3.95 kcal/g below 50 % VO2max (40-50 % set) and 4.07 kcal/g at
+  or above 50 % (50-75 % set), fat 9.75 kcal/g. At rest (\`phase =
+  "rest"\`, pure glucose pair, package decision) the Peronnet &
+  Massicotte glucose and fat values are used, because they are the
+  constants of that pair. \`Kcal\` jumps at 50 % VO2max with the CHO
+  value.
