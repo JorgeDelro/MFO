@@ -39,8 +39,9 @@ CO2, an RER of about 0.70 [@frayn1983, Table 1]. Solving these two balances
 for the two unknowns gives the stoichiometric equations that turn VO2 and
 VCO2 into grams of carbohydrate (CHO) and fat (FAT) oxidised per minute
 [@frayn1983]. The package uses them with urinary nitrogen set to zero, i.e.
-it ignores protein oxidation.
-<!-- TODO: source (validity of the RER as a tissue respiratory quotient only at steady state, without bicarbonate buffering or hyperventilation; SPEC 3 cites no reference for it) -->
+it ignores protein oxidation. The inference fails at high intensity, when
+CO2 released from the bicarbonate pool to buffer lactate adds to the CO2
+produced by oxidation [@jeukendrup2005].
 
 In a graded test the participant exercises in steps of increasing intensity,
 classically 3 min with 35 W increments [@achten2002]; @cheneviere2009 used
@@ -96,7 +97,6 @@ each step, P3 fit.
 VO2max is the highest rolling mean of VO2 in the maximal test over
 `vo2max_window` seconds (default 30). With 20-s records a 30-s window is
 rounded up to 2 records (40 s). This averaging is a rule of the package.
-<!-- TODO: source (VO2max as the mean of the last 15-30 s / highest 30-s rolling mean, SPEC 4 and 9.5) -->
 
 ```{r vo2max}
 step_time <- 20
@@ -220,8 +220,8 @@ c(MFO = MFO_hand, Fatmax = Fatmax, R2 = summary(p3)$r.squared)
 The Fatmax zone is the range of fitted intensities with FAT ≥ 90 % of MFO
 [@achten2002], searched on a grid of 1000 points. The crossover point is the
 intensity at which CHO overtakes FAT, interpolated linearly between the two
-steps where FAT − CHO changes sign.
-<!-- TODO: source (crossover concept, Brooks & Mercier 1994, not in SPEC 19) -->
+steps where FAT − CHO changes sign, following the crossover concept of
+@brooks1994.
 Heart rate at Fatmax is interpolated linearly from the step values.
 
 ```{r outputs}
@@ -400,7 +400,7 @@ low cutoff only works if the protocol provides enough steps below it.
 `include_basal = TRUE` adds the resting point as step 0 of the fit, and of
 the SIN model, which departs from @cheneviere2009. The default `FALSE`
 reproduces the results of MFO 0.1.0 and 0.2.0.
-<!-- TODO: source (include_basal = TRUE as the practice of Montes de Oca et al. 2021; the article is not in SPEC 19) -->
+<!-- Pending Jorge: attribution of include_basal = TRUE (Montes de Oca et al. 2021, not in SPEC 19); no attribution until then -->
 
 ```{r include-basal}
 by_basal <- list(`FALSE` = res, `TRUE` = run_MFO(include_basal = TRUE))
