@@ -24,8 +24,8 @@ details are in NEWS.md.
 
 ## R CMD check results
 
-0 errors | 0 warnings | 0 notes on every CI runner and on win-builder (see
-below). The 2 NOTEs of the local check come from the local machine only.
+0 errors | 0 warnings | 0 notes on the 5 GitHub Actions runners. The 2 NOTEs
+of the local check come from the local machine only.
 
 ### Local
 
