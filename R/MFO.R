@@ -51,6 +51,29 @@
 #'        0.3.0, and a message says so once per session when the argument is not
 #'        set. MFO and Fatmax (g/min) do not depend on it. See
 #'        [substrate_oxidation()] and SPEC 19 (finding 1).
+#' @param use_incomplete_step logical. Records left after the last complete step
+#'        (fewer than `step_duration` s) always give a warning stating "X s of Y s".
+#'        With `FALSE` (default, as in v0.2.0) they are dropped. With `TRUE` that
+#'        incomplete step is used only if it lasts at least `steady_state_duration`;
+#'        its last `steady_state_duration` s are averaged, as for complete steps,
+#'        although VO2 may not have reached its plateau. See SPEC 9.5.
+#' @param min_steps minimum number of exercise steps recommended for the fit
+#'        (default 6). A warning is given when fewer steps remain after
+#'        `RER_cutoff` and `negative_FAT = "exclude"`; the resting row of
+#'        `include_basal = TRUE` does not count. See SPEC 14.
+#'
+#' @section Quality warnings:
+#' Besides the warnings on inputs, `MFO()` warns when the result needs
+#' checking (SPEC 9.5, 14):
+#' \itemize{
+#' \item fewer than `min_steps` exercise steps enter the fit;
+#' \item Fatmax is at the edge: the exercise step nearest to Fatmax is the
+#'   first or the last one (resting row excluded), so the maximum may lie
+#'   outside the measured range (the test started too high or stopped too early);
+#' \item the last step is incomplete (see `use_incomplete_step`);
+#' \item HR is missing: `FAT_MAX_HR` and `FAT_MAX_porcHRmax` are `NA`, or
+#'   interpolated from fewer steps. HR never removes steps from the fit.
+#' }
 #'
 #' @section Methods:
 #' \itemize{
@@ -98,6 +121,7 @@
 #' \item R_squared: R-squared of the fitted model (`NA` for "MV").
 #' \item RMSE: Root mean squared error of the fitted model (`NA` for "MV").
 #' \item method: Method used for curve fitting.
+#' \item energy_equivalents: energy equivalents used for `Kcal` ("classic" or "source").
 #' \item VO2max: VO2max used to express intensity (ml/min).
 #' \item VO2max_window: effective averaging window for VO2max (s); NA if VO2max was supplied.
 #' \item VO2max_window_requested: `vo2max_window` as requested (s); NA if VO2max was supplied.
@@ -159,13 +183,18 @@ MFO <- function(step_time,
                 HRmax = NULL,
                 vo2max_window = 30,
                 include_basal = FALSE,
-                energy_equivalents = c("classic", "source")) {
+                energy_equivalents = c("classic", "source"),
+                use_incomplete_step = FALSE,
+                min_steps = 6) {
 
   # Validate inputs
   method <- match.arg(method, c("P3", "P2", "MV", "MRER"))
   negative_FAT <- match.arg(negative_FAT, c("truncate", "exclude", "keep"))
   if (missing(energy_equivalents)) .energy_default_message()
   energy_equivalents <- match.arg(energy_equivalents)
+  if (!is.numeric(min_steps) || length(min_steps) != 1 || is.na(min_steps) || min_steps < 1) {
+    stop("min_steps must be a single number >= 1.", call. = FALSE)
+  }
 
   # Solve error: 'list' object cannot be coerced to type 'double'
   db_basal <- data.frame(db_basal)
@@ -205,7 +234,8 @@ MFO <- function(step_time,
                              step_duration = step_duration,
                              steady_state_duration = steady_state_duration,
                              RER_cutoff = RER_cutoff,
-                             energy_equivalents = energy_equivalents)
+                             energy_equivalents = energy_equivalents,
+                             use_incomplete_step = use_incomplete_step)
 
   # Build database with basal + exercise steps
   n_steps <- nrow(MFO_test)
@@ -233,10 +263,13 @@ MFO <- function(step_time,
   MFO_db$porc_VO2 <- (MFO_db$VO2 * 100) / VO2max
 
   # The resting row (row 1) is kept or dropped explicitly, not through its
-  # missing HR; v0.2.0 lost it in na.omit(), i.e. include_basal = FALSE (SPEC 9.5)
+  # missing HR; v0.2.0 lost it in na.omit(), i.e. include_basal = FALSE (SPEC 9.5).
+  # HR never decides which steps are dropped (SPEC 9.5, HR ausente)
   basal_row <- MFO_db[1, , drop = FALSE]
-  MFO_db <- na.omit(MFO_db[-1, , drop = FALSE])
-  attr(MFO_db, "na.action") <- NULL
+  MFO_db <- MFO_db[-1, , drop = FALSE]
+  MFO_db <- MFO_db[stats::complete.cases(MFO_db[, setdiff(names(MFO_db), "HR")]), ,
+                   drop = FALSE]
+  .warn_missing_HR(MFO_db$HR, MFO_db$porc_VO2)
   if (isTRUE(include_basal)) {
     MFO_db <- rbind(basal_row, MFO_db)
   }
@@ -253,6 +286,9 @@ MFO <- function(step_time,
     # "keep" does nothing
   }
 
+  # Quality: number of exercise steps entering the fit (SPEC 14)
+  .warn_min_steps(sum(MFO_db$Load != "basal"), min_steps)
+
   # --- Curve fitting ---
   if (method == "P3") {
     result <- .fit_P3(MFO_db)
@@ -264,6 +300,9 @@ MFO <- function(step_time,
     result <- .fit_MRER(MFO_db)
   }
   FatMax_zone_method <- if (result$method == "MV") "linear interpolation" else "fitted curve"
+
+  # Quality: Fatmax at the first or last exercise step (SPEC 14)
+  .warn_fatmax_edge(result$FAT_MAX, MFO_db$porc_VO2[MFO_db$Load != "basal"])
 
   VAR_MFO <- result$MFO
   VO2_MFO <- result$FAT_MAX
@@ -320,12 +359,61 @@ MFO <- function(step_time,
               R_squared = R_squared,
               RMSE = RMSE,
               method = method,
+              energy_equivalents = energy_equivalents,
               VO2max = VO2max,
               VO2max_window = VO2max_window,
               VO2max_window_requested = VO2max_window_requested,
               x_CHO = basal$x_CHO,
               x_FAT = basal$x_FAT,
               x_Kcal = basal$x_Kcal))
+}
+
+
+# --- Internal helper: too few exercise steps in the fit (SPEC 14) ---
+.warn_min_steps <- function(n_steps, min_steps) {
+  if (n_steps < min_steps) {
+    warning(sprintf(paste0("The curve is fitted with %d exercise step(s); at least %s ",
+                           "are recommended (min_steps). A low RER_cutoff or ",
+                           "negative_FAT = \"exclude\" removes steps."),
+                    n_steps, format(min_steps)), call. = FALSE)
+  }
+  invisible(n_steps < min_steps)
+}
+
+
+# --- Internal helper: Fatmax at the first or last exercise step (SPEC 14) ---
+# Edge = the exercise step nearest to Fatmax is the first or the last one
+.warn_fatmax_edge <- function(FAT_MAX, porc_VO2) {
+  x <- sort(porc_VO2)
+  if (length(x) == 0 || is.na(FAT_MAX)) return(invisible(NA_character_))
+  nearest <- which.min(abs(x - FAT_MAX))
+  edge <- if (nearest == length(x)) "last" else if (nearest == 1) "first" else NA_character_
+  if (!is.na(edge)) {
+    hint <- if (edge == "first") "the test may have started at too high an intensity"
+            else "the test may have stopped too early"
+    warning(sprintf(paste0("Fatmax (%.1f %%VO2max) is at the %s exercise step (%.1f %%VO2max): ",
+                           "the maximum is at the edge of the measured range; %s."),
+                    FAT_MAX, edge, x[nearest], hint), call. = FALSE)
+  }
+  invisible(edge)
+}
+
+
+# --- Internal helper: warn when HR is missing (SPEC 9.5) ---
+# HR outputs become NA or are interpolated from fewer steps; the fit is unchanged
+.warn_missing_HR <- function(HR, porc_VO2) {
+  missing_hr <- which(is.na(HR))
+  if (length(missing_hr) == length(HR)) {
+    warning("No HR data in db_MFO: FAT_MAX_HR and FAT_MAX_porcHRmax are NA. ",
+            "MFO and Fatmax are not affected.", call. = FALSE)
+  } else if (length(missing_hr) > 0) {
+    warning(sprintf(paste0("%d exercise step(s) without HR (at %s %%VO2max): kept in ",
+                           "the fit; FAT_MAX_HR is interpolated from the steps with HR."),
+                    length(missing_hr),
+                    paste(sprintf("%.1f", porc_VO2[missing_hr]), collapse = ", ")),
+            call. = FALSE)
+  }
+  invisible(missing_hr)
 }
 
 

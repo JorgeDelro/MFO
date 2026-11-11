@@ -33,7 +33,9 @@ MFOs(
   vo2max_window = 30,
   include_basal = FALSE,
   fatmin_threshold = NULL,
-  energy_equivalents = c("classic", "source")
+  energy_equivalents = c("classic", "source"),
+  use_incomplete_step = FALSE,
+  min_steps = 6
 )
 }
 \arguments{
@@ -101,6 +103,12 @@ number or "classic", "safe", "sedentary", "trained". See [MFO()].}
 a proportion of MFO in (0, 1). See [MFO_kinetics()].}
 
 \item{energy_equivalents}{"classic" (default in 0.2.x) or "source". See [MFO()].}
+
+\item{use_incomplete_step}{logical; use an incomplete last step that holds the
+steady-state segment (default `FALSE`). See [MFO()].}
+
+\item{min_steps}{minimum number of exercise steps recommended for the fit
+(default 6); fewer give a warning. See [MFO()].}
 }
 \value{
 {Data frame with one row per participant containing:
@@ -116,14 +124,18 @@ a proportion of MFO in (0, 1). See [MFO_kinetics()].}
 \item FAT_MAX_porcHRmax: FatMax as \% HRmax, if HRmax provided.
 \item FatMax_zone_lower: Lower bound of FatMax zone (\% VO2max).
 \item FatMax_zone_upper: Upper bound of FatMax zone (\% VO2max).
+\item FatMax_zone_method: "fitted curve", or "linear interpolation" for "MV".
 \item crossover_point: Crossover intensity (\% VO2max).
 \item R_squared: R-squared of the curve fit.
+\item method: method requested.
+\item energy_equivalents: "classic" or "source".
 \item d: SIN dilatation parameter.
 \item t: SIN translation parameter.
 \item s: SIN symmetry parameter.
 \item Fatmin: Fatmin from SIN model (\% VO2max).
 \item FatMax_SIN: FatMax from SIN model (\% VO2max).
 \item SIN_R_squared: R-squared of SIN model.
+\item SIN_convergence: whether the SIN model was fitted.
 \item CHO_g_basal: Basal CHO oxidation (g/min).
 \item FAT_g_basal: Basal FAT oxidation (g/min).
 \item Kcal_g_basal: Basal energy expenditure (kcal/min).
@@ -132,6 +144,13 @@ a proportion of MFO in (0, 1). See [MFO_kinetics()].}
 \description{
 Process multiple participants' MFO data in batch, generating plots and summary results.
 Supports all parameters from the MFO() and MFO_kinetics() functions.
+}
+\details{
+Every warning raised for a participant is re-issued with the
+participant ID first (e.g. `"P02: No HR data in db_MFO: ..."`), so the
+quality warnings of [MFO()] (missing HR, few steps, Fatmax at the edge,
+incomplete last step) can be traced in a batch. A participant whose data
+cannot be processed gives a row of `NA` and a warning with the error.
 }
 \examples{
 

@@ -2,7 +2,7 @@
 # Helper function to create realistic test data
 # VCO2 starts well below VO2 (RER ~0.75) and rises to approach VO2 (RER ~0.95)
 # This produces the classic inverted-U fat oxidation curve
-create_test_data <- function(seed = 42, n_exercise = 45) {
+create_test_data <- function(seed = 42, n_exercise = 54) {
   set.seed(seed)
 
   # Basal: 48 rows (16 min at 20s intervals)
@@ -195,13 +195,15 @@ test_that("MFO function handles RER cutoff correctly", {
                           RER_cutoff = NULL)
 
   # With strict cutoff
-  result_cutoff <- MFO(step_time = 20,
-                       db_MFO = d$exercise,
-                       db_basal = d$basal,
-                       cv_var = "VO2",
-                       author = "Frayn",
-                       VO2max = d$VO2max,
-                       RER_cutoff = 0.85)
+  expect_warning(
+    result_cutoff <- MFO(step_time = 20,
+                         db_MFO = d$exercise,
+                         db_basal = d$basal,
+                         cv_var = "VO2",
+                         author = "Frayn",
+                         VO2max = d$VO2max,
+                         RER_cutoff = 0.85),
+    "fitted with 3 exercise step\\(s\\); at least 6")
 
   # With cutoff should have fewer or equal rows
   expect_true(nrow(result_cutoff$MFO_db) <= nrow(result_no_cutoff$MFO_db))
@@ -287,7 +289,8 @@ test_that("MFO function works with different step_time values", {
                 author = "Frayn",
                 VO2max = 2600,
                 step_duration = 180,
-                steady_state_duration = 60)
+                steady_state_duration = 60,
+                min_steps = 5)
 
   expect_type(result$MFO, "double")
   expect_true(result$MFO >= 0)
@@ -487,4 +490,104 @@ test_that("MV and MRER on the example data (regression, SPEC 6.1)", {
   expect_equal(mrer$MFO, 0.3266, tolerance = 1e-3)
   expect_equal(mrer$FatMax_zone_method, "fitted curve")
   expect_equal(mrer$method, "MRER")
+})
+
+
+# --- HR never decides which steps are dropped (SPEC 9.5, "HR ausente") ---
+# Reference: the same call with complete HR (example data, Frayn, P3);
+# expected MFO/Fatmax are those of the reference run, tolerance 1e-10.
+.example_MFO <- function(db_MFO, ...) {
+  data(list = c("basal_df", "VO2max_df"), package = "MFO", envir = environment())
+  MFO(step_time = 20, db_MFO = db_MFO, db_basal = basal_df,
+      db_graded = VO2max_df, cv_var = "RER", author = "Frayn",
+      energy_equivalents = "classic", ...)
+}
+
+test_that("without an HR column MFO() fits all steps and warns once", {
+  data(MFO_df, package = "MFO", envir = environment())
+  ref <- suppressWarnings(suppressMessages(.example_MFO(MFO_df)))
+  no_hr <- MFO_df
+  no_hr$HR <- NULL
+  w <- capture_warnings(suppressMessages(.example_MFO(no_hr)))
+  expect_equal(sum(grepl("No HR data in db_MFO", w)), 1)
+  r <- suppressWarnings(suppressMessages(.example_MFO(no_hr)))
+  expect_equal(nrow(r$MFO_db), 8)
+  expect_equal(r$MFO, ref$MFO, tolerance = 1e-10)
+  expect_equal(r$FAT_MAX, ref$FAT_MAX, tolerance = 1e-10)
+  expect_true(is.na(r$FAT_MAX_HR))
+  expect_true(all(is.na(r$MFO_db$HR)))
+})
+
+test_that("a step without HR stays in the fit and is named in the warning", {
+  data(MFO_df, package = "MFO", envir = environment())
+  ref <- suppressWarnings(suppressMessages(.example_MFO(MFO_df)))
+  one_gap <- MFO_df
+  one_gap$HR[19:27] <- NA # the whole of step 3 (9 records of 20 s)
+  w <- capture_warnings(suppressMessages(.example_MFO(one_gap)))
+  expect_match(w, "1 exercise step\\(s\\) without HR \\(at 32\\.1 %VO2max\\)",
+               all = FALSE)
+  r <- suppressWarnings(suppressMessages(.example_MFO(one_gap)))
+  expect_equal(nrow(r$MFO_db), 8)
+  expect_true(is.na(r$MFO_db$HR[3]))
+  expect_equal(r$MFO, ref$MFO, tolerance = 1e-10)
+  expect_equal(r$FAT_MAX, ref$FAT_MAX, tolerance = 1e-10)
+  # HR at Fatmax is interpolated between the neighbouring steps with HR
+  expect_false(is.na(r$FAT_MAX_HR))
+})
+
+
+# --- Quality warnings: min_steps and Fatmax at the edge (SPEC 14) ---
+# Example data (Frayn): 8 steps from 19.9 to 74.7 %VO2max. RER_cutoff keeps
+# 6 ("safe"), 5 ("sedentary") and 4 ("trained") steps; with "trained" the
+# last step is 41.0 %VO2max and MV puts Fatmax there (values from SPEC 14
+# and the NEWS entry of RER_cutoff).
+.quality_w <- function(...) {
+  data(MFO_df, package = "MFO", envir = environment())
+  capture_warnings(suppressMessages(.example_MFO(MFO_df, ...)))
+}
+
+test_that("the example data give no quality warning", {
+  w <- .quality_w()
+  expect_false(any(grepl("min_steps|edge of the measured|incomplete|HR", w)))
+})
+
+test_that("min_steps warns when fewer exercise steps enter the fit", {
+  expect_false(any(grepl("min_steps", .quality_w(RER_cutoff = "safe"))))
+  expect_match(.quality_w(RER_cutoff = "sedentary"),
+               "fitted with 5 exercise step\\(s\\); at least 6", all = FALSE)
+  # the resting row of include_basal = TRUE does not count as a step
+  expect_match(.quality_w(RER_cutoff = "sedentary", include_basal = TRUE),
+               "fitted with 5 exercise step", all = FALSE)
+  expect_false(any(grepl("min_steps", .quality_w(RER_cutoff = "sedentary",
+                                                  min_steps = 5))))
+  # negative_FAT = "exclude" removes the 74.7 % step: 7 steps, no warning
+  expect_false(any(grepl("min_steps", .quality_w(negative_FAT = "exclude"))))
+  expect_match(.quality_w(negative_FAT = "exclude", min_steps = 8),
+               "fitted with 7 exercise step", all = FALSE)
+  expect_error(.quality_w(min_steps = 0), "min_steps must be")
+})
+
+test_that("Fatmax at the last exercise step warns (edge)", {
+  expect_match(.quality_w(RER_cutoff = "trained", method = "MV"),
+               paste0("Fatmax \\(41\\.0 %VO2max\\) is at the last exercise step ",
+                      "\\(41\\.0 %VO2max\\).*stopped too early"), all = FALSE)
+  # P3 with the same 4 steps peaks at 29.4 %VO2max, nearest to step 3 of 4
+  expect_false(any(grepl("edge", .quality_w(RER_cutoff = "trained"))))
+})
+
+test_that("the edge rule uses the nearest exercise step, resting row excluded", {
+  x <- c(20, 30, 40, 50)
+  expect_warning(e <- .warn_fatmax_edge(24, x), "first exercise step \\(20\\.0")
+  expect_equal(e, "first")
+  expect_warning(e <- .warn_fatmax_edge(46, x), "last exercise step \\(50\\.0")
+  expect_equal(e, "last")
+  expect_no_warning(e <- .warn_fatmax_edge(26, x))
+  expect_true(is.na(e))
+  # MFO(): the resting row (about 11 %VO2max) is never "the first step"
+  d <- create_test_data(42)
+  r_w <- capture_warnings(suppressMessages(
+    MFO(step_time = 20, db_MFO = d$exercise, db_basal = d$basal, cv_var = "VO2",
+        author = "Frayn", VO2max = d$VO2max, include_basal = TRUE,
+        energy_equivalents = "classic")))
+  expect_false(any(grepl("first exercise step", r_w)))
 })

@@ -30,7 +30,8 @@ test_that("MFO_kinetics returns correct structure and SIN parameters", {
                     db_graded = NULL,
                     cv_var = "VO2",
                     author = "Frayn",
-                    VO2max = d$VO2max)
+                    VO2max = d$VO2max,
+                    min_steps = 5) # helper data have 5 steps on purpose
 
   # Helper data have 5 steps: fitted, with the < 6 steps warning
   expect_warning(result_kinetics <- MFO_kinetics(result_MFO$MFO_db), "unreliable")
@@ -72,7 +73,8 @@ test_that("MFO_kinetics returns Fatmin at the second zero, above FatMax_SIN", {
                     db_basal = d$basal,
                     cv_var = "VO2",
                     author = "Frayn",
-                    VO2max = d$VO2max)
+                    VO2max = d$VO2max,
+                    min_steps = 5) # helper data have 5 steps on purpose
 
   expect_warning(k <- MFO_kinetics(result_MFO$MFO_db), "unreliable")
 
@@ -91,7 +93,8 @@ test_that("MFO_kinetics plot is a ggplot object", {
                     db_basal = d$basal,
                     cv_var = "VO2",
                     author = "Frayn",
-                    VO2max = d$VO2max)
+                    VO2max = d$VO2max,
+                    min_steps = 5) # helper data have 5 steps on purpose
 
   # Helper data have 5 steps: fitted, with the < 6 steps warning
   expect_warning(result_kinetics <- MFO_kinetics(result_MFO$MFO_db), "unreliable")

@@ -264,6 +264,7 @@ fat_oxidation_MRER <- function(VO2, RER) {
 #' @param RER_cutoff RER value above which data is excluded (default NULL = no cutoff),
 #'        or one of "classic", "safe", "sedentary", "trained" (see [MFO()]).
 #' @param energy_equivalents "classic" (default) or "source"; see [substrate_oxidation()].
+#' @param use_incomplete_step logical (default `FALSE`). See [MFO()].
 #'
 #' @details With `author = "Jeukendrup"`, a single warning lists the steps (after
 #' `RER_cutoff`) whose intensity is outside 40-75 \% VO2max, the range of the
@@ -280,11 +281,20 @@ calculate_vars <- function(step_time,
                            step_duration = 180,
                            steady_state_duration = 60,
                            RER_cutoff = NULL,
-                           energy_equivalents = "classic") {
+                           energy_equivalents = "classic",
+                           use_incomplete_step = FALSE) {
 
   records_per_step <- as.integer(step_duration / step_time)
   records_steady <- as.integer(steady_state_duration / step_time)
   n_steps <- as.integer(nrow(db_MFO) / records_per_step)
+
+  # Incomplete last step: always warn; use it only if asked and it holds
+  # the steady-state segment (SPEC 9.5, "Escalones incompletos")
+  if (.incomplete_last_step(nrow(db_MFO), records_per_step, records_steady,
+                            step_time, step_duration, steady_state_duration,
+                            use_incomplete_step)) {
+    n_steps <- n_steps + 1L
+  }
 
   if (n_steps < 1) {
     stop("Not enough data for at least one complete step.")
@@ -301,7 +311,8 @@ calculate_vars <- function(step_time,
   )
 
   for (i in seq_len(n_steps)) {
-    # Last steady_state_duration seconds of each step
+    # Last steady_state_duration seconds of each step (of the data, for a
+    # used incomplete last step)
     step_end <- i * records_per_step
     step_start <- step_end - records_steady + 1
 
@@ -313,7 +324,8 @@ calculate_vars <- function(step_time,
 
     mean_VO2 <- mean(step_data$VO2, na.rm = TRUE)
     mean_VCO2 <- mean(step_data$VCO2, na.rm = TRUE)
-    mean_HR <- mean(step_data$HR, na.rm = TRUE)
+    # HR is optional: a missing column or a step without HR gives NA
+    mean_HR <- .mean_or_na(step_data[["HR"]])
     mean_RER <- mean(step_data$RER, na.rm = TRUE)
 
     # Calculate substrate oxidation
@@ -347,6 +359,42 @@ calculate_vars <- function(step_time,
   }
 
   return(db_vars)
+}
+
+
+# Warn about records left after the last complete step; TRUE if that
+# incomplete step is to be used (asked for and >= steady_state_duration)
+.incomplete_last_step <- function(n_records, records_per_step, records_steady,
+                                  step_time, step_duration, steady_state_duration,
+                                  use_incomplete_step) {
+  leftover <- n_records %% records_per_step
+  if (leftover == 0) return(FALSE)
+  head <- sprintf("Last step incomplete (%s s of %s s): ",
+                  format(leftover * step_time), format(step_duration))
+  usable <- leftover >= records_steady
+  if (isTRUE(use_incomplete_step) && usable) {
+    warning(head, sprintf("used, averaging its last %s s (use_incomplete_step = TRUE).",
+                          format(steady_state_duration)), call. = FALSE)
+    return(TRUE)
+  }
+  if (usable) {
+    warning(head, sprintf(paste0("dropped. It holds the %s-s steady-state segment; ",
+                                 "set use_incomplete_step = TRUE to use it."),
+                          format(steady_state_duration)), call. = FALSE)
+  } else {
+    warning(head, sprintf(paste0("dropped. It is shorter than steady_state_duration ",
+                                 "(%s s) and cannot be used."),
+                          format(steady_state_duration)), call. = FALSE)
+  }
+  FALSE
+}
+
+
+# Mean of the non-missing values; NA (not NaN or a warning) if there are none
+.mean_or_na <- function(x) {
+  x <- suppressWarnings(as.numeric(x))
+  if (length(x) == 0 || all(is.na(x))) return(NA_real_)
+  mean(x, na.rm = TRUE)
 }
 
 
@@ -489,9 +537,12 @@ read_MFO_databases <- function(from = c("folder", "files"),
       db <- db[-c(remove_rows), , drop = FALSE]
     }
 
-    # Convert to numeric
-    db <- as.data.frame(apply(db, 2, as.numeric))
-    db <- na.omit(db)
+    # Convert to numeric; only the gas columns decide which rows are dropped,
+    # a missing HR value never removes a row (it would shift the steps)
+    db <- as.data.frame(lapply(db, function(x) suppressWarnings(as.numeric(x))))
+    gas <- intersect(c("VO2", "VCO2", "RER"), colnames(db))
+    db <- db[stats::complete.cases(db[, gas, drop = FALSE]), , drop = FALSE]
+    rownames(db) <- NULL
     return(db)
   }
 

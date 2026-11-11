@@ -22,6 +22,10 @@
 #' @param include_basal logical; include the resting row as step 0 in the fit
 #'        (default `FALSE`). See [MFO()].
 #' @param energy_equivalents "classic" (default in 0.2.x) or "source". See [MFO()].
+#' @param use_incomplete_step logical; use an incomplete last step that holds the
+#'        steady-state segment (default `FALSE`). See [MFO()].
+#' @param min_steps minimum number of exercise steps recommended for the fit
+#'        (default 6); fewer give a warning. See [MFO()].
 #' @param fatmin_threshold `NULL` (default, Fatmin at the second zero of the SIN) or
 #'        a proportion of MFO in (0, 1). See [MFO_kinetics()].
 #' @param step_duration duration of each exercise step in seconds (default 180).
@@ -40,6 +44,12 @@
 #' @param save_plot save plots to MFO_plots/ directory (default TRUE).
 #' @param save_result save results file (default TRUE).
 #' @param output_format format for results file: "xlsx", "csv", or "rds". Default "xlsx".
+#'
+#' @details Every warning raised for a participant is re-issued with the
+#' participant ID first (e.g. `"P02: No HR data in db_MFO: ..."`), so the
+#' quality warnings of [MFO()] (missing HR, few steps, Fatmax at the edge,
+#' incomplete last step) can be traced in a batch. A participant whose data
+#' cannot be processed gives a row of `NA` and a warning with the error.
 #'
 #'
 #' @importFrom readxl read_xlsx
@@ -60,14 +70,18 @@
 #' \item FAT_MAX_porcHRmax: FatMax as \% HRmax, if HRmax provided.
 #' \item FatMax_zone_lower: Lower bound of FatMax zone (\% VO2max).
 #' \item FatMax_zone_upper: Upper bound of FatMax zone (\% VO2max).
+#' \item FatMax_zone_method: "fitted curve", or "linear interpolation" for "MV".
 #' \item crossover_point: Crossover intensity (\% VO2max).
 #' \item R_squared: R-squared of the curve fit.
+#' \item method: method requested.
+#' \item energy_equivalents: "classic" or "source".
 #' \item d: SIN dilatation parameter.
 #' \item t: SIN translation parameter.
 #' \item s: SIN symmetry parameter.
 #' \item Fatmin: Fatmin from SIN model (\% VO2max).
 #' \item FatMax_SIN: FatMax from SIN model (\% VO2max).
 #' \item SIN_R_squared: R-squared of SIN model.
+#' \item SIN_convergence: whether the SIN model was fitted.
 #' \item CHO_g_basal: Basal CHO oxidation (g/min).
 #' \item FAT_g_basal: Basal FAT oxidation (g/min).
 #' \item Kcal_g_basal: Basal energy expenditure (kcal/min).
@@ -118,7 +132,9 @@ MFOs <- function(from = c("folder", "files"),
                  vo2max_window = 30,
                  include_basal = FALSE,
                  fatmin_threshold = NULL,
-                 energy_equivalents = c("classic", "source")) {
+                 energy_equivalents = c("classic", "source"),
+                 use_incomplete_step = FALSE,
+                 min_steps = 6) {
 
   from <- match.arg(from)
   output_format <- match.arg(output_format, c("xlsx", "csv", "rds"))
@@ -139,7 +155,7 @@ MFOs <- function(from = c("folder", "files"),
     ID_participant <- participants[i]
     message(paste("Processing:", ID_participant))
 
-    tryCatch({
+    tryCatch(withCallingHandlers({
       # Read databases
       participant_dbs <- read_MFO_databases(
         from = from,
@@ -174,7 +190,9 @@ MFOs <- function(from = c("folder", "files"),
         HRmax = HRmax,
         vo2max_window = vo2max_window,
         include_basal = include_basal,
-        energy_equivalents = energy_equivalents
+        energy_equivalents = energy_equivalents,
+        use_incomplete_step = use_incomplete_step,
+        min_steps = min_steps
       )
 
       # Save MFO plot
@@ -220,10 +238,12 @@ MFOs <- function(from = c("folder", "files"),
                                           participant_result_MFO$FatMax_zone_lower), 2),
         FatMax_zone_upper = round(ifelse(is.na(participant_result_MFO$FatMax_zone_upper), NA,
                                           participant_result_MFO$FatMax_zone_upper), 2),
+        FatMax_zone_method = participant_result_MFO$FatMax_zone_method,
         crossover_point = round(ifelse(is.na(participant_result_MFO$crossover_point), NA,
                                        participant_result_MFO$crossover_point), 2),
         R_squared = round(participant_result_MFO$R_squared, 4),
         method = participant_result_MFO$method,
+        energy_equivalents = participant_result_MFO$energy_equivalents,
         d = round(participant_result_kinetics$d, 3),
         t = round(participant_result_kinetics$t, 3),
         s = round(participant_result_kinetics$s, 3),
@@ -240,15 +260,21 @@ MFOs <- function(from = c("folder", "files"),
         stringsAsFactors = FALSE
       )
 
-    }, error = function(e) {
+    }, warning = function(w) {
+      # Name the participant in every warning, so a batch shows whose result
+      # needs checking (e.g. missing HR, few steps; SPEC 9.5, 14)
+      warning(paste0(ID_participant, ": ", conditionMessage(w)), call. = FALSE)
+      invokeRestart("muffleWarning")
+    }), error = function(e) {
       warning(paste("Error processing", ID_participant, ":", e$message))
       results_list[[i]] <<- data.frame(
         ID = ID_participant,
         MFO_g_min = NA, MFO_relative = NA, MFO_FFM = NA,
         VO2max = NA, VO2max_window = NA,
         FAT_MAX_perVO2max = NA, FAT_MAX_HR = NA, FAT_MAX_porcHRmax = NA,
-        FatMax_zone_lower = NA, FatMax_zone_upper = NA,
+        FatMax_zone_lower = NA, FatMax_zone_upper = NA, FatMax_zone_method = NA,
         crossover_point = NA, R_squared = NA, method = method,
+        energy_equivalents = energy_equivalents,
         d = NA, t = NA, s = NA, Fatmin = NA, FatMax_SIN = NA,
         SIN_R_squared = NA, SIN_convergence = FALSE,
         CHO_g_basal = NA, FAT_g_basal = NA, Kcal_g_basal = NA,
