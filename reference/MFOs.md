@@ -36,7 +36,9 @@ MFOs(
   vo2max_window = 30,
   include_basal = FALSE,
   fatmin_threshold = NULL,
-  energy_equivalents = c("classic", "source")
+  energy_equivalents = c("classic", "source"),
+  use_incomplete_step = FALSE,
+  min_steps = 6
 )
 ```
 
@@ -170,6 +172,16 @@ MFOs(
 
   "classic" (default in 0.2.x) or "source". See \[MFO()\].
 
+- use_incomplete_step:
+
+  logical; use an incomplete last step that holds the steady-state
+  segment (default \`FALSE\`). See \[MFO()\].
+
+- min_steps:
+
+  minimum number of exercise steps recommended for the fit (default 6);
+  fewer give a warning. See \[MFO()\].
+
 ## Value
 
 Data frame with one row per participant containing:
@@ -199,9 +211,16 @@ Data frame with one row per participant containing:
 
 - FatMax_zone_upper: Upper bound of FatMax zone (% VO2max).
 
+- FatMax_zone_method: "fitted curve", or "linear interpolation" for
+  "MV".
+
 - crossover_point: Crossover intensity (% VO2max).
 
 - R_squared: R-squared of the curve fit.
+
+- method: method requested.
+
+- energy_equivalents: "classic" or "source".
 
 - d: SIN dilatation parameter.
 
@@ -215,11 +234,21 @@ Data frame with one row per participant containing:
 
 - SIN_R_squared: R-squared of SIN model.
 
+- SIN_convergence: whether the SIN model was fitted.
+
 - CHO_g_basal: Basal CHO oxidation (g/min).
 
 - FAT_g_basal: Basal FAT oxidation (g/min).
 
 - Kcal_g_basal: Basal energy expenditure (kcal/min).
+
+## Details
+
+Every warning raised for a participant is re-issued with the participant
+ID first (e.g. \`"P02: No HR data in db_MFO: ..."\`), so the quality
+warnings of \[MFO()\] (missing HR, few steps, Fatmax at the edge,
+incomplete last step) can be traced in a batch. A participant whose data
+cannot be processed gives a row of \`NA\` and a warning with the error.
 
 ## Examples
 

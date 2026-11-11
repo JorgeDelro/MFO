@@ -66,7 +66,9 @@ methods to locate MFO (P3, P2, MV, MRER) and stoichiometric equations
 <span>  HRmax <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  vo2max_window <span class="op">=</span> <span class="fl">30</span>,</span>
 <span>  include_basal <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  energy_equivalents <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"classic"</span>, <span class="st">"source"</span><span class="op">)</span></span>
+<span>  energy_equivalents <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"classic"</span>, <span class="st">"source"</span><span class="op">)</span>,</span>
+<span>  use_incomplete_step <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  min_steps <span class="op">=</span> <span class="fl">6</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -174,6 +176,22 @@ package decision, "Frayn"; Jeukendrup &amp; Wallis 2005, Table 5, for
 set. MFO and Fatmax (g/min) do not depend on it. See
 [substrate_oxidation()] and SPEC 19 (finding 1).</p></dd>
 
+
+<dt id="arg-use-incomplete-step">use_incomplete_step<a class="anchor" aria-label="anchor" href="#arg-use-incomplete-step"></a></dt>
+<dd><p>logical. Records left after the last complete step
+(fewer than `step_duration` s) always give a warning stating "X s of Y s".
+With `FALSE` (default, as in v0.2.0) they are dropped. With `TRUE` that
+incomplete step is used only if it lasts at least `steady_state_duration`;
+its last `steady_state_duration` s are averaged, as for complete steps,
+although VO2 may not have reached its plateau. See SPEC 9.5.</p></dd>
+
+
+<dt id="arg-min-steps">min_steps<a class="anchor" aria-label="anchor" href="#arg-min-steps"></a></dt>
+<dd><p>minimum number of exercise steps recommended for the fit
+(default 6). A warning is given when fewer steps remain after
+`RER_cutoff` and `negative_FAT = "exclude"`; the resting row of
+`include_basal = TRUE` does not count. See SPEC 14.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -194,12 +212,26 @@ set. MFO and Fatmax (g/min) do not depend on it. See
 <li><p>R_squared: R-squared of the fitted model (`NA` for "MV").</p></li>
 <li><p>RMSE: Root mean squared error of the fitted model (`NA` for "MV").</p></li>
 <li><p>method: Method used for curve fitting.</p></li>
+<li><p>energy_equivalents: energy equivalents used for `Kcal` ("classic" or "source").</p></li>
 <li><p>VO2max: VO2max used to express intensity (ml/min).</p></li>
 <li><p>VO2max_window: effective averaging window for VO2max (s); NA if VO2max was supplied.</p></li>
 <li><p>VO2max_window_requested: `vo2max_window` as requested (s); NA if VO2max was supplied.</p></li>
 <li><p>x_CHO: carbohydrates in basal metabolism (g/min), with the same `author` equations as the test.</p></li>
 <li><p>x_FAT: fat in basal metabolism (g/min).</p></li>
 <li><p>x_Kcal: Kcal in basal metabolism (kcal/min).</p></li>
+</ul></div>
+    <div class="section level2">
+    <h2 id="quality-warnings">Quality warnings<a class="anchor" aria-label="anchor" href="#quality-warnings"></a></h2>
+
+
+<p>Besides the warnings on inputs, `MFO()` warns when the result needs
+checking (SPEC 9.5, 14):</p><ul><li><p>fewer than `min_steps` exercise steps enter the fit;</p></li>
+<li><p>Fatmax is at the edge: the exercise step nearest to Fatmax is the
+  first or the last one (resting row excluded), so the maximum may lie
+  outside the measured range (the test started too high or stopped too early);</p></li>
+<li><p>the last step is incomplete (see `use_incomplete_step`);</p></li>
+<li><p>HR is missing: `FAT_MAX_HR` and `FAT_MAX_porcHRmax` are `NA`, or
+  interpolated from fewer steps. HR never removes steps from the fit.</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="methods">Methods<a class="anchor" aria-label="anchor" href="#methods"></a></h2>

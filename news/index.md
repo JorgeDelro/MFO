@@ -7,11 +7,20 @@ Target: v0.2.1 on CRAN. Scientific background and sources in
 
 ### Infrastructure
 
+- Tests for
+  [`MFOs()`](https://jorgedelro.github.io/MFO/reference/MFOs.md) in both
+  modes (`"folder"` and `"files"`), checked against
+  [`MFO()`](https://jorgedelro.github.io/MFO/reference/MFO.md)
+  participant by participant; coverage of `R/MFOs.R` goes from 0 to 99
+  %.
+
 - GitHub Actions: `R CMD check` on macOS, Windows and Ubuntu (R devel,
   release, oldrel-1), test coverage with Codecov, and a pkgdown site
   deployed to <https://jorgedelro.github.io/MFO/>.
+
 - README rewritten for v0.2.x and generated from an executable
   `README.Rmd`.
+
 - Fixed the DOI of Achten et al. (2002) in `DESCRIPTION`.
 
 ### Bug fixes
@@ -79,6 +88,20 @@ Target: v0.2.1 on CRAN. Scientific background and sources in
 - When both `VO2max` and `db_graded` are given, `VO2max` is now used and
   `db_graded` is ignored with a warning (v0.2.0 silently used
   `db_graded`).
+- Heart rate never decides which rows or steps are dropped. In v0.2.0 a
+  test without an HR column made
+  [`MFO()`](https://jorgedelro.github.io/MFO/reference/MFO.md) fail
+  (`0 (non-NA) cases`; in
+  [`MFOs()`](https://jorgedelro.github.io/MFO/reference/MFOs.md) an
+  empty row with no explanation), a step without HR was silently removed
+  from the fit, and
+  [`read_MFO_databases()`](https://jorgedelro.github.io/MFO/reference/read_MFO_databases.md)
+  deleted every row with a missing HR value, shifting all later steps
+  (an empty HR column deleted the whole table). Now only VO2, VCO2 and
+  RER remove rows, MFO and Fatmax are computed as usual, and a warning
+  says that `FAT_MAX_HR` and `FAT_MAX_porcHRmax` are `NA` (no HR) or
+  interpolated from fewer steps (some steps without HR, listed by
+  %VO2max) (SPEC 9.5).
 
 ### Coefficient policy
 
@@ -115,6 +138,38 @@ Target: v0.2.1 on CRAN. Scientific background and sources in
   4).
 
 ### New features
+
+- [`MFOs()`](https://jorgedelro.github.io/MFO/reference/MFOs.md)
+  re-issues every warning with the participant ID first
+  (`"P02: No HR data in db_MFO: ..."`), so the quality warnings can be
+  traced in a batch. The summary gains `FatMax_zone_method` and
+  `energy_equivalents`, and
+  [`MFO()`](https://jorgedelro.github.io/MFO/reference/MFO.md) returns
+  `energy_equivalents`.
+
+- Quality warnings in
+  [`MFO()`](https://jorgedelro.github.io/MFO/reference/MFO.md) and
+  [`MFOs()`](https://jorgedelro.github.io/MFO/reference/MFOs.md) (new
+  section *Quality warnings* in
+  [`?MFO`](https://jorgedelro.github.io/MFO/reference/MFO.md)): new
+  argument `min_steps` (default 6) warns when fewer exercise steps enter
+  the fit after `RER_cutoff` and `negative_FAT = "exclude"` (the resting
+  row does not count); and a warning when Fatmax is at the edge,
+  i.e. the exercise step nearest to Fatmax is the first or the last one
+  (the test may have started too high or stopped too early). Results are
+  unchanged. The example data give neither warning; with
+  `RER_cutoff = "sedentary"` (5 steps) `min_steps` warns, and with
+  `"trained"` (4 steps) MV, MRER and P2 also put Fatmax at the last step
+  (SPEC 14).
+
+- Incomplete last step: records left after the last complete step now
+  always give a warning (“Last step incomplete (120 s of 180 s)”);
+  v0.2.0 dropped them silently. The new `use_incomplete_step` argument
+  of [`MFO()`](https://jorgedelro.github.io/MFO/reference/MFO.md) and
+  [`MFOs()`](https://jorgedelro.github.io/MFO/reference/MFOs.md)
+  (default `FALSE`, results as in v0.2.0) uses that step only if it
+  lasts at least `steady_state_duration`, averaging its last
+  `steady_state_duration` s (SPEC 9.5).
 
 - `RER_cutoff` accepts names from Amaro-Gahete et al. (2019):
   `"classic"` = 1.00, `"safe"` = 0.95, `"sedentary"` = 0.93, `"trained"`

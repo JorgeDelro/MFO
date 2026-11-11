@@ -14,7 +14,8 @@ calculate_vars(
   step_duration = 180,
   steady_state_duration = 60,
   RER_cutoff = NULL,
-  energy_equivalents = "classic"
+  energy_equivalents = "classic",
+  use_incomplete_step = FALSE
 )
 ```
 
@@ -53,6 +54,10 @@ calculate_vars(
 - energy_equivalents:
 
   "classic" (default) or "source"; see \[substrate_oxidation()\].
+
+- use_incomplete_step:
+
+  logical (default \`FALSE\`). See \[MFO()\].
 
 ## Value
 

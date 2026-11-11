@@ -26,7 +26,9 @@ MFO(
   HRmax = NULL,
   vo2max_window = 30,
   include_basal = FALSE,
-  energy_equivalents = c("classic", "source")
+  energy_equivalents = c("classic", "source"),
+  use_incomplete_step = FALSE,
+  min_steps = 6
 )
 ```
 
@@ -142,6 +144,23 @@ MFO(
   not set. MFO and Fatmax (g/min) do not depend on it. See
   \[substrate_oxidation()\] and SPEC 19 (finding 1).
 
+- use_incomplete_step:
+
+  logical. Records left after the last complete step (fewer than
+  \`step_duration\` s) always give a warning stating "X s of Y s". With
+  \`FALSE\` (default, as in v0.2.0) they are dropped. With \`TRUE\` that
+  incomplete step is used only if it lasts at least
+  \`steady_state_duration\`; its last \`steady_state_duration\` s are
+  averaged, as for complete steps, although VO2 may not have reached its
+  plateau. See SPEC 9.5.
+
+- min_steps:
+
+  minimum number of exercise steps recommended for the fit (default 6).
+  A warning is given when fewer steps remain after \`RER_cutoff\` and
+  \`negative_FAT = "exclude"\`; the resting row of \`include_basal =
+  TRUE\` does not count. See SPEC 14.
+
 ## Value
 
 Returns a list which contains:
@@ -182,6 +201,9 @@ Returns a list which contains:
 
 - method: Method used for curve fitting.
 
+- energy_equivalents: energy equivalents used for \`Kcal\` ("classic" or
+  "source").
+
 - VO2max: VO2max used to express intensity (ml/min).
 
 - VO2max_window: effective averaging window for VO2max (s); NA if VO2max
@@ -196,6 +218,23 @@ Returns a list which contains:
 - x_FAT: fat in basal metabolism (g/min).
 
 - x_Kcal: Kcal in basal metabolism (kcal/min).
+
+## Quality warnings
+
+Besides the warnings on inputs, \`MFO()\` warns when the result needs
+checking (SPEC 9.5, 14):
+
+- fewer than \`min_steps\` exercise steps enter the fit;
+
+- Fatmax is at the edge: the exercise step nearest to Fatmax is the
+  first or the last one (resting row excluded), so the maximum may lie
+  outside the measured range (the test started too high or stopped too
+  early);
+
+- the last step is incomplete (see \`use_incomplete_step\`);
+
+- HR is missing: \`FAT_MAX_HR\` and \`FAT_MAX_porcHRmax\` are \`NA\`, or
+  interpolated from fewer steps. HR never removes steps from the fit.
 
 ## Methods
 
