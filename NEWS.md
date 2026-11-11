@@ -14,6 +14,16 @@ Target: v0.2.1 on CRAN. Scientific background and sources in `docs/SPEC.md`.
 * README rewritten for v0.2.x and generated from an executable `README.Rmd`.
 * Fixed the DOI of Achten et al. (2002) in `DESCRIPTION`.
 
+## Documentation
+
+* New vignette "From gas exchange to Fatmax" (`vignette("mfo-workflow")`):
+  each step of `MFO()` rebuilt by hand and checked against the package, the
+  four methods compared, the SIN model and its sensitivity to
+  `negative_FAT`, the effect of `RER_cutoff` and `include_basal`, a
+  generated methods paragraph, and batch processing with `MFOs()`.
+* pkgdown reference grouped by workflow; the vignette is the "Get started"
+  article.
+
 ## Bug fixes
 
 * SIN model: `MFO_kinetics()` now implements equation [14] of Chenevière

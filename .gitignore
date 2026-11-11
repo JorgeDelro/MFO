@@ -6,3 +6,6 @@
 *.Rcheck/
 MFO_*.tar.gz
 pkgdown-site/
+inst/doc
+/doc/
+/Meta/

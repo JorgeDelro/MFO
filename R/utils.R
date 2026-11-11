@@ -18,6 +18,7 @@
 #' @importFrom dplyr pull mutate
 #' @importFrom tibble add_column
 #'
+#' @keywords internal
 met_basal <- function(step_time, db, cv_var, window_duration = 300,
                       author = "Frayn", energy_equivalents = "classic") {
 
@@ -152,6 +153,7 @@ met_basal <- function(step_time, db, cv_var, window_duration = 300,
 #'
 #' @return Named list with CHO (g/min), FAT (g/min), Kcal (kcal/min)
 #'
+#' @keywords internal
 substrate_oxidation <- function(VO2, VCO2, author, VO2max = NULL,
                                 phase = c("exercise", "rest"),
                                 energy_equivalents = c("classic", "source")) {
@@ -242,6 +244,7 @@ substrate_oxidation <- function(VO2, VCO2, author, VO2max = NULL,
 #'
 #' @return fat oxidation rate in g/min
 #'
+#' @keywords internal
 fat_oxidation_MRER <- function(VO2, RER) {
   # MRER method: Fat ox (mg/min) = 1.7 * (1 - RER) * VO2
   # VO2 in ml/min, result in mg/min -> convert to g/min
@@ -274,6 +277,7 @@ fat_oxidation_MRER <- function(VO2, RER) {
 #'
 #' @return data frame with columns: VO2, VCO2, HR, RER, CHO, FAT, Kcal (one row per step)
 #'
+#' @keywords internal
 calculate_vars <- function(step_time,
                            db_MFO,
                            VO2max,
@@ -444,6 +448,7 @@ calculate_vars <- function(step_time,
 #'
 #' @return data frame with data averaged into fixed intervals.
 #'
+#' @keywords internal
 preprocess_bxb <- function(db, target_interval = 20) {
 
   if (!"Time" %in% colnames(db)) {
@@ -489,6 +494,7 @@ preprocess_bxb <- function(db, target_interval = 20) {
 #' }}
 #'
 #'
+#' @keywords internal
 read_MFO_databases <- function(from = c("folder", "files"),
                                path,
                                db_basal_name,

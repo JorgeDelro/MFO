@@ -88,3 +88,4 @@ when an exercise step falls outside the range (SPEC 3, 9.5). Resting values
   with the CHO value.
 }
 }
+\keyword{internal}

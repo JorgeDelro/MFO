@@ -18,3 +18,4 @@ data frame with data averaged into fixed intervals.
 \description{
 Averages breath-by-breath data into fixed time intervals.
 }
+\keyword{internal}
