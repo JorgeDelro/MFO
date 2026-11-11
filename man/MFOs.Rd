@@ -45,11 +45,11 @@ same participant are stored in one file but in different sheets)}
 
 \item{path}{path to the folder with the databases}
 
-\item{db_basal_name}{name given to the basal database, eg: "basal_df"}
+\item{db_basal_name}{name given to the basal database, e.g. "basal_df"}
 
-\item{db_MFO_name}{name given to the MFO database, eg: "MFO_df"}
+\item{db_MFO_name}{name given to the MFO database, e.g. "MFO_df"}
 
-\item{db_graded_name}{name given to the graded database, eg: "VO2max_df"}
+\item{db_graded_name}{name given to the graded database, e.g. "VO2max_df"}
 
 \item{step_time}{how often the data was collected (in seconds).}
 
