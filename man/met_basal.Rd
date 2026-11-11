@@ -34,3 +34,4 @@ pair derived from their Table 4 (see [substrate_oxidation()], `phase = "rest"`).
 Calculate basal metabolism from rest test data using a rolling window
 to identify the most metabolically stable 5-minute period.
 }
+\keyword{internal}

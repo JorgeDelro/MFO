@@ -2,3 +2,52 @@ url: https://jorgedelro.github.io/MFO/
 destination: pkgdown-site
 template:
   bootstrap: 5
+
+# Home page: README.md (pkgdown's default)
+
+navbar:
+  structure:
+    left: [intro, reference, articles, news]
+  components:
+    intro:
+      text: Get started
+      href: articles/mfo-workflow.html
+
+articles:
+- title: Workflow
+  navbar: ~
+  contents:
+  - mfo-workflow
+
+reference:
+- title: Compute MFO and Fatmax
+  desc: >
+    One participant: basal window, step averaging, stoichiometric equation,
+    curve fit (P3, P2, MV, MRER), Fatmax zone and crossover point.
+  contents:
+  - MFO
+- title: Kinetics
+  desc: SIN model of fat oxidation kinetics (Chenevière et al., 2009).
+  contents:
+  - MFO_kinetics
+- title: Batch
+  desc: Many participants from a folder of xlsx files.
+  contents:
+  - MFOs
+- title: Datasets
+  desc: Anonymised example recordings of one participant (20-s averages).
+  contents:
+  - basal_df
+  - MFO_df
+  - VO2max_df
+- title: Internal helpers
+  desc: >
+    Not exported; documented so that every step of `MFO()` can be traced.
+    Their arguments may change without notice.
+  contents:
+  - read_MFO_databases
+  - preprocess_bxb
+  - met_basal
+  - calculate_vars
+  - substrate_oxidation
+  - fat_oxidation_MRER
