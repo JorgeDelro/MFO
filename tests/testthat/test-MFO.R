@@ -481,8 +481,7 @@ test_that("MV and MRER on the example data (regression, SPEC 6.1)", {
   expect_equal(mv$MFO, 0.3268, tolerance = 1e-3)
   expect_equal(mv$FatMax_zone_method, "linear interpolation")
   expect_true(is.na(mv$R_squared))
-  labels <- unlist(lapply(mv$MFO_plot$layers, function(l) l$aes_params$label))
-  expect_true(any(grepl("Fatmax zone: linear interpolation", labels)))
+  expect_match(mv$MFO_plot$labels$caption, "linear interpolation between steps")
 
   mrer <- run(method = "MRER")
   # Values of this implementation (vertex of the two lines); tolerance 1e-4

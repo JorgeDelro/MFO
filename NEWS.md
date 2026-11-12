@@ -171,6 +171,11 @@ every formula in `docs/SPEC.md` (GitHub repository).
 * When both `VO2max` and `db_graded` are given, `VO2max` is now used and
   `db_graded` is ignored with a warning (v0.2.0 silently used `db_graded`).
 
+* Plots no longer cover the curves with text. `MFO_plot` shows FATmax, MFO
+  and the method in the subtitle, explains the Fatmax zone and the crossover
+  point in the caption, and has a FAT/CHO legend; `MFO_kinetics_plot` shows
+  d, s, t, Fatmin and R² in the subtitle. Values are unchanged.
+
 * `substrate_oxidation()` no longer fails on vectors with
   `author = "Jeukendrup"`; each value picks its own equation.
 

@@ -331,7 +331,7 @@ normalised to the highest observed step, without smoothing, as
 Fatmin is the second zero of the curve (set `fatmin_threshold` to use a
 proportion of MFO instead).
 
-```{r sin, fig.alt = "Fat oxidation as %MFO against %VO2max: observed steps, the basic SIN curve in grey and the fitted SIN curve in orange between its two zeros, labelled with d, s and t."}
+```{r sin, fig.alt = "Fat oxidation as %MFO against %VO2max: observed steps, the basic SIN curve in grey and the fitted SIN curve in orange between its two zeros; d, s, t, Fatmin and R² in the subtitle."}
 kin <- MFO_kinetics(res$MFO_db)
 knitr::kable(data.frame(
   parameter = c("d", "s", "t"),
