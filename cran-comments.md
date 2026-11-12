@@ -5,6 +5,8 @@ released on GitHub only, so CRAN users go from 0.1.0 to 0.2.1. The formulas
 were checked against the primary sources and several were corrected; full
 details are in NEWS.md.
 
+The maintainer e-mail is unchanged.
+
 * Breaking: `method = "MRER"` now implements the MRER of Cheneviere et al.
   (2009); the former behaviour (highest measured value) is `method = "MV"`.
   Results change with default arguments (0.2.0: third-degree polynomial by
@@ -25,8 +27,8 @@ details are in NEWS.md.
 ## R CMD check results
 
 0 errors | 0 warnings | 0 notes on the 5 GitHub Actions runners of the
-package CI and on the 3 R-hub platforms. The NOTE
-of the local check comes from the local machine only.
+package CI and on the 3 R-hub platforms. The NOTE of the local check comes
+from the local machine only.
 
 ### Local
 
