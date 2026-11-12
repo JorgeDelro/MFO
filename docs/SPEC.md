@@ -542,9 +542,9 @@ Cada coeficiente y regla que usará el paquete se ha contrastado con la fuente p
 
 Fundamentos y ecuaciones
 
-- Frayn KN (1983). Calculation of substrate oxidation rates in vivo from gaseous exchange. *J Appl Physiol* 55:628–634.
-- Péronnet F, Massicotte D (1991). Table of nonprotein respiratory quotient: an update. *Can J Sport Sci* 16:23–29.
-- Jeukendrup AE, Wallis GA (2005). Measurement of substrate oxidation during exercise by means of gas exchange measurements. *Int J Sports Med* 26 Suppl 1:S28–S37.
+- Frayn KN (1983). Calculation of substrate oxidation rates in vivo from gaseous exchange. *J Appl Physiol* 55:628–634. [doi](https://doi.org/10.1152/jappl.1983.55.2.628)
+- Péronnet F, Massicotte D (1991). Table of nonprotein respiratory quotient: an update. *Can J Sport Sci* 16(1):23–29. Sin DOI.
+- Jeukendrup AE, Wallis GA (2005). Measurement of substrate oxidation during exercise by means of gas exchange measurements. *Int J Sports Med* 26 Suppl 1:S28–S37. [doi](https://doi.org/10.1055/s-2004-830512)
 - Brooks GA, Mercier J (1994). Balance of carbohydrate and lipid utilization during exercise: the "crossover" concept. *J Appl Physiol* 76(6):2253–2261. [doi](https://doi.org/10.1152/jappl.1994.76.6.2253)
 
 Fatmax, protocolos y métodos de análisis

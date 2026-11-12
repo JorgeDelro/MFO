@@ -5,6 +5,8 @@ released on GitHub only, so CRAN users go from 0.1.0 to 0.2.1. The formulas
 were checked against the primary sources and several were corrected; full
 details are in NEWS.md.
 
+The maintainer e-mail is unchanged.
+
 * Breaking: `method = "MRER"` now implements the MRER of Cheneviere et al.
   (2009); the former behaviour (highest measured value) is `method = "MV"`.
   Results change with default arguments (0.2.0: third-degree polynomial by
@@ -24,21 +26,25 @@ details are in NEWS.md.
 
 ## R CMD check results
 
-0 errors | 0 warnings | 0 notes on the 5 GitHub Actions runners. The NOTE
-of the local check comes from the local machine only.
+0 errors | 0 warnings | 0 notes on the 5 GitHub Actions runners of the
+package CI and on the 3 R-hub platforms. The NOTEs of the local check come
+from the local machine only.
 
 ### Local
 
 `R CMD check --as-cran` on the built tarball `MFO_0.2.1.tar.gz`:
 macOS 15.4.1 (aarch64-apple-darwin), R 4.5.3.
 
-0 errors | 0 warnings | 1 note
+0 errors | 0 warnings | 2 notes
 
+* `checking for future file timestamps ... NOTE: unable to verify current
+  time`: intermittent; the local machine cannot always reach the time
+  server.
 * `checking HTML version of manual ... NOTE: Skipping checking HTML
   validation: 'tidy' doesn't look like recent enough HTML Tidy`: the local
   machine has the old HTML Tidy shipped with macOS.
 
-### GitHub Actions (`R CMD check --as-cran`)
+### GitHub Actions, package CI (`R CMD check --as-cran`)
 
 | Runner         | Platform                 | R                                  | Result          |
 |----------------|--------------------------|------------------------------------|-----------------|
@@ -48,10 +54,19 @@ macOS 15.4.1 (aarch64-apple-darwin), R 4.5.3.
 | macos-latest   | aarch64-apple-darwin23   | R 4.6.2 (release)                  | 0 / 0 / 0 notes |
 | windows-latest | x86_64-w64-mingw32       | R 4.6.2 ucrt (release)             | 0 / 0 / 0 notes |
 
-### win-builder
+### R-hub v2 (`rhub::rhub_check()`, runs on GitHub Actions)
 
-* R-devel: PENDING
-* R-release: PENDING
+win-builder was unreachable when this release was prepared, so the
+Windows and R-devel checks were run with R-hub v2, whose jobs run on
+GitHub Actions in this repository (run "aerodynamic-fawn", on the same
+commit as the submitted tarball; options `--no-manual --as-cran`; the PDF
+manual is checked locally).
+
+| R-hub platform | Platform                 | R                                  | Result          |
+|----------------|--------------------------|------------------------------------|-----------------|
+| windows        | x86_64-w64-mingw32       | R-devel (2026-11-10 r90874 ucrt)   | 0 / 0 / 0 notes |
+| ubuntu-release | x86_64-pc-linux-gnu      | R 4.6.2 (Ubuntu 26.04.1 LTS)       | 0 / 0 / 0 notes |
+| macos          | x86_64-apple-darwin20    | R-devel (2026-11-11 r90876)        | 0 / 0 / 0 notes |
 
 ## URL checks
 
