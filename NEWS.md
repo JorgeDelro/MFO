@@ -1,3 +1,5 @@
+# MFO (development version)
+
 # MFO 0.2.1
 
 First CRAN release since 0.1.0 (2022). Scientific background and sources of

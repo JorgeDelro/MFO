@@ -1,6 +1,6 @@
 Package: MFO
 Title: Maximal Fat Oxidation and Kinetics Calculation
-Version: 0.2.1
+Version: 0.2.1.9000
 Date: 2026-11-11
 Authors@R:
     c(person("Jorge R",
