@@ -8,9 +8,9 @@
 #'              different files but in the same folder) or "files" (basal, MFO and graded databases of the
 #'              same participant are stored in one file but in different sheets)
 #' @param path path to the folder with the databases
-#' @param db_basal_name name given to the basal database, eg: "basal_df"
-#' @param db_MFO_name name given to the MFO database, eg: "MFO_df"
-#' @param db_graded_name name given to the graded database, eg: "VO2max_df"
+#' @param db_basal_name name given to the basal database, e.g. "basal_df"
+#' @param db_MFO_name name given to the MFO database, e.g. "MFO_df"
+#' @param db_graded_name name given to the graded database, e.g. "VO2max_df"
 #' @param step_time how often the data was collected (in seconds).
 #' @param cv_var variable to estimate coefficient of variation. Can be: "VO2", "VCO2" or "RER".
 #' @param author equation set: "Frayn", "Jeukendrup" or "Peronnet".

@@ -1,0 +1,29 @@
+bibentry(
+  bibtype = "Manual",
+  title   = "{MFO}: Maximal Fat Oxidation and Kinetics Calculation",
+  author  = person("Jorge R", "Fernandez-Santos",
+                   comment = c(ORCID = "0000-0002-5047-2976")),
+  year    = "2026",
+  note    = sprintf("R package version %s", meta$Version),
+  doi     = "10.32614/CRAN.package.MFO",
+  url     = "https://CRAN.R-project.org/package=MFO",
+  textVersion = paste0(
+    "Fernandez-Santos JR (2026). MFO: Maximal Fat Oxidation and ",
+    "Kinetics Calculation. R package version ", meta$Version, ". ",
+    "doi:10.32614/CRAN.package.MFO"
+  )
+)
+
+# Placeholder for the JOSS paper (phase 3). When it is accepted, uncomment,
+# fill in volume, number, pages and DOI, and list it before the package entry.
+# bibentry(
+#   bibtype = "Article",
+#   title   = "{MFO}: An R package for maximal fat oxidation and fat oxidation kinetics",
+#   author  = c(person("Jorge R", "Fernandez-Santos")),
+#   journal = "Journal of Open Source Software",
+#   year    = "",
+#   volume  = "",
+#   number  = "",
+#   pages   = "",
+#   doi     = ""
+# )

@@ -10,6 +10,8 @@ utils::globalVariables(c(
   "VO2",
   "HR",
   "Load",
+  "value",
+  "substrate",
   # MFO_kinetics.R variables
   "porc_VO2_kinetics",
   "porc_MFO_kinetics",

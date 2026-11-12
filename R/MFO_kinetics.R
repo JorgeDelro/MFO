@@ -224,9 +224,19 @@ MFO_kinetics <- function(MFO_data, fatmin_threshold = NULL) {
   observed <- observed[observed$values >= 0, , drop = FALSE]
 
   # --- Plot ---
-  d_text <- paste("d == ~", round(d, 2))
-  t_text <- paste("t == ~", round(t_param, 2))
-  s_text <- paste("s == ~", round(s, 2))
+  # Rule: no numeric annotation inside the panel; parameters go to the subtitle
+  subtitle <- if (convergence) {
+    parts <- sprintf("d = %.2f \u00b7 s = %.2f \u00b7 t = %.2f", d, s, t_param)
+    if (!is.na(Fatmin)) {
+      parts <- paste0(parts, sprintf(" \u00b7 Fatmin = %.1f %% VO2max", Fatmin))
+    }
+    if (!is.na(R_squared_sin)) {
+      parts <- paste0(parts, sprintf(" \u00b7 R\u00b2 = %.3f", R_squared_sin))
+    }
+    parts
+  } else {
+    "SIN model not fitted (no convergence)"
+  }
 
   MFO_kinetics_plot <- ggplot(plot_data, aes(x = porc_VO2, y = values,
                                               group = curve, colour = curve)) +
@@ -236,6 +246,7 @@ MFO_kinetics <- function(MFO_data, fatmin_threshold = NULL) {
     scale_color_manual(values = c("Basic SIN" = "grey60", "Fitted SIN" = "darkorange")) +
     ylim(0, 1.01) +
     xlim(0, 100) +
+    labs(subtitle = subtitle) +
     ylab("Fat oxidation (%MFO)") +
     xlab(expression("Exercise intensity (% " * VO[2*max] * ")")) +
     theme_bw() +
@@ -243,39 +254,12 @@ MFO_kinetics <- function(MFO_data, fatmin_threshold = NULL) {
           legend.title = element_blank(),
           axis.text.x = element_text(size = 11),
           axis.text.y = element_text(size = 11),
-          axis.title = element_text(size = 12)) +
-    annotate("label",
-             x = 5, y = 0.95,
-             label = d_text,
-             parse = TRUE, hjust = 0, size = 3.5) +
-    annotate("label",
-             x = 5, y = 0.875,
-             label = t_text,
-             parse = TRUE, hjust = 0, size = 3.5) +
-    annotate("label",
-             x = 5, y = 0.80,
-             label = s_text,
-             parse = TRUE, hjust = 0, size = 3.5)
+          axis.title = element_text(size = 12))
 
-  # Add Fatmin annotation if available and inside the plotted range
+  # Fatmin line if inside the plotted range
   if (!is.na(Fatmin) && Fatmin <= 100) {
-    fatmin_text <- paste("Fatmin == ~", round(Fatmin, 1), "*'% VO'[2]*'max'")
     MFO_kinetics_plot <- MFO_kinetics_plot +
-      geom_vline(xintercept = Fatmin, linetype = "dashed", color = "red", linewidth = 0.4) +
-      annotate("label",
-               x = 5, y = 0.725,
-               label = fatmin_text,
-               parse = TRUE, hjust = 0, size = 3.5)
-  }
-
-  # Add R-squared annotation
-  if (!is.na(R_squared_sin)) {
-    r2_text <- paste("R^2 == ~", round(R_squared_sin, 3))
-    MFO_kinetics_plot <- MFO_kinetics_plot +
-      annotate("label",
-               x = 5, y = 0.65,
-               label = r2_text,
-               parse = TRUE, hjust = 0, size = 3.5)
+      geom_vline(xintercept = Fatmin, linetype = "dashed", color = "red", linewidth = 0.4)
   }
 
   return(list(

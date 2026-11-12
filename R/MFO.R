@@ -648,68 +648,72 @@ MFO <- function(step_time,
                               VO2_MFO, VAR_MFO, fatmax_zone, crossover, method,
                               zone_method = "fitted curve") {
 
+  # Rule: no numeric annotation inside the panel; numbers go to the subtitle
+  # and the caption, and FAT/CHO are a legend, so nothing covers the curves.
   x_seq <- seq(min(MFO_db$porc_VO2), max(MFO_db$porc_VO2), length.out = 200)
-  fat_curve <- data.frame(porc_VO2 = x_seq, FAT = fat_predict_fn(x_seq))
-  cho_curve <- data.frame(porc_VO2 = x_seq, CHO = cho_predict_fn(x_seq))
+  curves <- rbind(
+    data.frame(porc_VO2 = x_seq, value = fat_predict_fn(x_seq), substrate = "FAT"),
+    data.frame(porc_VO2 = x_seq, value = cho_predict_fn(x_seq), substrate = "CHO"))
+  points <- rbind(
+    data.frame(porc_VO2 = MFO_db$porc_VO2, value = MFO_db$FAT, substrate = "FAT"),
+    data.frame(porc_VO2 = MFO_db$porc_VO2, value = MFO_db$CHO, substrate = "CHO"))
+  curves$substrate <- factor(curves$substrate, levels = c("FAT", "CHO"))
+  points$substrate <- factor(points$substrate, levels = c("FAT", "CHO"))
 
-  VO2_MFO_text <- paste("FAT[MAX] == ~", round(VO2_MFO, 2), "*'% VO'[2]*'max'")
-  VAR_MFO_text <- paste("MFO == ~", round(VAR_MFO, 3), "*' g/min'")
-  method_text <- paste("Method:", method)
-  if (zone_method == "linear interpolation") {
-    method_text <- paste0(method_text, " (Fatmax zone: linear interpolation)")
+  subtitle <- sprintf("FATmax = %.1f %% VO2max \u00b7 MFO = %.3f g/min \u00b7 %s",
+                      VO2_MFO, VAR_MFO, method)
+
+  has_zone <- !is.na(fatmax_zone$lower) && !is.na(fatmax_zone$upper)
+  caption <- "Dotted line: FATmax."
+  if (has_zone) {
+    zone_how <- if (zone_method == "linear interpolation") {
+      "linear interpolation between steps"
+    } else {
+      "fitted curve"
+    }
+    caption <- paste0(caption, sprintf(
+      "\nShaded: Fatmax zone, FAT >= 90 %% of MFO (%.1f-%.1f %% VO2max; %s).",
+      fatmax_zone$lower, fatmax_zone$upper, zone_how))
+  }
+  if (!is.na(crossover)) {
+    caption <- paste0(caption, sprintf(
+      "\nDot-dash line: crossover point, where CHO exceeds FAT (%.1f %% VO2max).",
+      crossover))
   }
 
   p <- ggplot() +
     # FatMax zone shading
-    {if (!is.na(fatmax_zone$lower) && !is.na(fatmax_zone$upper))
+    {if (has_zone)
       annotate("rect",
                xmin = fatmax_zone$lower, xmax = fatmax_zone$upper,
                ymin = -Inf, ymax = Inf,
                alpha = 0.15, fill = "darkorange")
     } +
-    # CHO curve
-    geom_line(data = cho_curve, aes(x = porc_VO2, y = CHO),
-              color = "steelblue", linewidth = 0.8, linetype = "dashed") +
-    # FAT curve
-    geom_line(data = fat_curve, aes(x = porc_VO2, y = FAT),
-              color = "darkorange", linewidth = 1) +
-    # Data points FAT
-    geom_point(data = MFO_db, aes(x = porc_VO2, y = FAT),
-               color = "darkorange", size = 3) +
-    # Data points CHO
-    geom_point(data = MFO_db, aes(x = porc_VO2, y = CHO),
-               color = "steelblue", size = 2, shape = 17) +
+    geom_line(data = curves,
+              aes(x = porc_VO2, y = value, colour = substrate, linetype = substrate),
+              linewidth = 0.9) +
+    geom_point(data = points,
+               aes(x = porc_VO2, y = value, colour = substrate, shape = substrate),
+               size = 2.5) +
+    scale_colour_manual(values = c(FAT = "darkorange", CHO = "steelblue")) +
+    scale_linetype_manual(values = c(FAT = "solid", CHO = "dashed")) +
+    scale_shape_manual(values = c(FAT = 16, CHO = 17)) +
     # FatMax vertical line
     geom_vline(xintercept = VO2_MFO, linetype = "dotted", color = "red", linewidth = 0.5) +
     # Crossover vertical line
     {if (!is.na(crossover))
       geom_vline(xintercept = crossover, linetype = "dotdash", color = "grey40", linewidth = 0.5)
     } +
+    labs(subtitle = subtitle, caption = caption,
+         colour = NULL, linetype = NULL, shape = NULL) +
     ylab(expression("Substrate oxidation (g" %.% "min"^{-1} * ")")) +
     xlab(expression("Exercise intensity (% " * VO[2*max] * ")")) +
     theme_bw() +
-    theme(axis.text.x = element_text(size = 11),
+    theme(legend.position = "bottom",
+          plot.caption = element_text(hjust = 0, colour = "grey30"),
+          axis.text.x = element_text(size = 11),
           axis.text.y = element_text(size = 11),
-          axis.title = element_text(size = 12)) +
-    annotate("label",
-             x = Inf, y = Inf,
-             vjust = 1.5, hjust = 1.1,
-             label = VO2_MFO_text,
-             parse = TRUE, size = 3.5) +
-    annotate("label",
-             x = Inf, y = Inf,
-             vjust = 3.2, hjust = 1.1,
-             label = VAR_MFO_text,
-             parse = TRUE, size = 3.5) +
-    annotate("text",
-             x = Inf, y = Inf,
-             vjust = 5.5, hjust = 1.1,
-             label = method_text, size = 3, color = "grey40") +
-    # Legend labels
-    annotate("text", x = max(MFO_db$porc_VO2) * 0.85, y = max(MFO_db$FAT, na.rm = TRUE) * 0.15,
-             label = "FAT", color = "darkorange", fontface = "bold", size = 3.5) +
-    annotate("text", x = max(MFO_db$porc_VO2) * 0.85, y = max(MFO_db$CHO, na.rm = TRUE) * 0.95,
-             label = "CHO", color = "steelblue", fontface = "bold", size = 3.5)
+          axis.title = element_text(size = 12))
 
   return(p)
 }
