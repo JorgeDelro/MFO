@@ -27,7 +27,7 @@ The maintainer e-mail is unchanged.
 ## R CMD check results
 
 0 errors | 0 warnings | 0 notes on the 5 GitHub Actions runners of the
-package CI and on the 3 R-hub platforms. The NOTE of the local check comes
+package CI and on the 3 R-hub platforms. The NOTEs of the local check come
 from the local machine only.
 
 ### Local
@@ -35,8 +35,11 @@ from the local machine only.
 `R CMD check --as-cran` on the built tarball `MFO_0.2.1.tar.gz`:
 macOS 15.4.1 (aarch64-apple-darwin), R 4.5.3.
 
-0 errors | 0 warnings | 1 note
+0 errors | 0 warnings | 2 notes
 
+* `checking for future file timestamps ... NOTE: unable to verify current
+  time`: intermittent; the local machine cannot always reach the time
+  server.
 * `checking HTML version of manual ... NOTE: Skipping checking HTML
   validation: 'tidy' doesn't look like recent enough HTML Tidy`: the local
   machine has the old HTML Tidy shipped with macOS.
