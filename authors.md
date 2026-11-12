@@ -23,16 +23,16 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/JorgeDelro/MFO/blob/main/DESCRIPTION)
+[`inst/CITATION`](https://github.com/JorgeDelro/MFO/blob/main/inst/CITATION)
 
-Fernandez-Santos J (2026). *MFO: Maximal Fat Oxidation and Kinetics
-Calculation*. R package version 0.2.0.9000,
-<https://github.com/JorgeDelro/MFO>.
+Fernandez-Santos JR (2026). MFO: Maximal Fat Oxidation and Kinetics
+Calculation. R package version 0.2.1. doi:10.32614/CRAN.package.MFO
 
     @Manual{,
-      title = {MFO: Maximal Fat Oxidation and Kinetics Calculation},
+      title = {{MFO}: Maximal Fat Oxidation and Kinetics Calculation},
       author = {Jorge R Fernandez-Santos},
       year = {2026},
-      note = {R package version 0.2.0.9000},
-      url = {https://github.com/JorgeDelro/MFO},
+      note = {R package version 0.2.1},
+      doi = {10.32614/CRAN.package.MFO},
+      url = {https://CRAN.R-project.org/package=MFO},
     }

@@ -57,15 +57,15 @@ MFOs(
 
 - db_basal_name:
 
-  name given to the basal database, eg: "basal_df"
+  name given to the basal database, e.g. "basal_df"
 
 - db_MFO_name:
 
-  name given to the MFO database, eg: "MFO_df"
+  name given to the MFO database, e.g. "MFO_df"
 
 - db_graded_name:
 
-  name given to the graded database, eg: "VO2max_df"
+  name given to the graded database, e.g. "VO2max_df"
 
 - step_time:
 

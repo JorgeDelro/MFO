@@ -468,8 +468,9 @@ kin$MFO_kinetics_plot
 ```
 
 ![Fat oxidation as %MFO against %VO2max: observed steps, the basic SIN
-curve in grey and the fitted SIN curve in orange between its two zeros,
-labelled with d, s and t.](mfo-workflow_files/figure-html/sin-1.png)
+curve in grey and the fitted SIN curve in orange between its two zeros;
+d, s, t, Fatmin and R² in the
+subtitle.](mfo-workflow_files/figure-html/sin-1.png)
 
 [`MFO_kinetics()`](https://jorgedelro.github.io/MFO/reference/MFO_kinetics.md)
 fits every row it receives, so the SIN inherits the choices made in
@@ -607,7 +608,7 @@ n_steps <- sum(final$MFO_db$Load != "basal")
 > SIN model (Chenevière et al., 2009). MFO was 0.32 g/min at 36.2%
 > VO2max (128 bpm, 68.7% HRmax; Fatmax zone 24.2–48.3% VO2max); the SIN
 > parameters were d = -0.38, s = 0.91 and t = 0.36, with Fatmin at 76.4%
-> VO2max. Analyses were run with the R package MFO, version 0.2.0.9000,
+> VO2max. Analyses were run with the R package MFO, version 0.2.1,
 > \[protocol: ergometer, initial load and increment, fasting and
 > pre-test conditions\].
 
