@@ -58,9 +58,9 @@ macOS 15.4.1 (aarch64-apple-darwin), R 4.5.3.
 
 win-builder was unreachable when this release was prepared, so the
 Windows and R-devel checks were run with R-hub v2, whose jobs run on
-GitHub Actions in this repository (run "interisland-mamenchisaurus",
-branch `main`, the same code as the submitted tarball; options
-`--no-manual --as-cran`; the PDF manual is checked locally).
+GitHub Actions in this repository (run "aerodynamic-fawn", on the same
+commit as the submitted tarball; options `--no-manual --as-cran`; the PDF
+manual is checked locally).
 
 | R-hub platform | Platform                 | R                                  | Result          |
 |----------------|--------------------------|------------------------------------|-----------------|
