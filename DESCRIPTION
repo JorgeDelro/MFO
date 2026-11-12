@@ -31,10 +31,11 @@ Authors@R:
 Description: Computes the maximal fat oxidation (MFO), the exercise intensity
     that elicits it (Fatmax), the Fatmax zone and the crossover point from
     indirect calorimetry data of a graded exercise test. Substrate oxidation is
-    estimated with the stoichiometric equations of Frayn (1983), Peronnet and
-    Massicotte (1991) or Jeukendrup and Wallis (2005), and Fatmax is located
-    with a third- or second-degree polynomial, the measured values or the MRER
-    method. Fat oxidation kinetics are described with the SIN model of
+    estimated with the stoichiometric equations of Frayn (1983)
+    <doi:10.1152/jappl.1983.55.2.628>, Peronnet and Massicotte (1991, Can J
+    Sport Sci 16(1):23-29) or Jeukendrup and Wallis (2005)
+    <doi:10.1055/s-2004-830512>, and Fatmax is located with a third- or
+    second-degree polynomial, the measured values or the MRER method. Fat oxidation kinetics are described with the SIN model of
     Cheneviere et al. (2009) <doi:10.1249/MSS.0b013e31819e2f91>, which returns
     dilatation, symmetry and translation, together with the intensity at which
     fat oxidation becomes negligible (Fatmin). Applications of these methods
