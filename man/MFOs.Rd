@@ -35,7 +35,8 @@ MFOs(
   fatmin_threshold = NULL,
   energy_equivalents = c("classic", "source"),
   use_incomplete_step = FALSE,
-  min_steps = 6
+  min_steps = 6,
+  protocol = NULL
 )
 }
 \arguments{
@@ -109,6 +110,9 @@ steady-state segment (default `FALSE`). See [MFO()].}
 
 \item{min_steps}{minimum number of exercise steps recommended for the fit
 (default 6); fewer give a warning. See [MFO()].}
+
+\item{protocol}{optional [MFO_protocol()], the same for every participant; if
+given, `step_duration` and `steady_state_duration` are not used. See [MFO()].}
 }
 \value{
 {Data frame with one row per participant containing:
@@ -129,6 +133,8 @@ steady-state segment (default `FALSE`). See [MFO()].}
 \item R_squared: R-squared of the curve fit.
 \item method: method requested.
 \item energy_equivalents: "classic" or "source".
+\item protocol: protocol type (see [MFO_protocol()]).
+\item mode: exercise mode of the protocol.
 \item d: SIN dilatation parameter.
 \item t: SIN translation parameter.
 \item s: SIN symmetry parameter.

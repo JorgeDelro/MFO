@@ -30,6 +30,8 @@
 #'        a proportion of MFO in (0, 1). See [MFO_kinetics()].
 #' @param step_duration duration of each exercise step in seconds (default 180).
 #' @param steady_state_duration duration of steady-state period within each step in seconds (default 60).
+#' @param protocol optional [MFO_protocol()], the same for every participant; if
+#'        given, `step_duration` and `steady_state_duration` are not used. See [MFO()].
 #' @param RER_cutoff RER value above which steps are excluded (default NULL), as a
 #'        number or "classic", "safe", "sedentary", "trained". See [MFO()].
 #' @param negative_FAT how to handle negative fat oxidation: "truncate", "exclude", or "keep".
@@ -75,6 +77,8 @@
 #' \item R_squared: R-squared of the curve fit.
 #' \item method: method requested.
 #' \item energy_equivalents: "classic" or "source".
+#' \item protocol: protocol type (see [MFO_protocol()]).
+#' \item mode: exercise mode of the protocol.
 #' \item d: SIN dilatation parameter.
 #' \item t: SIN translation parameter.
 #' \item s: SIN symmetry parameter.
@@ -134,12 +138,17 @@ MFOs <- function(from = c("folder", "files"),
                  fatmin_threshold = NULL,
                  energy_equivalents = c("classic", "source"),
                  use_incomplete_step = FALSE,
-                 min_steps = 6) {
+                 min_steps = 6,
+                 protocol = NULL) {
 
   from <- match.arg(from)
   output_format <- match.arg(output_format, c("xlsx", "csv", "rds"))
   if (missing(energy_equivalents)) .energy_default_message()
   energy_equivalents <- match.arg(energy_equivalents)
+  # Resolved once, so a conflict warns once and not per participant
+  protocol <- .resolve_protocol(protocol, step_duration, steady_state_duration,
+                                durations_given = !missing(step_duration) ||
+                                  !missing(steady_state_duration))
 
   participants <- list.files(path)
 
@@ -181,8 +190,7 @@ MFOs <- function(from = c("folder", "files"),
         author = author,
         VO2max = VO2max,
         method = method,
-        step_duration = step_duration,
-        steady_state_duration = steady_state_duration,
+        protocol = protocol,
         RER_cutoff = RER_cutoff,
         negative_FAT = negative_FAT,
         body_mass = body_mass,
@@ -244,6 +252,8 @@ MFOs <- function(from = c("folder", "files"),
         R_squared = round(participant_result_MFO$R_squared, 4),
         method = participant_result_MFO$method,
         energy_equivalents = participant_result_MFO$energy_equivalents,
+        protocol = participant_result_MFO$protocol$type,
+        mode = participant_result_MFO$mode,
         d = round(participant_result_kinetics$d, 3),
         t = round(participant_result_kinetics$t, 3),
         s = round(participant_result_kinetics$s, 3),
@@ -275,6 +285,7 @@ MFOs <- function(from = c("folder", "files"),
         FatMax_zone_lower = NA, FatMax_zone_upper = NA, FatMax_zone_method = NA,
         crossover_point = NA, R_squared = NA, method = method,
         energy_equivalents = energy_equivalents,
+        protocol = protocol$type, mode = protocol$mode,
         d = NA, t = NA, s = NA, Fatmin = NA, FatMax_SIN = NA,
         SIN_R_squared = NA, SIN_convergence = FALSE,
         CHO_g_basal = NA, FAT_g_basal = NA, Kcal_g_basal = NA,

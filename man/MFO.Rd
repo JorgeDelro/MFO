@@ -24,7 +24,8 @@ MFO(
   include_basal = FALSE,
   energy_equivalents = c("classic", "source"),
   use_incomplete_step = FALSE,
-  min_steps = 6
+  min_steps = 6,
+  protocol = NULL
 )
 }
 \arguments{
@@ -102,12 +103,21 @@ although VO2 may not have reached its plateau. See SPEC 9.5.}
 (default 6). A warning is given when fewer steps remain after
 `RER_cutoff` and `negative_FAT = "exclude"`; the resting row of
 `include_basal = TRUE` does not count. See SPEC 14.}
+
+\item{protocol}{optional [MFO_protocol()] describing the test: step
+durations (equal or variable), averaged segment, load and mode. If
+given, `step_duration` and `steady_state_duration` are not used (a
+warning says so if they were also supplied). Default `NULL` builds
+`MFO_protocol("step", step_duration, steady_state_duration)`, which
+gives the same results as v0.2.1. See SPEC 14.}
 }
 \value{
 {Returns a list which contains:
 \itemize{
-\item MFO_db: database with Load, VO2, VCO2, HR, RER, CHO, FAT, Kcal, porc_VO2
+\item MFO_db: database with Step, Load, VO2, VCO2, HR, RER, CHO, FAT, Kcal, porc_VO2
   (one row per exercise step, plus the resting row first if `include_basal = TRUE`).
+  `Step` is the step number in the test (0 = resting row); steps removed by
+  `RER_cutoff` or `negative_FAT = "exclude"` leave gaps in it.
 \item MFO_plot: ggplot object with the MFO plot including FAT and CHO curves.
 \item MFO: Maximal fat oxidation (g/min).
 \item MFO_relative: MFO relative to body mass (mg/kg/min), if body_mass provided.
@@ -129,6 +139,8 @@ although VO2 may not have reached its plateau. See SPEC 9.5.}
 \item x_CHO: carbohydrates in basal metabolism (g/min), with the same `author` equations as the test.
 \item x_FAT: fat in basal metabolism (g/min).
 \item x_Kcal: Kcal in basal metabolism (kcal/min).
+\item protocol: the [MFO_protocol()] used.
+\item mode: exercise mode of the protocol ("cycling", "running" or "walking").
 }}
 }
 \description{

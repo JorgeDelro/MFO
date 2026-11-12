@@ -129,6 +129,21 @@ test_that("MFOs() passes method, VO2max and the quality arguments to MFO()", {
   expect_false(any(grepl("min_steps", w)))
 })
 
+test_that("MFOs() passes the protocol to MFO() and reports it", {
+  root <- withr::local_tempdir()
+  parts <- .participants()
+  .write_folder(root, parts)
+  p <- MFO_protocol("step_variable", step_duration = c(360, 180), mode = "running")
+  res <- suppressWarnings(suppressMessages(.mfos("folder", root, protocol = p)))
+  expect_equal(res$protocol, c("step_variable", "step_variable"))
+  expect_equal(res$mode, c("running", "running"))
+  .expect_matches_MFO(res[1, ], parts$P01, protocol = p)
+  # a conflicting step_duration warns once for the batch, not per participant
+  w <- capture_warnings(suppressMessages(.mfos("folder", root, protocol = p,
+                                               step_duration = 120)))
+  expect_equal(sum(grepl("using protocol", w)), 1)
+})
+
 test_that("a participant that cannot be processed gives an NA row and a warning", {
   root <- withr::local_tempdir()
   parts <- .participants()

@@ -20,6 +20,12 @@ articles:
   - mfo-workflow
 
 reference:
+- title: Describe the test
+  desc: >
+    Protocol of the MFO test: step durations, averaged segment, load and
+    exercise mode.
+  contents:
+  - MFO_protocol
 - title: Compute MFO and Fatmax
   desc: >
     One participant: basal window, step averaging, stoichiometric equation,

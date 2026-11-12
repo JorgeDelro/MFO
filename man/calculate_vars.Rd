@@ -13,7 +13,8 @@ calculate_vars(
   steady_state_duration = 60,
   RER_cutoff = NULL,
   energy_equivalents = "classic",
-  use_incomplete_step = FALSE
+  use_incomplete_step = FALSE,
+  protocol = NULL
 )
 }
 \arguments{
@@ -35,9 +36,13 @@ or one of "classic", "safe", "sedentary", "trained" (see [MFO()]).}
 \item{energy_equivalents}{"classic" (default) or "source"; see [substrate_oxidation()].}
 
 \item{use_incomplete_step}{logical (default `FALSE`). See [MFO()].}
+
+\item{protocol}{optional [MFO_protocol()]; if given, `step_duration` and
+`steady_state_duration` are not used.}
 }
 \value{
-data frame with columns: VO2, VCO2, HR, RER, CHO, FAT, Kcal (one row per step)
+data frame with columns: Step (step number in the test), VO2, VCO2, HR,
+  RER, CHO, FAT, Kcal (one row per step kept)
 }
 \description{
 Generalized function that works with any step_time and step_duration.

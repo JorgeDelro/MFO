@@ -1,5 +1,26 @@
 # MFO (development version)
 
+## Breaking changes
+
+* `MFO_db` gains a first column `Step`: the step number in the test
+  (0 = resting row with `include_basal = TRUE`). It identifies the resting
+  row instead of `Load == "basal"`. Code that selects `MFO_db` columns by
+  position must be updated (SPEC 14).
+
+## New features
+
+* `MFO_protocol()` describes the test (SPEC 14): `"step"` (fixed
+  durations, as before), `"step_variable"` (a vector of durations whose last
+  element is repeated, e.g. `c(300, 180)` for a 5-min first step; the
+  averaged segment can also vary per step) and `"relative"` (steps in W/kg).
+  It also records the load schedule (`load_start`, `load_increment`,
+  `load_unit`) and the exercise `mode`. `MFO()` and `MFOs()` gain
+  `protocol = NULL`; the default builds a `"step"` protocol from
+  `step_duration` and `steady_state_duration` and gives the same results as
+  0.2.1. If both are supplied, `protocol` is used with a warning. `MFO()`
+  returns `protocol` and `mode`; the `MFOs()` summary gains the columns
+  `protocol` and `mode`.
+
 ## Bug fixes
 
 * `use_incomplete_step = TRUE` averaged only the last record of the

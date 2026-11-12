@@ -61,6 +61,12 @@
 #'        (default 6). A warning is given when fewer steps remain after
 #'        `RER_cutoff` and `negative_FAT = "exclude"`; the resting row of
 #'        `include_basal = TRUE` does not count. See SPEC 14.
+#' @param protocol optional [MFO_protocol()] describing the test: step
+#'        durations (equal or variable), averaged segment, load and mode. If
+#'        given, `step_duration` and `steady_state_duration` are not used (a
+#'        warning says so if they were also supplied). Default `NULL` builds
+#'        `MFO_protocol("step", step_duration, steady_state_duration)`, which
+#'        gives the same results as v0.2.1. See SPEC 14.
 #'
 #' @section Quality warnings:
 #' Besides the warnings on inputs, `MFO()` warns when the result needs
@@ -105,8 +111,10 @@
 #'
 #' @return {Returns a list which contains:
 #' \itemize{
-#' \item MFO_db: database with Load, VO2, VCO2, HR, RER, CHO, FAT, Kcal, porc_VO2
+#' \item MFO_db: database with Step, Load, VO2, VCO2, HR, RER, CHO, FAT, Kcal, porc_VO2
 #'   (one row per exercise step, plus the resting row first if `include_basal = TRUE`).
+#'   `Step` is the step number in the test (0 = resting row); steps removed by
+#'   `RER_cutoff` or `negative_FAT = "exclude"` leave gaps in it.
 #' \item MFO_plot: ggplot object with the MFO plot including FAT and CHO curves.
 #' \item MFO: Maximal fat oxidation (g/min).
 #' \item MFO_relative: MFO relative to body mass (mg/kg/min), if body_mass provided.
@@ -128,6 +136,8 @@
 #' \item x_CHO: carbohydrates in basal metabolism (g/min), with the same `author` equations as the test.
 #' \item x_FAT: fat in basal metabolism (g/min).
 #' \item x_Kcal: Kcal in basal metabolism (kcal/min).
+#' \item protocol: the [MFO_protocol()] used.
+#' \item mode: exercise mode of the protocol ("cycling", "running" or "walking").
 #' }}
 #'
 #' @export
@@ -185,7 +195,8 @@ MFO <- function(step_time,
                 include_basal = FALSE,
                 energy_equivalents = c("classic", "source"),
                 use_incomplete_step = FALSE,
-                min_steps = 6) {
+                min_steps = 6,
+                protocol = NULL) {
 
   # Validate inputs
   method <- match.arg(method, c("P3", "P2", "MV", "MRER"))
@@ -195,6 +206,9 @@ MFO <- function(step_time,
   if (!is.numeric(min_steps) || length(min_steps) != 1 || is.na(min_steps) || min_steps < 1) {
     stop("min_steps must be a single number >= 1.", call. = FALSE)
   }
+  protocol <- .resolve_protocol(protocol, step_duration, steady_state_duration,
+                                durations_given = !missing(step_duration) ||
+                                  !missing(steady_state_duration))
 
   # Solve error: 'list' object cannot be coerced to type 'double'
   db_basal <- data.frame(db_basal)
@@ -231,11 +245,10 @@ MFO <- function(step_time,
                              db_MFO = db_MFO,
                              VO2max = VO2max,
                              author = author,
-                             step_duration = step_duration,
-                             steady_state_duration = steady_state_duration,
                              RER_cutoff = RER_cutoff,
                              energy_equivalents = energy_equivalents,
-                             use_incomplete_step = use_incomplete_step)
+                             use_incomplete_step = use_incomplete_step,
+                             protocol = protocol)
 
   # Build database with basal + exercise steps
   n_steps <- nrow(MFO_test)
@@ -250,6 +263,7 @@ MFO <- function(step_time,
   Kcal_vec <- c(basal$x_Kcal, MFO_test$Kcal)
 
   MFO_db <- data.frame(
+    Step = c(0L, MFO_test$Step),
     Load = Load,
     VO2 = VO2_vec,
     VCO2 = VCO2_vec,
@@ -287,7 +301,7 @@ MFO <- function(step_time,
   }
 
   # Quality: number of exercise steps entering the fit (SPEC 14)
-  .warn_min_steps(sum(MFO_db$Load != "basal"), min_steps)
+  .warn_min_steps(sum(MFO_db$Step != 0), min_steps)
 
   # --- Curve fitting ---
   if (method == "P3") {
@@ -302,7 +316,7 @@ MFO <- function(step_time,
   FatMax_zone_method <- if (result$method == "MV") "linear interpolation" else "fitted curve"
 
   # Quality: Fatmax at the first or last exercise step (SPEC 14)
-  .warn_fatmax_edge(result$FAT_MAX, MFO_db$porc_VO2[MFO_db$Load != "basal"])
+  .warn_fatmax_edge(result$FAT_MAX, MFO_db$porc_VO2[MFO_db$Step != 0])
 
   VAR_MFO <- result$MFO
   VO2_MFO <- result$FAT_MAX
@@ -365,7 +379,9 @@ MFO <- function(step_time,
               VO2max_window_requested = VO2max_window_requested,
               x_CHO = basal$x_CHO,
               x_FAT = basal$x_FAT,
-              x_Kcal = basal$x_Kcal))
+              x_Kcal = basal$x_Kcal,
+              protocol = protocol,
+              mode = protocol$mode))
 }
 
 
