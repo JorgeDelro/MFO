@@ -24,18 +24,16 @@ details are in NEWS.md.
 
 ## R CMD check results
 
-0 errors | 0 warnings | 0 notes on the 5 GitHub Actions runners. The 2 NOTEs
-of the local check come from the local machine only.
+0 errors | 0 warnings | 0 notes on the 5 GitHub Actions runners. The NOTE
+of the local check comes from the local machine only.
 
 ### Local
 
 `R CMD check --as-cran` on the built tarball `MFO_0.2.1.tar.gz`:
 macOS 15.4.1 (aarch64-apple-darwin), R 4.5.3.
 
-0 errors | 0 warnings | 2 notes
+0 errors | 0 warnings | 1 note
 
-* `checking for future file timestamps ... NOTE: unable to verify current
-  time`: the local machine cannot reach the time server.
 * `checking HTML version of manual ... NOTE: Skipping checking HTML
   validation: 'tidy' doesn't look like recent enough HTML Tidy`: the local
   machine has the old HTML Tidy shipped with macOS.
