@@ -24,7 +24,8 @@ details are in NEWS.md.
 
 ## R CMD check results
 
-0 errors | 0 warnings | 0 notes on the 5 GitHub Actions runners. The NOTE
+0 errors | 0 warnings | 0 notes on the 5 GitHub Actions runners of the
+package CI and on the 3 R-hub platforms. The NOTE
 of the local check comes from the local machine only.
 
 ### Local
@@ -38,7 +39,7 @@ macOS 15.4.1 (aarch64-apple-darwin), R 4.5.3.
   validation: 'tidy' doesn't look like recent enough HTML Tidy`: the local
   machine has the old HTML Tidy shipped with macOS.
 
-### GitHub Actions (`R CMD check --as-cran`)
+### GitHub Actions, package CI (`R CMD check --as-cran`)
 
 | Runner         | Platform                 | R                                  | Result          |
 |----------------|--------------------------|------------------------------------|-----------------|
@@ -48,10 +49,19 @@ macOS 15.4.1 (aarch64-apple-darwin), R 4.5.3.
 | macos-latest   | aarch64-apple-darwin23   | R 4.6.2 (release)                  | 0 / 0 / 0 notes |
 | windows-latest | x86_64-w64-mingw32       | R 4.6.2 ucrt (release)             | 0 / 0 / 0 notes |
 
-### win-builder
+### R-hub v2 (`rhub::rhub_check()`, runs on GitHub Actions)
 
-* R-devel: PENDING
-* R-release: PENDING
+win-builder was unreachable when this release was prepared, so the
+Windows and R-devel checks were run with R-hub v2, whose jobs run on
+GitHub Actions in this repository (run "interisland-mamenchisaurus",
+branch `main`, the same code as the submitted tarball; options
+`--no-manual --as-cran`; the PDF manual is checked locally).
+
+| R-hub platform | Platform                 | R                                  | Result          |
+|----------------|--------------------------|------------------------------------|-----------------|
+| windows        | x86_64-w64-mingw32       | R-devel (2026-11-10 r90874 ucrt)   | 0 / 0 / 0 notes |
+| ubuntu-release | x86_64-pc-linux-gnu      | R 4.6.2 (Ubuntu 26.04.1 LTS)       | 0 / 0 / 0 notes |
+| macos          | x86_64-apple-darwin20    | R-devel (2026-11-11 r90876)        | 0 / 0 / 0 notes |
 
 ## URL checks
 
