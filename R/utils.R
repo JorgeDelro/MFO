@@ -317,12 +317,10 @@ calculate_vars <- function(step_time,
   for (i in seq_len(n_steps)) {
     # Last steady_state_duration seconds of each step (of the data, for a
     # used incomplete last step)
-    step_end <- i * records_per_step
-    step_start <- step_end - records_steady + 1
-
-    # Ensure bounds are within data
-    step_start <- max(1, step_start)
-    step_end <- min(nrow(db_MFO), step_end)
+    # The end is clipped to the data before the start is computed, so a used
+    # incomplete step averages its last steady_state_duration s
+    step_end <- min(nrow(db_MFO), i * records_per_step)
+    step_start <- max(1, step_end - records_steady + 1)
 
     step_data <- db_MFO[step_start:step_end, , drop = FALSE]
 

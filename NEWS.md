@@ -1,5 +1,14 @@
 # MFO (development version)
 
+## Bug fixes
+
+* `use_incomplete_step = TRUE` averaged only the last record of the
+  incomplete step instead of its last `steady_state_duration` s, as
+  documented (the start was counted from the nominal end of the step). In
+  the example data cut to 66 records, step 8 VO2 goes from 2495 (one record)
+  to 2444.7 ml/min (last 60 s). The default (`FALSE`) is not affected
+  (SPEC 9.5).
+
 # MFO 0.2.1
 
 First CRAN release since 0.1.0 (2022). Scientific background and sources of

@@ -245,6 +245,16 @@ test_that("use_incomplete_step = TRUE averages its last steady-state seconds", {
   expect_equal(r[1:8, ], .cv(data.frame(MFO_df)), tolerance = 1e-10)
 })
 
+test_that("a used incomplete step averages its own last records, not one record", {
+  # Regression (0.2.1): the start was computed from the nominal step end, so
+  # only the last record was averaged. Tail VO2 2510..2560: the last 60 s
+  # (3 records) average (2540 + 2550 + 2560) / 3 = 2550 exactly.
+  db <- .with_tail(6)
+  db$VO2[73:78] <- c(2510, 2520, 2530, 2540, 2550, 2560)
+  r <- suppressWarnings(.cv(db, use_incomplete_step = TRUE))
+  expect_equal(r$VO2[9], 2550, tolerance = 1e-10)
+})
+
 test_that("an incomplete step shorter than the steady state is never used", {
   expect_warning(r <- .cv(.with_tail(2), use_incomplete_step = TRUE),
                  paste0("Last step incomplete \\(40 s of 180 s\\): dropped\\. It is ",
