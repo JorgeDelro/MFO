@@ -418,7 +418,107 @@ knitr::kable(data.frame(
 ), digits = 3)
 ```
 
-## 7. Reporting
+## 7. Protocols, load and VO2max
+
+### 7.1 Describing the protocol
+
+`MFO()` cuts the test into steps from `step_duration` and
+`steady_state_duration`. `MFO_protocol()` describes the test in one object
+and also covers steps of different duration, loads relative to body mass,
+ramps and single-day tests. The default reproduces the two arguments:
+
+```{r protocol}
+MFO_protocol()
+```
+
+With `"step_variable"` each step has its own duration; the last one is
+repeated until the data end. If the first two 3-min stages of the example
+had been a single 6-min warm-up step, its last minute would be the last
+minute of stage 2, so the 7 steps are stages 2 to 8:
+
+```{r protocol-variable}
+warm_up <- MFO_protocol("step_variable", step_duration = c(360, 180))
+r_var <- run_MFO(protocol = warm_up)
+all.equal(r_var$MFO_db$VO2, res$MFO_db$VO2[2:8])
+```
+
+### 7.2 Load and Fatmax in watts
+
+The example test has a `Load` column (25 W in the first stage, +25 W per
+stage), averaged per step like VO2. Fatmax and the Fatmax zone are converted
+to watts by linear interpolation of load against %VO2max between steps, as
+heart rate at Fatmax:
+
+```{r load}
+res$MFO_db[, c("Step", "Load", "porc_VO2")]
+c(Fatmax_W = res$FAT_MAX_load, zone_lower_W = res$FatMax_zone_lower_load,
+  zone_upper_W = res$FatMax_zone_upper_load)
+approx(res$MFO_db$porc_VO2, res$MFO_db$Load, xout = res$FAT_MAX)$y
+```
+
+Without a `Load` column, the load schedule of the protocol is used
+(`load_start + (Step - 1) * load_increment`), and `load_source` says so:
+
+```{r load-schedule}
+no_load <- MFO_df[, setdiff(names(MFO_df), "Load")]
+r_sched <- suppressWarnings(suppressMessages(
+  MFO(step_time = 20, db_MFO = no_load, db_basal = basal_df, db_graded = VO2max_df,
+      cv_var = "RER", author = "Frayn", energy_equivalents = "classic",
+      protocol = MFO_protocol(load_start = 25, load_increment = 25))))
+c(r_sched$load_source, round(r_sched$FAT_MAX_load, 1))
+```
+
+With `MFO_protocol("relative")` a `Load` column in W is divided by
+`body_mass` and the results are in W/kg.
+
+### 7.3 VO2max or VO2peak
+
+`VO2max_from_test()` takes the same rolling-mean VO2max as `MFO()` and
+checks whether the graded test was maximal: a plateau of VO2 between the
+last two stages, the peak RER and the peak heart rate relative to the
+predicted HRmax (Tanaka by default, Fox optional). The value is labelled
+"VO2max" with a plateau, or without one when both RER and heart rate meet
+their thresholds, and "VO2peak" otherwise. The heart-rate criterion needs
+`age`; the example participant is taken as 30 years old here.
+<!-- TODO: source for the plateau, RER and HR thresholds and the HRmax equations (Jorge) -->
+
+```{r vo2max-type}
+VO2max_from_test(VO2max_df, step_time = 20, age = 30)
+```
+
+`MFO()` returns the label as `VO2max_type`. Without `age` the heart-rate
+criterion is not evaluated, so the example would be labelled "VO2peak".
+Thresholds and the HRmax equation are arguments of `VO2max_from_test()`,
+whose result can be passed to `MFO()` as `VO2max`.
+
+### 7.4 Ramps and single-day tests
+
+In a ramp the load rises continuously [@physiologia2025]. `MFO_protocol("ramp")`
+replaces steps by windows of `ramp_window` s (30 s by default), one every
+`ramp_step` s. Overlapping windows are not independent, so `min_steps`
+counts non-overlapping windows, and `method = "MV"` is not available
+because there are no steps to read a measured maximum from.
+
+In a single-day test the maximal test follows the MFO test in the same
+recording [@smhs2026]. `MFO_protocol("single_day", cut_time = )` gives the
+time at which the MFO test ends; the records after it are used as the
+graded test. Joining the two example tables reproduces the separate
+analysis:
+
+```{r single-day}
+cols <- c("HR", "Load", "VO2", "VCO2", "RER")
+one_recording <- rbind(MFO_df[, cols], VO2max_df[, cols])
+r_day <- suppressWarnings(suppressMessages(
+  MFO(step_time = 20, db_MFO = one_recording, db_basal = basal_df,
+      cv_var = "RER", author = "Frayn", energy_equivalents = "classic",
+      protocol = MFO_protocol("single_day", cut_time = nrow(MFO_df) * 20))))
+c(MFO = r_day$MFO - res$MFO, Fatmax = r_day$FAT_MAX - res$FAT_MAX)
+```
+
+Detecting the cut automatically from the analyser's phase markers belongs
+to the importers planned for MFO 0.3.0.
+
+## 8. Reporting
 
 The paragraph below is generated from the results of this example; replace
 the protocol details (in brackets) with your own. HRmax is taken here as the
@@ -443,12 +543,12 @@ paragraph <- sprintf(paste(
   "(R² = %.2f). The Fatmax zone was defined as the intensities eliciting at least",
   "90%% of MFO (Achten et al., 2002). Fat oxidation kinetics were described with",
   "the SIN model (Chenevière et al., 2009). MFO was %.2f g/min at %.1f%% VO2max",
-  "(%.0f bpm, %.1f%% HRmax; Fatmax zone %.1f–%.1f%% VO2max); the SIN parameters",
+  "(%.0f W, %.0f bpm, %.1f%% HRmax; Fatmax zone %.1f–%.1f%% VO2max); the SIN parameters",
   "were d = %.2f, s = %.2f and t = %.2f, with Fatmin at %.1f%% VO2max. Analyses",
   "were run with the R package MFO, version %s, [protocol: ergometer, initial",
   "load and increment, fasting and pre-test conditions]."),
   60, 3, final$VO2max, final$VO2max_window, n_steps, final$R_squared,
-  final$MFO, final$FAT_MAX, final$FAT_MAX_HR, final$FAT_MAX_porcHRmax,
+  final$MFO, final$FAT_MAX, final$FAT_MAX_load, final$FAT_MAX_HR, final$FAT_MAX_porcHRmax,
   final$FatMax_zone_lower, final$FatMax_zone_upper, kin$d, kin$s, kin$t,
   kin$Fatmin, as.character(utils::packageVersion("MFO")))
 cat("> ", paragraph, "\n")
@@ -461,7 +561,7 @@ the coefficient of variation was 21 % for MFO and 26 % for Fatmax, and in
 @croci2014 (n = 15) the CV of Fatmax was 16.4 % with SIN, 18.6 % with P3 and
 20.8 % with MV.
 
-## 8. Batch processing with `MFOs()`
+## 9. Batch processing with `MFOs()`
 
 `MFOs()` applies the same analysis to many participants and returns one row
 per participant. With `from = "folder"` each participant has a subfolder
