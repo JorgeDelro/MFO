@@ -22,6 +22,18 @@
     })
 }
 
+# As .mfo() with any db_MFO and without db_graded unless given
+.mfo_db <- function(db_MFO, ...) {
+  e <- .example()
+  withCallingHandlers(
+    suppressMessages(MFO(step_time = 20, db_MFO = db_MFO, db_basal = e$basal,
+                         cv_var = "RER", author = "Frayn",
+                         energy_equivalents = "classic", ...)),
+    warning = function(w) {
+      if (grepl("negative fat oxidation", conditionMessage(w))) invokeRestart("muffleWarning")
+    })
+}
+
 test_that("MFO_protocol() defaults describe the classic 3-min protocol", {
   p <- MFO_protocol()
   expect_s3_class(p, "MFO_protocol")
@@ -45,7 +57,6 @@ test_that("MFO_protocol() rejects inconsistent descriptions", {
   expect_error(MFO_protocol(load_start = 25), "both")
   expect_error(MFO_protocol("relative", load_unit = "W"), "W/kg")
   expect_equal(MFO_protocol("relative")$load_unit, "W/kg")
-  expect_error(MFO_protocol("ramp"))
 })
 
 test_that(".step_bounds() cuts equal and variable steps by records", {
@@ -130,4 +141,81 @@ test_that("protocol must come from MFO_protocol() and fit step_time", {
   # 10-s steady state with 20-s records is less than one record
   expect_error(.mfo(protocol = MFO_protocol(steady_state_duration = 10)),
                "at least step_time \\(20 s\\)")
+})
+
+# --- ramp and single_day (SPEC 14, session 3) ---
+# The example data are a step test; read as a ramp they only check the
+# windowing arithmetic. Expected values are computed from the same table.
+
+test_that("ramp protocols are validated and printed", {
+  p <- MFO_protocol("ramp", load_start = 20, load_increment = 15)
+  expect_equal(p$ramp_window, 30)
+  expect_equal(p$ramp_step, 30)
+  expect_output(print(p), "30 s, one every 30 s")
+  expect_output(print(p), "20 \\+ 15 W per min")
+  expect_error(MFO_protocol("ramp", ramp_window = 30, ramp_step = 60), "skipped")
+  expect_error(MFO_protocol("ramp", ramp_window = c(30, 60)), "single numbers")
+  expect_null(MFO_protocol()$ramp_window)
+})
+
+test_that("ramp windows are back to back by default and rounded up to records", {
+  # 30-s windows with 20-s records: 2 records (40 s), 72 records -> 36 windows
+  expect_message(b <- .step_bounds(MFO_protocol("ramp"), 72, 20), "using 2 record")
+  expect_equal(b$end, seq(2, 72, by = 2))
+  expect_equal(unique(b$steady_records), 2)
+  # 60-s windows every 20 s: 70 overlapping windows ending at records 3..72
+  b <- .step_bounds(MFO_protocol("ramp", ramp_window = 60, ramp_step = 20), 72, 20)
+  expect_equal(b$end, 3:72)
+  expect_equal(.independent_points(70, MFO_protocol("ramp", ramp_window = 60,
+                                                    ramp_step = 20), 20), 24)
+  expect_equal(.independent_points(36, MFO_protocol("ramp", ramp_window = 40), 20), 36)
+  expect_equal(nrow(.step_bounds(MFO_protocol("ramp", ramp_window = 60), 2, 20)), 0)
+})
+
+test_that("a ramp averages each window and gives loads per window", {
+  e <- .example()
+  r <- .mfo(protocol = MFO_protocol("ramp", ramp_window = 60), age = 30)
+  expect_equal(nrow(r$MFO_db), 24)
+  expect_equal(r$MFO_db$VO2[5], mean(e$MFO$VO2[13:15]), tolerance = 1e-12)
+  expect_equal(r$MFO_db$Load[5], mean(e$MFO$Load[13:15]), tolerance = 1e-12)
+  # schedule: 20 W + 15 W/min at the window midpoint, (k - 1) * 60 + 30 s
+  no_load <- e$MFO[, setdiff(names(e$MFO), "Load")]
+  p <- MFO_protocol("ramp", ramp_window = 60, load_start = 20, load_increment = 15)
+  r2 <- suppressMessages(.mfo_db(no_load, db_graded = e$graded, protocol = p, age = 30))
+  expect_equal(r2$MFO_db$Load, 20 + 15 * ((seq_len(24) - 1) * 60 + 30) / 60)
+  expect_equal(r2$load_source, "protocol")
+})
+
+test_that("a ramp refuses MV and counts non-overlapping windows for min_steps", {
+  expect_error(.mfo(protocol = MFO_protocol("ramp"), method = "MV"), "use \"P3\"")
+  # 60-s windows every 20 s: 70 points but 24 independent windows
+  expect_warning(.mfo(protocol = MFO_protocol("ramp", ramp_window = 60, ramp_step = 20),
+                      min_steps = 25, age = 30),
+                 "24 non-overlapping ramp window")
+  expect_no_warning(.mfo(protocol = MFO_protocol("ramp", ramp_window = 60, ramp_step = 20),
+                         min_steps = 24, age = 30))
+})
+
+test_that("single_day cuts the recording into MFO test and graded test", {
+  e <- .example()
+  cols <- c("HR", "Load", "VO2", "VCO2", "RER")
+  one <- rbind(e$MFO[, cols], e$graded[, cols])
+  p <- MFO_protocol("single_day", cut_time = 72 * 20)
+  r1 <- .mfo_db(one, protocol = p, age = 30)
+  r0 <- .mfo(age = 30)
+  r1$MFO_plot <- r0$MFO_plot <- NULL
+  r1$protocol <- r0$protocol <- NULL
+  expect_equal(r1, r0)
+  expect_error(MFO_protocol("single_day"), "needs cut_time")
+  expect_error(MFO_protocol(cut_time = 100), "only used")
+  expect_error(.mfo_db(one, protocol = MFO_protocol("single_day", cut_time = 1e5)),
+               "no graded test")
+})
+
+test_that("single_day and ramp edge cases", {
+  expect_error(MFO_protocol("single_day", cut_time = c(600, 1200)), "single number")
+  expect_output(print(MFO_protocol("single_day", cut_time = 1440)),
+                "first 1440 s; graded test after")
+  expect_equal(.independent_points(0, MFO_protocol("ramp"), 20), 0)
+  expect_equal(.independent_points(7, MFO_protocol(), 20), 7)
 })

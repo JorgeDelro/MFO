@@ -311,7 +311,7 @@ calculate_vars <- function(step_time,
   # Incomplete last step: always warn; use it only if asked and it holds
   # the steady-state segment (SPEC 9.5, "Escalones incompletos")
   last <- bounds[nrow(bounds), ]
-  if (!last$complete &&
+  if (nrow(bounds) > 0 && !last$complete &&
       !.incomplete_last_step(last$available, last$records, last$steady_records,
                              step_time, use_incomplete_step)) {
     bounds <- bounds[-nrow(bounds), , drop = FALSE]

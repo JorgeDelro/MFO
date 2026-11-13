@@ -5,13 +5,16 @@
 \title{Describe the protocol of an MFO test}
 \usage{
 MFO_protocol(
-  type = c("step", "step_variable", "relative"),
+  type = c("step", "step_variable", "relative", "ramp", "single_day"),
   step_duration = 180,
   steady_state_duration = 60,
   load_start = NULL,
   load_increment = NULL,
   load_unit = c("W", "km/h", "W/kg"),
-  mode = c("cycling", "running", "walking")
+  mode = c("cycling", "running", "walking"),
+  ramp_window = 30,
+  ramp_step = ramp_window,
+  cut_time = NULL
 )
 }
 \arguments{
@@ -30,6 +33,21 @@ MFO_protocol(
   postmenopausal females (2026,
   \url{https://pmc.ncbi.nlm.nih.gov/articles/PMC13315815/}). Steps are
   cut as in `"step"`; the load unit is `"W/kg"`.
+\item `"ramp"`: continuous load increase (e.g. 10-15 W/min) with no
+  steps (ramp vs. graded protocols in postmenopausal women, Physiologia
+  2025, 5(1):3, \doi{10.3390/physiologia5010003}). Each point of the
+  curve is the mean of `ramp_window` s; windows start every `ramp_step` s
+  (default: back to back, no overlap). `step_duration` and
+  `steady_state_duration` are not used, `method = "MV"` is not available
+  and `min_steps` counts non-overlapping windows. With overlapping windows
+  the points are not independent: R² and the SIN standard errors are
+  optimistic.
+\item `"single_day"`: the MFO test followed, after a short pause, by the
+  maximal test in the same recording (Sports Med Health Sci 2026,
+  8(3):327-334, \doi{10.1016/j.smhs.2025.02.004}). Steps are cut as in
+  `"step"` up to `cut_time`; the records after it are the graded test,
+  used for VO2max when `db_graded` and `VO2max` are not given. Automatic
+  detection of the phases belongs to the importers (SPEC 16).
 }}
 
 \item{step_duration}{duration of each step in seconds (default 180). A
@@ -43,7 +61,9 @@ repeated with the last duration). It cannot be longer than its step.}
 
 \item{load_start, load_increment}{optional load of the first step and
 increment per step, in `load_unit`. Used only when the test data have no
-`Load` column.}
+`Load` column. For `"ramp"`, `load_start` is the load at time 0 and
+`load_increment` the increase per minute; each window takes the load at
+its midpoint.}
 
 \item{load_unit}{unit of the load: `"W"` (default), `"km/h"` or `"W/kg"`
 (always `"W/kg"` for `type = "relative"`).}
@@ -51,6 +71,13 @@ increment per step, in `load_unit`. Used only when the test data have no
 \item{mode}{exercise mode: `"cycling"` (default), `"running"` or
 `"walking"`. Fat oxidation kinetics differ between modes (Cheneviere et
 al. 2010); the mode is reported with the results.}
+
+\item{ramp_window, ramp_step}{for `"ramp"`: length of each averaging window
+and time between window starts, in seconds (defaults 30 and
+`ramp_window`).}
+
+\item{cut_time}{for `"single_day"`: time from the start of the recording
+(s) at which the MFO test ends and the graded test begins.}
 }
 \value{
 An object of class `MFO_protocol`: a list with the arguments above.
@@ -72,6 +99,12 @@ MFO_protocol("step_variable", step_duration = c(300, 180), mode = "walking")
 # Relative power test: 4-min steps of 0.15 W/kg from 0.45 W/kg
 MFO_protocol("relative", step_duration = 240,
              load_start = 0.45, load_increment = 0.15)
+
+# Ramp of 15 W/min from 20 W, 30-s windows
+MFO_protocol("ramp", load_start = 20, load_increment = 15)
+
+# MFO test and maximal test in one recording; the MFO part lasts 24 min
+MFO_protocol("single_day", cut_time = 24 * 60)
 }
 \seealso{
 [MFO()], [MFOs()]

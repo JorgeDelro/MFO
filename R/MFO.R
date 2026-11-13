@@ -239,6 +239,22 @@ MFO <- function(step_time,
   db_basal <- data.frame(db_basal)
   db_MFO <- data.frame(db_MFO)
 
+  if (protocol$type == "ramp" && method == "MV") {
+    stop('method = "MV" needs steps; with a ramp protocol use "P3" (or "P2", "MRER").',
+         call. = FALSE)
+  }
+  # Single-day test: records after cut_time are the graded test (SPEC 14)
+  if (protocol$type == "single_day") {
+    cut_rec <- as.integer(round(protocol$cut_time / step_time))
+    if (cut_rec >= nrow(db_MFO)) {
+      stop("cut_time is at or after the end of db_MFO; there is no graded test after it.",
+           call. = FALSE)
+    }
+    graded_part <- db_MFO[(cut_rec + 1):nrow(db_MFO), , drop = FALSE]
+    db_MFO <- db_MFO[seq_len(cut_rec), , drop = FALSE]
+    if (is.null(db_graded) && is.null(VO2max)) db_graded <- graded_part
+  }
+
   # Get VO2max: a value supplied by the lab (number or VO2max_from_test()
   # result) wins over db_graded (SPEC 14); otherwise the highest rolling mean
   # over vo2max_window s (SPEC 9.5) with the maximality criteria (SPEC 14)
@@ -287,7 +303,7 @@ MFO <- function(step_time,
                              protocol = protocol)
 
   # Load of each step: file > protocol schedule > NA (SPEC 14)
-  loads <- .step_loads(MFO_test, protocol, body_mass)
+  loads <- .step_loads(MFO_test, protocol, body_mass, step_time)
 
   # Build database with basal + exercise steps
 
@@ -339,7 +355,8 @@ MFO <- function(step_time,
   }
 
   # Quality: number of exercise steps entering the fit (SPEC 14)
-  .warn_min_steps(sum(MFO_db$Step != 0), min_steps)
+  .warn_min_steps(.independent_points(sum(MFO_db$Step != 0), protocol, step_time), min_steps,
+                  ramp = protocol$type == "ramp")
 
   # --- Curve fitting ---
   if (method == "P3") {
@@ -379,7 +396,7 @@ MFO <- function(step_time,
   FAT_MAX_porcHRmax <- NA
   hr_data <- MFO_db[!is.na(MFO_db$HR), ]
   if (nrow(hr_data) >= 2) {
-    hr_interp <- approx(hr_data$porc_VO2, hr_data$HR, xout = VO2_MFO)
+    hr_interp <- approx(hr_data$porc_VO2, hr_data$HR, xout = VO2_MFO, ties = mean)
     FAT_MAX_HR <- hr_interp$y
     if (!is.null(HRmax) && !is.na(FAT_MAX_HR)) {
       FAT_MAX_porcHRmax <- (FAT_MAX_HR / HRmax) * 100
@@ -436,7 +453,7 @@ MFO <- function(step_time,
 
 
 # --- Internal helper: load of each step, file > protocol > NA (SPEC 14) ---
-.step_loads <- function(steps, protocol, body_mass) {
+.step_loads <- function(steps, protocol, body_mass, step_time) {
   unit <- protocol$load_unit
   if (any(!is.na(steps$Load))) {
     load <- steps$Load
@@ -451,7 +468,16 @@ MFO <- function(step_time,
       }
     }
   } else if (!is.null(protocol$load_start)) {
-    load <- protocol$load_start + (steps$Step - 1) * protocol$load_increment
+    if (protocol$type == "ramp") {
+      # load_increment per minute, taken at the midpoint of each window
+      # (whole records, as the windows are cut)
+      st <- suppressMessages(.ramp_records(protocol$ramp_step, step_time, "")) * step_time
+      w <- suppressMessages(.ramp_records(protocol$ramp_window, step_time, "")) * step_time
+      t_mid <- (steps$Step - 1) * st + w / 2
+      load <- protocol$load_start + protocol$load_increment * t_mid / 60
+    } else {
+      load <- protocol$load_start + (steps$Step - 1) * protocol$load_increment
+    }
     source <- "protocol"
   } else {
     load <- rep(NA_real_, nrow(steps))
@@ -472,12 +498,13 @@ MFO <- function(step_time,
 
 
 # --- Internal helper: too few exercise steps in the fit (SPEC 14) ---
-.warn_min_steps <- function(n_steps, min_steps) {
+.warn_min_steps <- function(n_steps, min_steps, ramp = FALSE) {
   if (n_steps < min_steps) {
-    warning(sprintf(paste0("The curve is fitted with %d exercise step(s); at least %s ",
+    what <- if (ramp) "non-overlapping ramp window(s)" else "exercise step(s)"
+    warning(sprintf(paste0("The curve is fitted with %d %s; at least %s ",
                            "are recommended (min_steps). A low RER_cutoff or ",
                            "negative_FAT = \"exclude\" removes steps."),
-                    n_steps, format(min_steps)), call. = FALSE)
+                    n_steps, what, format(min_steps)), call. = FALSE)
   }
   invisible(n_steps < min_steps)
 }

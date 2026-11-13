@@ -21,6 +21,21 @@
 #'     postmenopausal females (2026,
 #'     \url{https://pmc.ncbi.nlm.nih.gov/articles/PMC13315815/}). Steps are
 #'     cut as in `"step"`; the load unit is `"W/kg"`.
+#'   \item `"ramp"`: continuous load increase (e.g. 10-15 W/min) with no
+#'     steps (ramp vs. graded protocols in postmenopausal women, Physiologia
+#'     2025, 5(1):3, \doi{10.3390/physiologia5010003}). Each point of the
+#'     curve is the mean of `ramp_window` s; windows start every `ramp_step` s
+#'     (default: back to back, no overlap). `step_duration` and
+#'     `steady_state_duration` are not used, `method = "MV"` is not available
+#'     and `min_steps` counts non-overlapping windows. With overlapping windows
+#'     the points are not independent: R² and the SIN standard errors are
+#'     optimistic.
+#'   \item `"single_day"`: the MFO test followed, after a short pause, by the
+#'     maximal test in the same recording (Sports Med Health Sci 2026,
+#'     8(3):327-334, \doi{10.1016/j.smhs.2025.02.004}). Steps are cut as in
+#'     `"step"` up to `cut_time`; the records after it are the graded test,
+#'     used for VO2max when `db_graded` and `VO2max` are not given. Automatic
+#'     detection of the phases belongs to the importers (SPEC 16).
 #'   }
 #' @param step_duration duration of each step in seconds (default 180). A
 #'   single number for `"step"` and `"relative"`; a vector for
@@ -31,7 +46,14 @@
 #'   repeated with the last duration). It cannot be longer than its step.
 #' @param load_start,load_increment optional load of the first step and
 #'   increment per step, in `load_unit`. Used only when the test data have no
-#'   `Load` column.
+#'   `Load` column. For `"ramp"`, `load_start` is the load at time 0 and
+#'   `load_increment` the increase per minute; each window takes the load at
+#'   its midpoint.
+#' @param ramp_window,ramp_step for `"ramp"`: length of each averaging window
+#'   and time between window starts, in seconds (defaults 30 and
+#'   `ramp_window`).
+#' @param cut_time for `"single_day"`: time from the start of the recording
+#'   (s) at which the MFO test ends and the graded test begins.
 #' @param load_unit unit of the load: `"W"` (default), `"km/h"` or `"W/kg"`
 #'   (always `"W/kg"` for `type = "relative"`).
 #' @param mode exercise mode: `"cycling"` (default), `"running"` or
@@ -54,13 +76,23 @@
 #' # Relative power test: 4-min steps of 0.15 W/kg from 0.45 W/kg
 #' MFO_protocol("relative", step_duration = 240,
 #'              load_start = 0.45, load_increment = 0.15)
-MFO_protocol <- function(type = c("step", "step_variable", "relative"),
+#'
+#' # Ramp of 15 W/min from 20 W, 30-s windows
+#' MFO_protocol("ramp", load_start = 20, load_increment = 15)
+#'
+#' # MFO test and maximal test in one recording; the MFO part lasts 24 min
+#' MFO_protocol("single_day", cut_time = 24 * 60)
+MFO_protocol <- function(type = c("step", "step_variable", "relative", "ramp",
+                                  "single_day"),
                          step_duration = 180,
                          steady_state_duration = 60,
                          load_start = NULL,
                          load_increment = NULL,
                          load_unit = c("W", "km/h", "W/kg"),
-                         mode = c("cycling", "running", "walking")) {
+                         mode = c("cycling", "running", "walking"),
+                         ramp_window = 30,
+                         ramp_step = ramp_window,
+                         cut_time = NULL) {
 
   type <- match.arg(type)
   mode <- match.arg(mode)
@@ -75,6 +107,24 @@ MFO_protocol <- function(type = c("step", "step_variable", "relative"),
 
   .check_seconds(step_duration, "step_duration")
   .check_seconds(steady_state_duration, "steady_state_duration")
+  if (type == "ramp") {
+    .check_seconds(ramp_window, "ramp_window")
+    .check_seconds(ramp_step, "ramp_step")
+    if (length(ramp_window) != 1 || length(ramp_step) != 1) {
+      stop("ramp_window and ramp_step must be single numbers.", call. = FALSE)
+    }
+    if (ramp_step > ramp_window) {
+      stop("ramp_step cannot be longer than ramp_window (records would be skipped).",
+           call. = FALSE)
+    }
+  }
+  if (type == "single_day") {
+    if (is.null(cut_time)) stop('type = "single_day" needs cut_time (s).', call. = FALSE)
+    .check_seconds(cut_time, "cut_time")
+    if (length(cut_time) != 1) stop("cut_time must be a single number.", call. = FALSE)
+  } else if (!is.null(cut_time)) {
+    stop('cut_time is only used with type = "single_day".', call. = FALSE)
+  }
   if (type == "step_variable") {
     if (length(steady_state_duration) != 1 &&
         length(steady_state_duration) != length(step_duration)) {
@@ -106,7 +156,10 @@ MFO_protocol <- function(type = c("step", "step_variable", "relative"),
                  load_start = load_start,
                  load_increment = load_increment,
                  load_unit = load_unit,
-                 mode = mode),
+                 mode = mode,
+                 ramp_window = if (type == "ramp") ramp_window,
+                 ramp_step = if (type == "ramp") ramp_step,
+                 cut_time = cut_time),
             class = "MFO_protocol")
 }
 
@@ -114,13 +167,20 @@ MFO_protocol <- function(type = c("step", "step_variable", "relative"),
 #' @export
 print.MFO_protocol <- function(x, ...) {
   cat("<MFO_protocol>", x$type, "\n")
-  cat("  steps:       ", paste(format(x$step_duration), collapse = ", "), "s",
-      if (x$type == "step_variable") "(last one repeated)", "\n")
-  cat("  averaged:    last", paste(format(x$steady_state_duration), collapse = ", "),
-      "s of each step\n")
+  if (x$type == "ramp") {
+    cat("  windows:     ", format(x$ramp_window), "s, one every", format(x$ramp_step), "s\n")
+  } else {
+    cat("  steps:       ", paste(format(x$step_duration), collapse = ", "), "s",
+        if (x$type == "step_variable") "(last one repeated)", "\n")
+    cat("  averaged:    last", paste(format(x$steady_state_duration), collapse = ", "),
+        "s of each step\n")
+  }
+  if (x$type == "single_day") {
+    cat("  MFO test:     first", format(x$cut_time), "s; graded test after\n")
+  }
   if (!is.null(x$load_start)) {
     cat("  load:        ", format(x$load_start), "+", format(x$load_increment),
-        x$load_unit, "per step\n")
+        x$load_unit, if (x$type == "ramp") "per min" else "per step", "\n")
   } else {
     cat("  load unit:   ", x$load_unit, "\n")
   }
@@ -162,6 +222,7 @@ print.MFO_protocol <- function(x, ...) {
 # Durations that are not a multiple of step_time are truncated to whole
 # records, as in v0.2.x. The last row may be an incomplete step.
 .step_bounds <- function(protocol, n_records, step_time) {
+  if (protocol$type == "ramp") return(.ramp_bounds(protocol, n_records, step_time))
   dur <- protocol$step_duration
   ss <- rep_len(protocol$steady_state_duration, length(dur))
   n_dur <- as.integer(dur / step_time)
@@ -188,4 +249,44 @@ print.MFO_protocol <- function(x, ...) {
              steady_records = steady,
              available = c(ends[1], diff(ends)),
              complete = c(ends[1], diff(ends)) == recs)
+}
+
+
+# Records of a ramp window or step: rounded up, as the VO2max window, so a
+# 30-s window with 20-s records uses 2 records (40 s), with a message
+.ramp_records <- function(seconds, step_time, name) {
+  n <- max(1L, as.integer(ceiling(seconds / step_time - 1e-8)))
+  if (!isTRUE(all.equal(n * step_time, seconds))) {
+    message(sprintf("%s: %g s is not a multiple of step_time (%g s); using %d record(s) = %g s.",
+                    name, seconds, step_time, n, n * step_time))
+  }
+  n
+}
+
+
+# Ramp windows: ramp_window s long, one every ramp_step s, all complete; the
+# records after the last full window are not used
+.ramp_bounds <- function(protocol, n_records, step_time) {
+  w <- .ramp_records(protocol$ramp_window, step_time, "ramp_window")
+  st <- if (protocol$ramp_step == protocol$ramp_window) w else
+    .ramp_records(protocol$ramp_step, step_time, "ramp_step")
+  if (n_records < w) {
+    return(data.frame(step = integer(0), end = integer(0), records = integer(0),
+                      steady_records = integer(0), available = integer(0),
+                      complete = logical(0)))
+  }
+  ends <- seq(w, n_records, by = st)
+  data.frame(step = seq_along(ends), end = ends, records = w, steady_records = w,
+             available = w, complete = TRUE)
+}
+
+
+# Number of non-overlapping windows that n ramp points are worth (min_steps):
+# the first window plus one more every ramp_window of advance
+.independent_points <- function(n, protocol, step_time) {
+  if (protocol$type != "ramp") return(n)
+  if (n == 0) return(0)
+  w <- suppressMessages(.ramp_records(protocol$ramp_window, step_time, ""))
+  st <- suppressMessages(.ramp_records(protocol$ramp_step, step_time, ""))
+  floor((n - 1) * st / w) + 1
 }

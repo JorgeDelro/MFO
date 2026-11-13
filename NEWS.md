@@ -52,6 +52,17 @@
 * The example data `MFO_df` gain a `Load` column (25–200 W, 25-W stages),
   as described in their documentation.
 
+* `MFO_protocol()` gains `"ramp"` and `"single_day"` (SPEC 14). A ramp is
+  read as windows of `ramp_window` s (30 by default, rounded up to whole
+  records), one every `ramp_step` s (back to back by default); `min_steps`
+  counts non-overlapping windows, `method = "MV"` stops with an error
+  suggesting P3, and a load schedule is `load_start` plus `load_increment`
+  per minute at each window midpoint (ramp vs. graded protocols, Physiologia
+  2025). A single-day test has `cut_time`: records after it are the graded
+  test, used for VO2max when `db_graded` and `VO2max` are not given (Sports
+  Med Health Sci 2026). Automatic detection of the phases is left to the
+  importers (SPEC 16).
+
 ## Bug fixes
 
 * `use_incomplete_step = TRUE` averaged only the last record of the
@@ -60,6 +71,12 @@
   the example data cut to 66 records, step 8 VO2 goes from 2495 (one record)
   to 2444.7 ml/min (last 60 s). The default (`FALSE`) is not affected
   (#26, SPEC 9.5).
+
+## Documentation
+
+* Vignette: new section "Protocols, load and VO2max" (protocol types,
+  Fatmax in watts, VO2max vs VO2peak, ramps and single-day tests); the
+  generated methods paragraph reports Fatmax in W.
 
 # MFO 0.2.1
 
