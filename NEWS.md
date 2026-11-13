@@ -28,7 +28,7 @@
   documented (the start was counted from the nominal end of the step). In
   the example data cut to 66 records, step 8 VO2 goes from 2495 (one record)
   to 2444.7 ml/min (last 60 s). The default (`FALSE`) is not affected
-  (SPEC 9.5).
+  (#26, SPEC 9.5).
 
 # MFO 0.2.1
 
