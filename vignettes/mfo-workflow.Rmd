@@ -81,7 +81,8 @@ Each table must have, at regular intervals of `step_time` seconds, the columns
 | `RER` | — (VCO2/VO2) | basal window, `RER_cutoff` |
 | `HR` | beats/min | heart rate at Fatmax (optional) |
 
-Other columns (`Time`, `BF`, `VE`, `PETCO2`, `Load`) are ignored. Columns with
+An optional `Load` column (W or km/h) gives Fatmax and the Fatmax zone in load
+units. Other columns (`Time`, `BF`, `VE`, `PETCO2`) are ignored. Columns with
 other names are mapped with the `col_name_*` arguments of `MFOs()`. Heart rate
 never decides which rows or steps are dropped: without HR, `MFO()` warns and
 returns `NA` for the heart-rate outputs, and MFO and Fatmax do not change.
@@ -251,8 +252,9 @@ all.equal(unname(hand), unname(package))
 
 The warning reports the step with RER > 1 that was truncated (3.5); the
 message reports the effective VO2max window (3.1). `res$MFO_db` is the step
-table that entered the fit. Its `Load` column is a step index, not the
-measured load.
+table that entered the fit: `Step` numbers the steps of the test and `Load` is
+the measured load of each step (W). `res$FAT_MAX_load` gives Fatmax in W,
+interpolated linearly between steps.
 
 ```{r mfo-db, fig.alt = "Fat and carbohydrate oxidation (g/min) against %VO2max for the example participant: observed steps, fitted P3 curves, shaded Fatmax zone and vertical lines at Fatmax and at the crossover point."}
 res$MFO_db
@@ -425,7 +427,7 @@ highest 20-s heart rate of the maximal test.
 ```{r report-values}
 HRmax <- max(VO2max_df$HR)
 final <- run_MFO(HRmax = HRmax)
-n_steps <- sum(final$MFO_db$Load != "basal")
+n_steps <- sum(final$MFO_db$Step != 0)
 ```
 
 ```{r report, results = "asis", echo = FALSE}

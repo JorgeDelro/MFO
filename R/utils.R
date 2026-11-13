@@ -222,6 +222,15 @@ substrate_oxidation <- function(VO2, VCO2, author, VO2max = NULL,
 .mfo_state <- new.env(parent = emptyenv())
 
 # The default energy_equivalents changes in 0.3.0; tell users who rely on it
+.age_default_message <- function() {
+  if (isTRUE(.mfo_state$age_message_shown)) return(invisible(FALSE))
+  .mfo_state$age_message_shown <- TRUE
+  message("VO2max_type: age not given, so the heart-rate criterion of VO2max is not ",
+          "evaluated and VO2max is labelled from the plateau only. Set age to ",
+          "evaluate it (shown once per session).")
+  invisible(TRUE)
+}
+
 .energy_default_message <- function() {
   if (isTRUE(.mfo_state$energy_message_shown)) return(invisible(FALSE))
   .mfo_state$energy_message_shown <- TRUE
@@ -277,7 +286,8 @@ fat_oxidation_MRER <- function(VO2, RER) {
 #'
 #' @importFrom dplyr pull mutate
 #'
-#' @return data frame with columns: Step (step number in the test), VO2, VCO2, HR,
+#' @return data frame with columns: Step (step number in the test), Load (mean of
+#'   an optional `Load` column, else NA), VO2, VCO2, HR,
 #'   RER, CHO, FAT, Kcal (one row per step kept)
 #'
 #' @keywords internal
@@ -314,6 +324,7 @@ calculate_vars <- function(step_time,
 
   db_vars <- data.frame(
     Step = bounds$step,
+    Load = NA_real_,
     VO2 = numeric(n_steps),
     VCO2 = numeric(n_steps),
     HR = numeric(n_steps),
@@ -335,6 +346,8 @@ calculate_vars <- function(step_time,
     mean_VCO2 <- mean(step_data$VCO2, na.rm = TRUE)
     # HR is optional: a missing column or a step without HR gives NA
     mean_HR <- .mean_or_na(step_data[["HR"]])
+    # Load is optional too (SPEC 14)
+    mean_Load <- .mean_or_na(step_data[["Load"]])
     mean_RER <- mean(step_data$RER, na.rm = TRUE)
 
     # Calculate substrate oxidation
@@ -342,6 +355,7 @@ calculate_vars <- function(step_time,
                                 author = author, VO2max = VO2max,
                                 energy_equivalents = energy_equivalents)
 
+    db_vars[i, "Load"] <- mean_Load
     db_vars[i, "VO2"] <- mean_VO2
     db_vars[i, "VCO2"] <- mean_VCO2
     db_vars[i, "HR"] <- mean_HR
@@ -483,6 +497,8 @@ preprocess_bxb <- function(db, target_interval = 20) {
 #' @param col_name_VCO2 name given to the variable VCO2 in the databases. Default "VCO2"
 #' @param col_name_RER name given to the variable RER in the databases. Default "RER"
 #' @param col_name_HR name given to the variable HR in the databases. Default "HR"
+#' @param col_name_Load name given to the external load (W or km/h) in the
+#'   databases. Default "Load"; the column is optional.
 #'
 #'
 #' @importFrom dplyr rename select
@@ -507,7 +523,8 @@ read_MFO_databases <- function(from = c("folder", "files"),
                                col_name_VCO2 = "VCO2",
                                col_name_RER = "RER",
                                col_name_HR = "HR",
-                               remove_rows = NULL) {
+                               remove_rows = NULL,
+                               col_name_Load = "Load") {
 
   from <- match.arg(from)
 
@@ -523,7 +540,8 @@ read_MFO_databases <- function(from = c("folder", "files"),
   }
 
   # Variables to select from databases
-  vars_to_select <- c(col_name_VO2, col_name_VCO2, col_name_RER, col_name_HR)
+  vars_to_select <- c(col_name_VO2, col_name_VCO2, col_name_RER, col_name_HR,
+                      col_name_Load)
 
   # Standardize column names
   rename_and_clean <- function(db, vars, has_HR = TRUE) {
@@ -540,6 +558,9 @@ read_MFO_databases <- function(from = c("folder", "files"),
     }
     if (col_name_HR != "HR" && col_name_HR %in% colnames(db)) {
       colnames(db)[colnames(db) == col_name_HR] <- "HR"
+    }
+    if (col_name_Load != "Load" && col_name_Load %in% colnames(db)) {
+      colnames(db)[colnames(db) == col_name_Load] <- "Load"
     }
 
     if (!is.null(remove_rows)) {

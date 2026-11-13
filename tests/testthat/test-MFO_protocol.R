@@ -101,7 +101,7 @@ test_that("step_variable averages a per-step steady-state segment", {
 })
 
 test_that("relative protocols cut steps as step protocols", {
-  r <- .mfo(protocol = MFO_protocol("relative", step_duration = 180))
+  r <- .mfo(protocol = MFO_protocol("relative", step_duration = 180), body_mass = 80)
   expect_equal(r$MFO, .mfo()$MFO)
   expect_equal(r$protocol$load_unit, "W/kg")
 })

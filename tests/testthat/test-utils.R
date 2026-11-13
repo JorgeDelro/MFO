@@ -139,7 +139,8 @@ test_that("default energy_equivalents message is shown once per session", {
   run <- function(...) suppressWarnings(
     MFO(step_time = 20, db_MFO = MFO_df, db_basal = basal_df,
         db_graded = VO2max_df, cv_var = "RER", author = "Frayn",
-        vo2max_window = 40, ...))  # 40 s = 2 records: no rounding message
+        vo2max_window = 40, age = 30, ...))  # 40 s = 2 records: no rounding message;
+                                            # age: no VO2max_type message
   rm(list = ls(.mfo_state), envir = .mfo_state)
   expect_message(r_c <- run(), "will change to \"source\".*in MFO 0.3.0")
   expect_no_message(run())

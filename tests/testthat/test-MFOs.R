@@ -144,6 +144,32 @@ test_that("MFOs() passes the protocol to MFO() and reports it", {
   expect_equal(sum(grepl("using protocol", w)), 1)
 })
 
+test_that("MFOs() reads a renamed Load column and reports load and VO2max type", {
+  root <- withr::local_tempdir()
+  parts <- .participants()
+  # the analyser calls the load "Power"
+  for (id in names(parts)) {
+    names(parts[[id]]$MFO)[names(parts[[id]]$MFO) == "Load"] <- "Power"
+  }
+  .write_folder(root, parts)
+  res <- suppressWarnings(suppressMessages(
+    .mfos("folder", root, col_name_Load = "Power", age = 30)))
+  r <- suppressWarnings(suppressMessages(
+    MFO(step_time = 20,
+        db_MFO = cbind(.as_read(.participants()$P01$MFO), Load = .participants()$P01$MFO$Load),
+        db_basal = .as_read(parts$P01$basal), db_graded = .as_read(parts$P01$graded),
+        cv_var = "RER", author = "Frayn", energy_equivalents = "classic", age = 30)))
+  expect_equal(res$load_source, c("file", "file"))
+  expect_equal(res$load_unit, c("W", "W"))
+  expect_equal(res$FAT_MAX_load[1], round(r$FAT_MAX_load, 1))
+  expect_equal(res$FatMax_zone_lower_load[1], round(r$FatMax_zone_lower_load, 1))
+  expect_equal(res$VO2max_type[1], r$VO2max_type)
+  # without the column name the load is lost: no load outputs
+  res0 <- suppressWarnings(suppressMessages(.mfos("folder", root)))
+  expect_equal(res0$load_source, c("none", "none"))
+  expect_true(all(is.na(res0$FAT_MAX_load)))
+})
+
 test_that("a participant that cannot be processed gives an NA row and a warning", {
   root <- withr::local_tempdir()
   parts <- .participants()

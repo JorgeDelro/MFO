@@ -41,7 +41,8 @@ or one of "classic", "safe", "sedentary", "trained" (see [MFO()]).}
 `steady_state_duration` are not used.}
 }
 \value{
-data frame with columns: Step (step number in the test), VO2, VCO2, HR,
+data frame with columns: Step (step number in the test), Load (mean of
+  an optional `Load` column, else NA), VO2, VCO2, HR,
   RER, CHO, FAT, Kcal (one row per step kept)
 }
 \description{
