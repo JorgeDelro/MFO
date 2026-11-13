@@ -222,6 +222,15 @@ substrate_oxidation <- function(VO2, VCO2, author, VO2max = NULL,
 .mfo_state <- new.env(parent = emptyenv())
 
 # The default energy_equivalents changes in 0.3.0; tell users who rely on it
+.age_default_message <- function() {
+  if (isTRUE(.mfo_state$age_message_shown)) return(invisible(FALSE))
+  .mfo_state$age_message_shown <- TRUE
+  message("VO2max_type: age not given, so the heart-rate criterion of VO2max is not ",
+          "evaluated and VO2max is labelled from the plateau only. Set age to ",
+          "evaluate it (shown once per session).")
+  invisible(TRUE)
+}
+
 .energy_default_message <- function() {
   if (isTRUE(.mfo_state$energy_message_shown)) return(invisible(FALSE))
   .mfo_state$energy_message_shown <- TRUE
@@ -268,6 +277,8 @@ fat_oxidation_MRER <- function(VO2, RER) {
 #'        or one of "classic", "safe", "sedentary", "trained" (see [MFO()]).
 #' @param energy_equivalents "classic" (default) or "source"; see [substrate_oxidation()].
 #' @param use_incomplete_step logical (default `FALSE`). See [MFO()].
+#' @param protocol optional [MFO_protocol()]; if given, `step_duration` and
+#'   `steady_state_duration` are not used.
 #'
 #' @details With `author = "Jeukendrup"`, a single warning lists the steps (after
 #' `RER_cutoff`) whose intensity is outside 40-75 \% VO2max, the range of the
@@ -275,7 +286,9 @@ fat_oxidation_MRER <- function(VO2, RER) {
 #'
 #' @importFrom dplyr pull mutate
 #'
-#' @return data frame with columns: VO2, VCO2, HR, RER, CHO, FAT, Kcal (one row per step)
+#' @return data frame with columns: Step (step number in the test), Load (mean of
+#'   an optional `Load` column, else NA), VO2, VCO2, HR,
+#'   RER, CHO, FAT, Kcal (one row per step kept)
 #'
 #' @keywords internal
 calculate_vars <- function(step_time,
@@ -286,25 +299,32 @@ calculate_vars <- function(step_time,
                            steady_state_duration = 60,
                            RER_cutoff = NULL,
                            energy_equivalents = "classic",
-                           use_incomplete_step = FALSE) {
+                           use_incomplete_step = FALSE,
+                           protocol = NULL) {
 
-  records_per_step <- as.integer(step_duration / step_time)
-  records_steady <- as.integer(steady_state_duration / step_time)
-  n_steps <- as.integer(nrow(db_MFO) / records_per_step)
+  if (is.null(protocol)) {
+    protocol <- MFO_protocol("step", step_duration = step_duration,
+                             steady_state_duration = steady_state_duration)
+  }
+  bounds <- .step_bounds(protocol, nrow(db_MFO), step_time)
 
   # Incomplete last step: always warn; use it only if asked and it holds
   # the steady-state segment (SPEC 9.5, "Escalones incompletos")
-  if (.incomplete_last_step(nrow(db_MFO), records_per_step, records_steady,
-                            step_time, step_duration, steady_state_duration,
-                            use_incomplete_step)) {
-    n_steps <- n_steps + 1L
+  last <- bounds[nrow(bounds), ]
+  if (nrow(bounds) > 0 && !last$complete &&
+      !.incomplete_last_step(last$available, last$records, last$steady_records,
+                             step_time, use_incomplete_step)) {
+    bounds <- bounds[-nrow(bounds), , drop = FALSE]
   }
+  n_steps <- nrow(bounds)
 
   if (n_steps < 1) {
     stop("Not enough data for at least one complete step.")
   }
 
   db_vars <- data.frame(
+    Step = bounds$step,
+    Load = NA_real_,
     VO2 = numeric(n_steps),
     VCO2 = numeric(n_steps),
     HR = numeric(n_steps),
@@ -315,14 +335,10 @@ calculate_vars <- function(step_time,
   )
 
   for (i in seq_len(n_steps)) {
-    # Last steady_state_duration seconds of each step (of the data, for a
-    # used incomplete last step)
-    step_end <- i * records_per_step
-    step_start <- step_end - records_steady + 1
-
-    # Ensure bounds are within data
-    step_start <- max(1, step_start)
-    step_end <- min(nrow(db_MFO), step_end)
+    # Last steady-state segment of each step (of the data, for a used
+    # incomplete last step)
+    step_end <- bounds$end[i]
+    step_start <- max(1, step_end - bounds$steady_records[i] + 1)
 
     step_data <- db_MFO[step_start:step_end, , drop = FALSE]
 
@@ -330,6 +346,8 @@ calculate_vars <- function(step_time,
     mean_VCO2 <- mean(step_data$VCO2, na.rm = TRUE)
     # HR is optional: a missing column or a step without HR gives NA
     mean_HR <- .mean_or_na(step_data[["HR"]])
+    # Load is optional too (SPEC 14)
+    mean_Load <- .mean_or_na(step_data[["Load"]])
     mean_RER <- mean(step_data$RER, na.rm = TRUE)
 
     # Calculate substrate oxidation
@@ -337,6 +355,7 @@ calculate_vars <- function(step_time,
                                 author = author, VO2max = VO2max,
                                 energy_equivalents = energy_equivalents)
 
+    db_vars[i, "Load"] <- mean_Load
     db_vars[i, "VO2"] <- mean_VO2
     db_vars[i, "VCO2"] <- mean_VCO2
     db_vars[i, "HR"] <- mean_HR
@@ -367,28 +386,26 @@ calculate_vars <- function(step_time,
 
 
 # Warn about records left after the last complete step; TRUE if that
-# incomplete step is to be used (asked for and >= steady_state_duration)
-.incomplete_last_step <- function(n_records, records_per_step, records_steady,
-                                  step_time, step_duration, steady_state_duration,
+# incomplete step is to be used (asked for and >= its steady-state segment)
+.incomplete_last_step <- function(available, records, steady_records, step_time,
                                   use_incomplete_step) {
-  leftover <- n_records %% records_per_step
-  if (leftover == 0) return(FALSE)
   head <- sprintf("Last step incomplete (%s s of %s s): ",
-                  format(leftover * step_time), format(step_duration))
-  usable <- leftover >= records_steady
+                  format(available * step_time), format(records * step_time))
+  steady_s <- format(steady_records * step_time)
+  usable <- available >= steady_records
   if (isTRUE(use_incomplete_step) && usable) {
     warning(head, sprintf("used, averaging its last %s s (use_incomplete_step = TRUE).",
-                          format(steady_state_duration)), call. = FALSE)
+                          steady_s), call. = FALSE)
     return(TRUE)
   }
   if (usable) {
     warning(head, sprintf(paste0("dropped. It holds the %s-s steady-state segment; ",
                                  "set use_incomplete_step = TRUE to use it."),
-                          format(steady_state_duration)), call. = FALSE)
+                          steady_s), call. = FALSE)
   } else {
     warning(head, sprintf(paste0("dropped. It is shorter than steady_state_duration ",
                                  "(%s s) and cannot be used."),
-                          format(steady_state_duration)), call. = FALSE)
+                          steady_s), call. = FALSE)
   }
   FALSE
 }
@@ -480,6 +497,8 @@ preprocess_bxb <- function(db, target_interval = 20) {
 #' @param col_name_VCO2 name given to the variable VCO2 in the databases. Default "VCO2"
 #' @param col_name_RER name given to the variable RER in the databases. Default "RER"
 #' @param col_name_HR name given to the variable HR in the databases. Default "HR"
+#' @param col_name_Load name given to the external load (W or km/h) in the
+#'   databases. Default "Load"; the column is optional.
 #'
 #'
 #' @importFrom dplyr rename select
@@ -504,7 +523,8 @@ read_MFO_databases <- function(from = c("folder", "files"),
                                col_name_VCO2 = "VCO2",
                                col_name_RER = "RER",
                                col_name_HR = "HR",
-                               remove_rows = NULL) {
+                               remove_rows = NULL,
+                               col_name_Load = "Load") {
 
   from <- match.arg(from)
 
@@ -520,7 +540,8 @@ read_MFO_databases <- function(from = c("folder", "files"),
   }
 
   # Variables to select from databases
-  vars_to_select <- c(col_name_VO2, col_name_VCO2, col_name_RER, col_name_HR)
+  vars_to_select <- c(col_name_VO2, col_name_VCO2, col_name_RER, col_name_HR,
+                      col_name_Load)
 
   # Standardize column names
   rename_and_clean <- function(db, vars, has_HR = TRUE) {
@@ -537,6 +558,9 @@ read_MFO_databases <- function(from = c("folder", "files"),
     }
     if (col_name_HR != "HR" && col_name_HR %in% colnames(db)) {
       colnames(db)[colnames(db) == col_name_HR] <- "HR"
+    }
+    if (col_name_Load != "Load" && col_name_Load %in% colnames(db)) {
+      colnames(db)[colnames(db) == col_name_Load] <- "Load"
     }
 
     if (!is.null(remove_rows)) {

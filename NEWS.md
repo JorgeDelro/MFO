@@ -1,3 +1,83 @@
+# MFO (development version)
+
+## Breaking changes
+
+* `MFO_db` gains a first column `Step`: the step number in the test
+  (0 = resting row with `include_basal = TRUE`). It identifies the resting
+  row instead of `Load == "basal"`. Code that selects `MFO_db` columns by
+  position must be updated (SPEC 14).
+
+* `MFO_db$Load` is now the measured load of each step (numeric; `NA` for
+  the resting row and when there is no load), no longer the synthetic label
+  `"basal"`, 15, 30, … of v0.1.0–0.2.1. This closes the known issue of 0.2.1
+  (SPEC 9.5, 14).
+
+## New features
+
+* `MFO_protocol()` describes the test (SPEC 14): `"step"` (fixed
+  durations, as before), `"step_variable"` (a vector of durations whose last
+  element is repeated, e.g. `c(300, 180)` for a 5-min first step; the
+  averaged segment can also vary per step) and `"relative"` (steps in W/kg).
+  It also records the load schedule (`load_start`, `load_increment`,
+  `load_unit`) and the exercise `mode`. `MFO()` and `MFOs()` gain
+  `protocol = NULL`; the default builds a `"step"` protocol from
+  `step_duration` and `steady_state_duration` and gives the same results as
+  0.2.1. If both are supplied, `protocol` is used with a warning. `MFO()`
+  returns `protocol` and `mode`; the `MFOs()` summary gains the columns
+  `protocol` and `mode`.
+
+* Measured load (SPEC 14): an optional `Load` column of `db_MFO` (W or
+  km/h) is averaged per step like VO2; without it the load schedule of the
+  protocol (`load_start + (Step - 1) * load_increment`) is used, otherwise
+  `NA`. `MFO()` returns Fatmax and the Fatmax zone in load units
+  (`FAT_MAX_load`, `FatMax_zone_lower_load`, `FatMax_zone_upper_load`) by
+  linear interpolation between steps, with `load_unit` and `load_source`
+  (`"file"`, `"protocol"`, `"none"`). With `MFO_protocol("relative")` a Load
+  column is divided by `body_mass` to give W/kg. `MFOs()` gains
+  `col_name_Load` and the same columns. Example data: Fatmax 36.2 %VO2max =
+  86.5 W, zone 44.4–122.8 W.
+
+* `VO2max_from_test()` returns VO2max (highest 30-s rolling mean, as in
+  `MFO()`) with maximality criteria: plateau (< 150 ml/min between the last
+  two stages), peak RER > 1.10 and peak HR >= 90 % of the predicted HRmax
+  (Tanaka 208 - 0.7 age by default, or Fox 220 - age; needs the new `age`
+  argument). It is labelled `"VO2max"` with a plateau, or without one when
+  RER and HR are both met, and `"VO2peak"` otherwise. Thresholds are
+  arguments; their sources are pending verification (SPEC 14, 19). `MFO()`
+  and `MFOs()` gain `age` and return `VO2max_type` (and `MFO()`
+  `VO2max_criteria`); `VO2max` also accepts a `VO2max_from_test()` result.
+  Without `age`, `MFO()` says once per session that the HR criterion was not
+  evaluated.
+
+* The example data `MFO_df` gain a `Load` column (25–200 W, 25-W stages),
+  as described in their documentation.
+
+* `MFO_protocol()` gains `"ramp"` and `"single_day"` (SPEC 14). A ramp is
+  read as windows of `ramp_window` s (30 by default, rounded up to whole
+  records), one every `ramp_step` s (back to back by default); `min_steps`
+  counts non-overlapping windows, `method = "MV"` stops with an error
+  suggesting P3, and a load schedule is `load_start` plus `load_increment`
+  per minute at each window midpoint (ramp vs. graded protocols, Physiologia
+  2025). A single-day test has `cut_time`: records after it are the graded
+  test, used for VO2max when `db_graded` and `VO2max` are not given (Sports
+  Med Health Sci 2026). Automatic detection of the phases is left to the
+  importers (SPEC 16).
+
+## Bug fixes
+
+* `use_incomplete_step = TRUE` averaged only the last record of the
+  incomplete step instead of its last `steady_state_duration` s, as
+  documented (the start was counted from the nominal end of the step). In
+  the example data cut to 66 records, step 8 VO2 goes from 2495 (one record)
+  to 2444.7 ml/min (last 60 s). The default (`FALSE`) is not affected
+  (#26, SPEC 9.5).
+
+## Documentation
+
+* Vignette: new section "Protocols, load and VO2max" (protocol types,
+  Fatmax in watts, VO2max vs VO2peak, ramps and single-day tests); the
+  generated methods paragraph reports Fatmax in W.
+
 # MFO 0.2.1
 
 First CRAN release since 0.1.0 (2022). Scientific background and sources of

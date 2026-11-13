@@ -7,7 +7,9 @@
 #' (Frayn, Jeukendrup, Peronnet).
 #'
 #' @param step_time how often the data was collected (in seconds).
-#' @param db_MFO database containing MFO test.
+#' @param db_MFO database containing MFO test. An optional `Load` column (W or
+#'        km/h, in the unit of `protocol`) is averaged per step like VO2 and gives
+#'        Fatmax and the Fatmax zone in load units.
 #' @param db_basal database containing basal test.
 #' @param db_graded database containing incremental exercise test (optional if VO2max provided).
 #'        VO2max is the highest mean VO2 over `vo2max_window` seconds of consecutive records.
@@ -15,8 +17,10 @@
 #' @param author author to estimate MFO. Can be: "Frayn", "Jeukendrup" or "Peronnet".
 #'        "Jeukendrup" warns when an exercise step is outside 40-75 \% VO2max, the range
 #'        of Jeukendrup & Wallis (2005, Table 5); the resting row never warns.
-#' @param VO2max VO2max can be passed directly (ml/min) instead of using db_graded.
-#'        If both are given, `VO2max` is used as is and `db_graded` is ignored with a warning.
+#' @param VO2max VO2max can be passed directly (ml/min) instead of using db_graded,
+#'        or as the result of [VO2max_from_test()] (to set its thresholds or HRmax
+#'        equation). If both are given, `VO2max` is used as is and `db_graded` is
+#'        ignored with a warning.
 #' @param method method to locate MFO and Fatmax: "P3" (3rd-degree polynomial, default),
 #'        "P2" (2nd-degree polynomial), "MV" (measured values) or "MRER" (RER method).
 #'        See the section *Methods*.
@@ -61,6 +65,25 @@
 #'        (default 6). A warning is given when fewer steps remain after
 #'        `RER_cutoff` and `negative_FAT = "exclude"`; the resting row of
 #'        `include_basal = TRUE` does not count. See SPEC 14.
+#' @param protocol optional [MFO_protocol()] describing the test: step
+#'        durations (equal or variable), averaged segment, load and mode. If
+#'        given, `step_duration` and `steady_state_duration` are not used (a
+#'        warning says so if they were also supplied). Default `NULL` builds
+#'        `MFO_protocol("step", step_duration, steady_state_duration)`, which
+#'        gives the same results as v0.2.1. See SPEC 14.
+#' @param age age in years (optional), for the heart-rate criterion of
+#'        [VO2max_from_test()] when VO2max comes from `db_graded`. Without it that
+#'        criterion is not evaluated and a message says so once per session.
+#'
+#' @section Load:
+#' `Load` in `MFO_db` is the measured external load of each step (mean over
+#' the averaged segment) when `db_MFO` has a `Load` column; otherwise the load
+#' schedule of `protocol` (`load_start + (Step - 1) * load_increment`); otherwise
+#' `NA` (`load_source` says which). Fatmax and the Fatmax zone are converted to
+#' load units by linear interpolation of Load against \% VO2max between steps,
+#' as HR at Fatmax. With `MFO_protocol("relative")` a `Load` column is taken as
+#' W and divided by `body_mass` to give W/kg; without `body_mass` it stays in W
+#' with a warning. Up to v0.2.1 `Load` was a synthetic step label. See SPEC 14.
 #'
 #' @section Quality warnings:
 #' Besides the warnings on inputs, `MFO()` warns when the result needs
@@ -105,8 +128,10 @@
 #'
 #' @return {Returns a list which contains:
 #' \itemize{
-#' \item MFO_db: database with Load, VO2, VCO2, HR, RER, CHO, FAT, Kcal, porc_VO2
+#' \item MFO_db: database with Step, Load (see *Load*), VO2, VCO2, HR, RER, CHO, FAT, Kcal, porc_VO2
 #'   (one row per exercise step, plus the resting row first if `include_basal = TRUE`).
+#'   `Step` is the step number in the test (0 = resting row); steps removed by
+#'   `RER_cutoff` or `negative_FAT = "exclude"` leave gaps in it.
 #' \item MFO_plot: ggplot object with the MFO plot including FAT and CHO curves.
 #' \item MFO: Maximal fat oxidation (g/min).
 #' \item MFO_relative: MFO relative to body mass (mg/kg/min), if body_mass provided.
@@ -117,6 +142,10 @@
 #' \item FatMax_zone_lower: Lower bound of FatMax zone (\% VO2max).
 #' \item FatMax_zone_upper: Upper bound of FatMax zone (\% VO2max).
 #' \item FatMax_zone_method: "fitted curve", or "linear interpolation" for `method = "MV"`.
+#' \item FAT_MAX_load, FatMax_zone_lower_load, FatMax_zone_upper_load: Fatmax and
+#'   the Fatmax zone in `load_unit` (`NA` without load).
+#' \item load_unit: "W", "km/h" or "W/kg" (`NA` without load).
+#' \item load_source: "file", "protocol" or "none".
 #' \item crossover_point: Intensity at which CHO > FAT (\% VO2max).
 #' \item R_squared: R-squared of the fitted model (`NA` for "MV").
 #' \item RMSE: Root mean squared error of the fitted model (`NA` for "MV").
@@ -125,9 +154,14 @@
 #' \item VO2max: VO2max used to express intensity (ml/min).
 #' \item VO2max_window: effective averaging window for VO2max (s); NA if VO2max was supplied.
 #' \item VO2max_window_requested: `vo2max_window` as requested (s); NA if VO2max was supplied.
+#' \item VO2max_type: "VO2max" or "VO2peak" from the maximality criteria of
+#'   [VO2max_from_test()]; NA if a number was supplied as VO2max.
+#' \item VO2max_criteria: data frame of those criteria (NULL if a number was supplied).
 #' \item x_CHO: carbohydrates in basal metabolism (g/min), with the same `author` equations as the test.
 #' \item x_FAT: fat in basal metabolism (g/min).
 #' \item x_Kcal: Kcal in basal metabolism (kcal/min).
+#' \item protocol: the [MFO_protocol()] used.
+#' \item mode: exercise mode of the protocol ("cycling", "running" or "walking").
 #' }}
 #'
 #' @export
@@ -185,7 +219,9 @@ MFO <- function(step_time,
                 include_basal = FALSE,
                 energy_equivalents = c("classic", "source"),
                 use_incomplete_step = FALSE,
-                min_steps = 6) {
+                min_steps = 6,
+                protocol = NULL,
+                age = NULL) {
 
   # Validate inputs
   method <- match.arg(method, c("P3", "P2", "MV", "MRER"))
@@ -195,28 +231,58 @@ MFO <- function(step_time,
   if (!is.numeric(min_steps) || length(min_steps) != 1 || is.na(min_steps) || min_steps < 1) {
     stop("min_steps must be a single number >= 1.", call. = FALSE)
   }
+  protocol <- .resolve_protocol(protocol, step_duration, steady_state_duration,
+                                durations_given = !missing(step_duration) ||
+                                  !missing(steady_state_duration))
 
   # Solve error: 'list' object cannot be coerced to type 'double'
   db_basal <- data.frame(db_basal)
   db_MFO <- data.frame(db_MFO)
 
-  # Get VO2max: a value supplied by the lab wins over db_graded (SPEC 14);
-  # otherwise the highest rolling mean over vo2max_window s (SPEC 9.5)
+  if (protocol$type == "ramp" && method == "MV") {
+    stop('method = "MV" needs steps; with a ramp protocol use "P3" (or "P2", "MRER").',
+         call. = FALSE)
+  }
+  # Single-day test: records after cut_time are the graded test (SPEC 14)
+  if (protocol$type == "single_day") {
+    cut_rec <- as.integer(round(protocol$cut_time / step_time))
+    if (cut_rec >= nrow(db_MFO)) {
+      stop("cut_time is at or after the end of db_MFO; there is no graded test after it.",
+           call. = FALSE)
+    }
+    graded_part <- db_MFO[(cut_rec + 1):nrow(db_MFO), , drop = FALSE]
+    db_MFO <- db_MFO[seq_len(cut_rec), , drop = FALSE]
+    if (is.null(db_graded) && is.null(VO2max)) db_graded <- graded_part
+  }
+
+  # Get VO2max: a value supplied by the lab (number or VO2max_from_test()
+  # result) wins over db_graded (SPEC 14); otherwise the highest rolling mean
+  # over vo2max_window s (SPEC 9.5) with the maximality criteria (SPEC 14)
   VO2max_window <- NA
   VO2max_window_requested <- NA
+  VO2max_type <- NA_character_
+  VO2max_criteria <- NULL
+  vo2 <- NULL
   if (!is.null(VO2max)) {
     if (!is.null(db_graded)) {
       warning("Both VO2max and db_graded supplied; using VO2max and ignoring db_graded.")
     }
+    if (inherits(VO2max, "MFO_VO2max")) vo2 <- VO2max
   } else if (!is.null(db_graded)) {
-    db_graded <- data.frame(db_graded)
-    vo2max_est <- .vo2max_rolling(db_graded[["VO2"]], step_time = step_time,
-                                  window = vo2max_window)
-    VO2max <- vo2max_est$VO2max
-    VO2max_window <- vo2max_est$window
-    VO2max_window_requested <- vo2max_window
+    vo2 <- .vo2max_test(db_graded, step_time = step_time, window = vo2max_window,
+                        age = age, HRmax_formula = "tanaka",
+                        plateau_threshold = 150, RER_threshold = 1.10,
+                        HR_threshold = 0.90, warn_age = FALSE)
+    if (is.null(age)) .age_default_message()
   } else {
     stop("You must provide a VO2max value using db_graded or VO2max arguments.")
+  }
+  if (!is.null(vo2)) {
+    VO2max <- vo2$VO2max
+    VO2max_window <- vo2$window
+    VO2max_window_requested <- vo2$window_requested
+    VO2max_type <- vo2$type
+    VO2max_criteria <- vo2$criteria
   }
 
   # Get basal data
@@ -231,15 +297,15 @@ MFO <- function(step_time,
                              db_MFO = db_MFO,
                              VO2max = VO2max,
                              author = author,
-                             step_duration = step_duration,
-                             steady_state_duration = steady_state_duration,
                              RER_cutoff = RER_cutoff,
                              energy_equivalents = energy_equivalents,
-                             use_incomplete_step = use_incomplete_step)
+                             use_incomplete_step = use_incomplete_step,
+                             protocol = protocol)
+
+  # Load of each step: file > protocol schedule > NA (SPEC 14)
+  loads <- .step_loads(MFO_test, protocol, body_mass, step_time)
 
   # Build database with basal + exercise steps
-  n_steps <- nrow(MFO_test)
-  Load <- c("basal", seq_len(n_steps) * (step_duration / 60) * 5) # approximate load labels
 
   VO2_vec <- c(basal$x_VO2, MFO_test$VO2)
   VCO2_vec <- c(mean(basal$db_5min$VCO2), MFO_test$VCO2)
@@ -250,7 +316,8 @@ MFO <- function(step_time,
   Kcal_vec <- c(basal$x_Kcal, MFO_test$Kcal)
 
   MFO_db <- data.frame(
-    Load = Load,
+    Step = c(0L, MFO_test$Step),
+    Load = c(NA_real_, loads$Load),
     VO2 = VO2_vec,
     VCO2 = VCO2_vec,
     HR = HR_vec,
@@ -267,7 +334,8 @@ MFO <- function(step_time,
   # HR never decides which steps are dropped (SPEC 9.5, HR ausente)
   basal_row <- MFO_db[1, , drop = FALSE]
   MFO_db <- MFO_db[-1, , drop = FALSE]
-  MFO_db <- MFO_db[stats::complete.cases(MFO_db[, setdiff(names(MFO_db), "HR")]), ,
+  # Neither HR nor Load decides which steps are dropped (both are optional)
+  MFO_db <- MFO_db[stats::complete.cases(MFO_db[, setdiff(names(MFO_db), c("HR", "Load"))]), ,
                    drop = FALSE]
   .warn_missing_HR(MFO_db$HR, MFO_db$porc_VO2)
   if (isTRUE(include_basal)) {
@@ -287,7 +355,8 @@ MFO <- function(step_time,
   }
 
   # Quality: number of exercise steps entering the fit (SPEC 14)
-  .warn_min_steps(sum(MFO_db$Load != "basal"), min_steps)
+  .warn_min_steps(.independent_points(sum(MFO_db$Step != 0), protocol, step_time), min_steps,
+                  ramp = protocol$type == "ramp")
 
   # --- Curve fitting ---
   if (method == "P3") {
@@ -302,7 +371,7 @@ MFO <- function(step_time,
   FatMax_zone_method <- if (result$method == "MV") "linear interpolation" else "fitted curve"
 
   # Quality: Fatmax at the first or last exercise step (SPEC 14)
-  .warn_fatmax_edge(result$FAT_MAX, MFO_db$porc_VO2[MFO_db$Load != "basal"])
+  .warn_fatmax_edge(result$FAT_MAX, MFO_db$porc_VO2[MFO_db$Step != 0])
 
   VAR_MFO <- result$MFO
   VO2_MFO <- result$FAT_MAX
@@ -314,6 +383,11 @@ MFO <- function(step_time,
   # --- FatMax zone (intensities within 10% of MFO) ---
   fatmax_zone <- .calculate_fatmax_zone(fat_predict_fn, VAR_MFO, VO2_MFO, MFO_db)
 
+  # --- Fatmax and zone in load units: linear interpolation between steps ---
+  FAT_MAX_load <- .load_at(MFO_db, VO2_MFO)
+  FatMax_zone_lower_load <- .load_at(MFO_db, fatmax_zone$lower)
+  FatMax_zone_upper_load <- .load_at(MFO_db, fatmax_zone$upper)
+
   # --- Crossover point (CHO > FAT) ---
   crossover <- .calculate_crossover(MFO_db)
 
@@ -322,7 +396,7 @@ MFO <- function(step_time,
   FAT_MAX_porcHRmax <- NA
   hr_data <- MFO_db[!is.na(MFO_db$HR), ]
   if (nrow(hr_data) >= 2) {
-    hr_interp <- approx(hr_data$porc_VO2, hr_data$HR, xout = VO2_MFO)
+    hr_interp <- approx(hr_data$porc_VO2, hr_data$HR, xout = VO2_MFO, ties = mean)
     FAT_MAX_HR <- hr_interp$y
     if (!is.null(HRmax) && !is.na(FAT_MAX_HR)) {
       FAT_MAX_porcHRmax <- (FAT_MAX_HR / HRmax) * 100
@@ -355,6 +429,11 @@ MFO <- function(step_time,
               FatMax_zone_lower = fatmax_zone$lower,
               FatMax_zone_upper = fatmax_zone$upper,
               FatMax_zone_method = FatMax_zone_method,
+              FAT_MAX_load = FAT_MAX_load,
+              FatMax_zone_lower_load = FatMax_zone_lower_load,
+              FatMax_zone_upper_load = FatMax_zone_upper_load,
+              load_unit = loads$unit,
+              load_source = loads$source,
               crossover_point = crossover,
               R_squared = R_squared,
               RMSE = RMSE,
@@ -363,19 +442,69 @@ MFO <- function(step_time,
               VO2max = VO2max,
               VO2max_window = VO2max_window,
               VO2max_window_requested = VO2max_window_requested,
+              VO2max_type = VO2max_type,
+              VO2max_criteria = VO2max_criteria,
               x_CHO = basal$x_CHO,
               x_FAT = basal$x_FAT,
-              x_Kcal = basal$x_Kcal))
+              x_Kcal = basal$x_Kcal,
+              protocol = protocol,
+              mode = protocol$mode))
+}
+
+
+# --- Internal helper: load of each step, file > protocol > NA (SPEC 14) ---
+.step_loads <- function(steps, protocol, body_mass, step_time) {
+  unit <- protocol$load_unit
+  if (any(!is.na(steps$Load))) {
+    load <- steps$Load
+    source <- "file"
+    if (protocol$type == "relative") {
+      if (is.null(body_mass)) {
+        warning("Relative protocol without body_mass: the Load column is kept in W, ",
+                "not W/kg.", call. = FALSE)
+        unit <- "W"
+      } else {
+        load <- load / body_mass
+      }
+    }
+  } else if (!is.null(protocol$load_start)) {
+    if (protocol$type == "ramp") {
+      # load_increment per minute, taken at the midpoint of each window
+      # (whole records, as the windows are cut)
+      st <- suppressMessages(.ramp_records(protocol$ramp_step, step_time, "")) * step_time
+      w <- suppressMessages(.ramp_records(protocol$ramp_window, step_time, "")) * step_time
+      t_mid <- (steps$Step - 1) * st + w / 2
+      load <- protocol$load_start + protocol$load_increment * t_mid / 60
+    } else {
+      load <- protocol$load_start + (steps$Step - 1) * protocol$load_increment
+    }
+    source <- "protocol"
+  } else {
+    load <- rep(NA_real_, nrow(steps))
+    source <- "none"
+    unit <- NA_character_
+  }
+  list(Load = load, source = source, unit = unit)
+}
+
+
+# --- Internal helper: load at an intensity (%VO2max), linear interpolation
+# between exercise steps, as HR at Fatmax (SPEC 14) ---
+.load_at <- function(MFO_db, x) {
+  ex <- MFO_db[MFO_db$Step != 0 & !is.na(MFO_db$Load), , drop = FALSE]
+  if (nrow(ex) < 2 || length(x) != 1 || is.na(x)) return(NA_real_)
+  approx(ex$porc_VO2, ex$Load, xout = x, ties = mean)$y
 }
 
 
 # --- Internal helper: too few exercise steps in the fit (SPEC 14) ---
-.warn_min_steps <- function(n_steps, min_steps) {
+.warn_min_steps <- function(n_steps, min_steps, ramp = FALSE) {
   if (n_steps < min_steps) {
-    warning(sprintf(paste0("The curve is fitted with %d exercise step(s); at least %s ",
+    what <- if (ramp) "non-overlapping ramp window(s)" else "exercise step(s)"
+    warning(sprintf(paste0("The curve is fitted with %d %s; at least %s ",
                            "are recommended (min_steps). A low RER_cutoff or ",
                            "negative_FAT = \"exclude\" removes steps."),
-                    n_steps, format(min_steps)), call. = FALSE)
+                    n_steps, what, format(min_steps)), call. = FALSE)
   }
   invisible(n_steps < min_steps)
 }

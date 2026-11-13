@@ -11,10 +11,11 @@
 #'
 #' @usage data(MFO_df)
 #'
-#' @format A data frame with 72 rows and 8 variables:
+#' @format A data frame with 72 rows and 9 variables:
 #' \describe{
 #'   \item{Time}{time test, in seconds (20s intervals)}
 #'   \item{HR}{heart rate, in beats/min}
+#'   \item{Load}{external load, in W (25 W in the first stage, +25 W per stage)}
 #'   \item{VO2}{volume of oxygen consumption, in mL/min}
 #'   \item{VCO2}{volume of exhaled carbon dioxide, in mL/min}
 #'   \item{RER}{respiratory exchange ratio}

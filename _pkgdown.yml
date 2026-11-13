@@ -20,6 +20,13 @@ articles:
   - mfo-workflow
 
 reference:
+- title: Describe the test
+  desc: >
+    Protocol of the MFO test (step durations, averaged segment, load and
+    exercise mode) and VO2max of the graded test with maximality criteria.
+  contents:
+  - MFO_protocol
+  - VO2max_from_test
 - title: Compute MFO and Fatmax
   desc: >
     One participant: basal window, step averaging, stoichiometric equation,

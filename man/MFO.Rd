@@ -24,13 +24,17 @@ MFO(
   include_basal = FALSE,
   energy_equivalents = c("classic", "source"),
   use_incomplete_step = FALSE,
-  min_steps = 6
+  min_steps = 6,
+  protocol = NULL,
+  age = NULL
 )
 }
 \arguments{
 \item{step_time}{how often the data was collected (in seconds).}
 
-\item{db_MFO}{database containing MFO test.}
+\item{db_MFO}{database containing MFO test. An optional `Load` column (W or
+km/h, in the unit of `protocol`) is averaged per step like VO2 and gives
+Fatmax and the Fatmax zone in load units.}
 
 \item{db_basal}{database containing basal test.}
 
@@ -43,8 +47,10 @@ VO2max is the highest mean VO2 over `vo2max_window` seconds of consecutive recor
 "Jeukendrup" warns when an exercise step is outside 40-75 \% VO2max, the range
 of Jeukendrup & Wallis (2005, Table 5); the resting row never warns.}
 
-\item{VO2max}{VO2max can be passed directly (ml/min) instead of using db_graded.
-If both are given, `VO2max` is used as is and `db_graded` is ignored with a warning.}
+\item{VO2max}{VO2max can be passed directly (ml/min) instead of using db_graded,
+or as the result of [VO2max_from_test()] (to set its thresholds or HRmax
+equation). If both are given, `VO2max` is used as is and `db_graded` is
+ignored with a warning.}
 
 \item{method}{method to locate MFO and Fatmax: "P3" (3rd-degree polynomial, default),
 "P2" (2nd-degree polynomial), "MV" (measured values) or "MRER" (RER method).
@@ -102,12 +108,25 @@ although VO2 may not have reached its plateau. See SPEC 9.5.}
 (default 6). A warning is given when fewer steps remain after
 `RER_cutoff` and `negative_FAT = "exclude"`; the resting row of
 `include_basal = TRUE` does not count. See SPEC 14.}
+
+\item{protocol}{optional [MFO_protocol()] describing the test: step
+durations (equal or variable), averaged segment, load and mode. If
+given, `step_duration` and `steady_state_duration` are not used (a
+warning says so if they were also supplied). Default `NULL` builds
+`MFO_protocol("step", step_duration, steady_state_duration)`, which
+gives the same results as v0.2.1. See SPEC 14.}
+
+\item{age}{age in years (optional), for the heart-rate criterion of
+[VO2max_from_test()] when VO2max comes from `db_graded`. Without it that
+criterion is not evaluated and a message says so once per session.}
 }
 \value{
 {Returns a list which contains:
 \itemize{
-\item MFO_db: database with Load, VO2, VCO2, HR, RER, CHO, FAT, Kcal, porc_VO2
+\item MFO_db: database with Step, Load (see *Load*), VO2, VCO2, HR, RER, CHO, FAT, Kcal, porc_VO2
   (one row per exercise step, plus the resting row first if `include_basal = TRUE`).
+  `Step` is the step number in the test (0 = resting row); steps removed by
+  `RER_cutoff` or `negative_FAT = "exclude"` leave gaps in it.
 \item MFO_plot: ggplot object with the MFO plot including FAT and CHO curves.
 \item MFO: Maximal fat oxidation (g/min).
 \item MFO_relative: MFO relative to body mass (mg/kg/min), if body_mass provided.
@@ -118,6 +137,10 @@ although VO2 may not have reached its plateau. See SPEC 9.5.}
 \item FatMax_zone_lower: Lower bound of FatMax zone (\% VO2max).
 \item FatMax_zone_upper: Upper bound of FatMax zone (\% VO2max).
 \item FatMax_zone_method: "fitted curve", or "linear interpolation" for `method = "MV"`.
+\item FAT_MAX_load, FatMax_zone_lower_load, FatMax_zone_upper_load: Fatmax and
+  the Fatmax zone in `load_unit` (`NA` without load).
+\item load_unit: "W", "km/h" or "W/kg" (`NA` without load).
+\item load_source: "file", "protocol" or "none".
 \item crossover_point: Intensity at which CHO > FAT (\% VO2max).
 \item R_squared: R-squared of the fitted model (`NA` for "MV").
 \item RMSE: Root mean squared error of the fitted model (`NA` for "MV").
@@ -126,9 +149,14 @@ although VO2 may not have reached its plateau. See SPEC 9.5.}
 \item VO2max: VO2max used to express intensity (ml/min).
 \item VO2max_window: effective averaging window for VO2max (s); NA if VO2max was supplied.
 \item VO2max_window_requested: `vo2max_window` as requested (s); NA if VO2max was supplied.
+\item VO2max_type: "VO2max" or "VO2peak" from the maximality criteria of
+  [VO2max_from_test()]; NA if a number was supplied as VO2max.
+\item VO2max_criteria: data frame of those criteria (NULL if a number was supplied).
 \item x_CHO: carbohydrates in basal metabolism (g/min), with the same `author` equations as the test.
 \item x_FAT: fat in basal metabolism (g/min).
 \item x_Kcal: Kcal in basal metabolism (kcal/min).
+\item protocol: the [MFO_protocol()] used.
+\item mode: exercise mode of the protocol ("cycling", "running" or "walking").
 }}
 }
 \description{
@@ -137,6 +165,18 @@ MFO (FatMax), the FatMax zone, and the crossover point. Supports multiple
 methods to locate MFO (P3, P2, MV, MRER) and stoichiometric equations
 (Frayn, Jeukendrup, Peronnet).
 }
+\section{Load}{
+
+`Load` in `MFO_db` is the measured external load of each step (mean over
+the averaged segment) when `db_MFO` has a `Load` column; otherwise the load
+schedule of `protocol` (`load_start + (Step - 1) * load_increment`); otherwise
+`NA` (`load_source` says which). Fatmax and the Fatmax zone are converted to
+load units by linear interpolation of Load against \% VO2max between steps,
+as HR at Fatmax. With `MFO_protocol("relative")` a `Load` column is taken as
+W and divided by `body_mass` to give W/kg; without `body_mass` it stays in W
+with a warning. Up to v0.2.1 `Load` was a synthetic step label. See SPEC 14.
+}
+
 \section{Quality warnings}{
 
 Besides the warnings on inputs, `MFO()` warns when the result needs

@@ -129,6 +129,47 @@ test_that("MFOs() passes method, VO2max and the quality arguments to MFO()", {
   expect_false(any(grepl("min_steps", w)))
 })
 
+test_that("MFOs() passes the protocol to MFO() and reports it", {
+  root <- withr::local_tempdir()
+  parts <- .participants()
+  .write_folder(root, parts)
+  p <- MFO_protocol("step_variable", step_duration = c(360, 180), mode = "running")
+  res <- suppressWarnings(suppressMessages(.mfos("folder", root, protocol = p)))
+  expect_equal(res$protocol, c("step_variable", "step_variable"))
+  expect_equal(res$mode, c("running", "running"))
+  .expect_matches_MFO(res[1, ], parts$P01, protocol = p)
+  # a conflicting step_duration warns once for the batch, not per participant
+  w <- capture_warnings(suppressMessages(.mfos("folder", root, protocol = p,
+                                               step_duration = 120)))
+  expect_equal(sum(grepl("using protocol", w)), 1)
+})
+
+test_that("MFOs() reads a renamed Load column and reports load and VO2max type", {
+  root <- withr::local_tempdir()
+  parts <- .participants()
+  # the analyser calls the load "Power"
+  for (id in names(parts)) {
+    names(parts[[id]]$MFO)[names(parts[[id]]$MFO) == "Load"] <- "Power"
+  }
+  .write_folder(root, parts)
+  res <- suppressWarnings(suppressMessages(
+    .mfos("folder", root, col_name_Load = "Power", age = 30)))
+  r <- suppressWarnings(suppressMessages(
+    MFO(step_time = 20,
+        db_MFO = cbind(.as_read(.participants()$P01$MFO), Load = .participants()$P01$MFO$Load),
+        db_basal = .as_read(parts$P01$basal), db_graded = .as_read(parts$P01$graded),
+        cv_var = "RER", author = "Frayn", energy_equivalents = "classic", age = 30)))
+  expect_equal(res$load_source, c("file", "file"))
+  expect_equal(res$load_unit, c("W", "W"))
+  expect_equal(res$FAT_MAX_load[1], round(r$FAT_MAX_load, 1))
+  expect_equal(res$FatMax_zone_lower_load[1], round(r$FatMax_zone_lower_load, 1))
+  expect_equal(res$VO2max_type[1], r$VO2max_type)
+  # without the column name the load is lost: no load outputs
+  res0 <- suppressWarnings(suppressMessages(.mfos("folder", root)))
+  expect_equal(res0$load_source, c("none", "none"))
+  expect_true(all(is.na(res0$FAT_MAX_load)))
+})
+
 test_that("a participant that cannot be processed gives an NA row and a warning", {
   root <- withr::local_tempdir()
   parts <- .participants()

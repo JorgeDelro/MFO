@@ -30,6 +30,10 @@
 #'        a proportion of MFO in (0, 1). See [MFO_kinetics()].
 #' @param step_duration duration of each exercise step in seconds (default 180).
 #' @param steady_state_duration duration of steady-state period within each step in seconds (default 60).
+#' @param age age in years (optional), the same for every participant, for the
+#'        heart-rate criterion of VO2max. See [MFO()] and [VO2max_from_test()].
+#' @param protocol optional [MFO_protocol()], the same for every participant; if
+#'        given, `step_duration` and `steady_state_duration` are not used. See [MFO()].
 #' @param RER_cutoff RER value above which steps are excluded (default NULL), as a
 #'        number or "classic", "safe", "sedentary", "trained". See [MFO()].
 #' @param negative_FAT how to handle negative fat oxidation: "truncate", "exclude", or "keep".
@@ -41,6 +45,8 @@
 #' @param col_name_VCO2 column name for VCO2 in databases. Default "VCO2".
 #' @param col_name_RER column name for RER in databases. Default "RER".
 #' @param col_name_HR column name for HR in databases. Default "HR".
+#' @param col_name_Load column name for the external load (W or km/h) in the
+#'        databases. Default "Load"; the column is optional. See [MFO()].
 #' @param save_plot save plots to MFO_plots/ directory (default TRUE).
 #' @param save_result save results file (default TRUE).
 #' @param output_format format for results file: "xlsx", "csv", or "rds". Default "xlsx".
@@ -65,16 +71,21 @@
 #' \item MFO_FFM: MFO relative to fat-free mass (mg/kgFFM/min), if fat_free_mass provided.
 #' \item VO2max: VO2max used (ml/min).
 #' \item VO2max_window: effective averaging window for VO2max (s); NA if VO2max was supplied.
+#' \item VO2max_type: "VO2max" or "VO2peak" (see [VO2max_from_test()]); NA if VO2max was supplied.
 #' \item FAT_MAX_perVO2max: FatMax as \% VO2max.
 #' \item FAT_MAX_HR: Heart rate at FatMax (bpm).
 #' \item FAT_MAX_porcHRmax: FatMax as \% HRmax, if HRmax provided.
 #' \item FatMax_zone_lower: Lower bound of FatMax zone (\% VO2max).
 #' \item FatMax_zone_upper: Upper bound of FatMax zone (\% VO2max).
 #' \item FatMax_zone_method: "fitted curve", or "linear interpolation" for "MV".
+#' \item FAT_MAX_load, FatMax_zone_lower_load, FatMax_zone_upper_load: Fatmax and
+#'   Fatmax zone in load units; load_unit and load_source as in [MFO()].
 #' \item crossover_point: Crossover intensity (\% VO2max).
 #' \item R_squared: R-squared of the curve fit.
 #' \item method: method requested.
 #' \item energy_equivalents: "classic" or "source".
+#' \item protocol: protocol type (see [MFO_protocol()]).
+#' \item mode: exercise mode of the protocol.
 #' \item d: SIN dilatation parameter.
 #' \item t: SIN translation parameter.
 #' \item s: SIN symmetry parameter.
@@ -134,12 +145,19 @@ MFOs <- function(from = c("folder", "files"),
                  fatmin_threshold = NULL,
                  energy_equivalents = c("classic", "source"),
                  use_incomplete_step = FALSE,
-                 min_steps = 6) {
+                 min_steps = 6,
+                 protocol = NULL,
+                 age = NULL,
+                 col_name_Load = "Load") {
 
   from <- match.arg(from)
   output_format <- match.arg(output_format, c("xlsx", "csv", "rds"))
   if (missing(energy_equivalents)) .energy_default_message()
   energy_equivalents <- match.arg(energy_equivalents)
+  # Resolved once, so a conflict warns once and not per participant
+  protocol <- .resolve_protocol(protocol, step_duration, steady_state_duration,
+                                durations_given = !missing(step_duration) ||
+                                  !missing(steady_state_duration))
 
   participants <- list.files(path)
 
@@ -167,7 +185,8 @@ MFOs <- function(from = c("folder", "files"),
         col_name_VO2 = col_name_VO2,
         col_name_VCO2 = col_name_VCO2,
         col_name_RER = col_name_RER,
-        col_name_HR = col_name_HR
+        col_name_HR = col_name_HR,
+        col_name_Load = col_name_Load
       )
 
       # Calculate MFO
@@ -181,8 +200,7 @@ MFOs <- function(from = c("folder", "files"),
         author = author,
         VO2max = VO2max,
         method = method,
-        step_duration = step_duration,
-        steady_state_duration = steady_state_duration,
+        protocol = protocol,
         RER_cutoff = RER_cutoff,
         negative_FAT = negative_FAT,
         body_mass = body_mass,
@@ -192,7 +210,8 @@ MFOs <- function(from = c("folder", "files"),
         include_basal = include_basal,
         energy_equivalents = energy_equivalents,
         use_incomplete_step = use_incomplete_step,
-        min_steps = min_steps
+        min_steps = min_steps,
+        age = age
       )
 
       # Save MFO plot
@@ -229,6 +248,7 @@ MFOs <- function(from = c("folder", "files"),
                                participant_result_MFO$MFO_FFM), 2),
         VO2max = round(participant_result_MFO$VO2max, 1),
         VO2max_window = participant_result_MFO$VO2max_window,
+        VO2max_type = participant_result_MFO$VO2max_type,
         FAT_MAX_perVO2max = round(participant_result_MFO$FAT_MAX, 2),
         FAT_MAX_HR = round(ifelse(is.na(participant_result_MFO$FAT_MAX_HR), NA,
                                   participant_result_MFO$FAT_MAX_HR), 1),
@@ -239,11 +259,18 @@ MFOs <- function(from = c("folder", "files"),
         FatMax_zone_upper = round(ifelse(is.na(participant_result_MFO$FatMax_zone_upper), NA,
                                           participant_result_MFO$FatMax_zone_upper), 2),
         FatMax_zone_method = participant_result_MFO$FatMax_zone_method,
+        FAT_MAX_load = round(participant_result_MFO$FAT_MAX_load, 1),
+        FatMax_zone_lower_load = round(participant_result_MFO$FatMax_zone_lower_load, 1),
+        FatMax_zone_upper_load = round(participant_result_MFO$FatMax_zone_upper_load, 1),
+        load_unit = participant_result_MFO$load_unit,
+        load_source = participant_result_MFO$load_source,
         crossover_point = round(ifelse(is.na(participant_result_MFO$crossover_point), NA,
                                        participant_result_MFO$crossover_point), 2),
         R_squared = round(participant_result_MFO$R_squared, 4),
         method = participant_result_MFO$method,
         energy_equivalents = participant_result_MFO$energy_equivalents,
+        protocol = participant_result_MFO$protocol$type,
+        mode = participant_result_MFO$mode,
         d = round(participant_result_kinetics$d, 3),
         t = round(participant_result_kinetics$t, 3),
         s = round(participant_result_kinetics$s, 3),
@@ -270,11 +297,14 @@ MFOs <- function(from = c("folder", "files"),
       results_list[[i]] <<- data.frame(
         ID = ID_participant,
         MFO_g_min = NA, MFO_relative = NA, MFO_FFM = NA,
-        VO2max = NA, VO2max_window = NA,
+        VO2max = NA, VO2max_window = NA, VO2max_type = NA,
         FAT_MAX_perVO2max = NA, FAT_MAX_HR = NA, FAT_MAX_porcHRmax = NA,
         FatMax_zone_lower = NA, FatMax_zone_upper = NA, FatMax_zone_method = NA,
+        FAT_MAX_load = NA, FatMax_zone_lower_load = NA, FatMax_zone_upper_load = NA,
+        load_unit = NA, load_source = NA,
         crossover_point = NA, R_squared = NA, method = method,
         energy_equivalents = energy_equivalents,
+        protocol = protocol$type, mode = protocol$mode,
         d = NA, t = NA, s = NA, Fatmin = NA, FatMax_SIN = NA,
         SIN_R_squared = NA, SIN_convergence = FALSE,
         CHO_g_basal = NA, FAT_g_basal = NA, Kcal_g_basal = NA,
