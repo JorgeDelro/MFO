@@ -487,11 +487,11 @@ Cada importador se desarrollará a partir de un fichero real anonimizado incluid
 | --- | --- | --- | --- | --- | --- |
 | P3 | paramétrico (σ sorteada) | 0,91–0,95 | 0,92–0,94 | 0,88–0,96 | −0,4 a +1,6 |
 | P3 | bootstrap de residuos | 0,77–0,91 | 0,84–0,88 | 0,75–0,87 | −0,2 a +1,9 |
-| P2 | paramétrico (σ sorteada) | 0,90–0,95 | 0,96–0,98 | 0,97–0,99 | −0,8 a +6,8 (inestable con CV 20 %) |
-| P2 | bootstrap de residuos | 0,80–0,85 | 0,83–0,93 | 0,87–0,94 | −7,4 a +0,2 |
+| P2 | paramétrico (σ sorteada) | 0,91–0,95 | 0,94 | 0,95–0,98 | −7,0 a +0,9 (inestable con CV 20 %) |
+| P2 | bootstrap de residuos | 0,82–0,91 | 0,84–0,90 | 0,83–0,94 | −6,2 a +1,5 |
 | MRER | bootstrap de residuos | 0,48–0,61 | 0,61–0,67 | 0,68–0,74 | +2,8 a +4,2 |
 
-Caso ideal (P2 sobre una parábola, 8 escalones, errores normales; 500 tests): cobertura de Fatmax 0,944 con el paramétrico de σ sorteada frente a 0,882 con el bootstrap de residuos (≈ P(|t₅| < 1,96) = 0,893). Decisiones (Jorge, 17 nov 2026): `ci = "parametric"` es el intervalo recomendado (`ci = TRUE`); MRER se mantiene por comparabilidad, no recomendado como principal; P2 avisa cuando el vértice cae fuera del rango medido. La verdad SIN favorece a los modelos más parecidos a un SIN (P3). (4) Fiabilidad: comparar `MFO_reliability()` con `psych::ICC` e `irr` en datos simulados y con los estadísticos publicados por Chrzanowski-Smith et al. (2020) sobre su dataset abierto. (5) Importadores: igualdad exacta con cálculos manuales sobre los ficheros de `inst/extdata`.
+Caso ideal (P2 sobre una parábola, 8 escalones, errores normales; 500 tests): cobertura de Fatmax 0,944 con el paramétrico de σ sorteada frente a 0,882 con el bootstrap de residuos (≈ P(|t₅| < 1,96) = 0,893). Decisiones (Jorge, 17 nov 2026): `ci = "parametric"` es el intervalo recomendado (`ci = TRUE`); MRER se mantiene por comparabilidad, no recomendado como principal; P2 avisa cuando el vértice cae fuera del rango medido. La verdad SIN favorece a los modelos más parecidos a un SIN (P3). Filas de P2 repetidas tras el arreglo de #38 (parábola sin máximo → MV): tests con c ≥ 0, 0/200 con CV 5 %, 0–1 con 10 %, 5–12 con 20 %; no explican las anchuras enormes de P2, que vienen de réplicas con curvatura negativa casi nula (vértice extrapolado lejos del rango medido). (4) Fiabilidad: comparar `MFO_reliability()` con `psych::ICC` e `irr` en datos simulados y con los estadísticos publicados por Chrzanowski-Smith et al. (2020) sobre su dataset abierto. (5) Importadores: igualdad exacta con cálculos manuales sobre los ficheros de `inst/extdata`.
 
 **Infraestructura.** GitHub Actions (R CMD check en tres sistemas, cobertura ≥ 85 % con `covr`), pkgdown con vignettes "De los gases al Fatmax", "Fiabilidad de tu laboratorio" y "Incertidumbre bayesiana", NEWS por versión, issues públicas para cada punto de esta Parte II, y releases etiquetadas. Esto construye el historial público que JOSS exige.
 
