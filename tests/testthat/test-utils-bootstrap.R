@@ -73,15 +73,23 @@ test_that("coverage of the percentile interval in the ideal case (parabola, norm
   expect_lte(mean(hits), 0.99)
 })
 
-test_that("the parametric bootstrap draws normal errors with the residual SD", {
+test_that("the parametric bootstrap draws sigma^2 ~ Inv-chi^2(n - p, s^2), then normal errors", {
   db <- .parabola_db(noise = c(0.01, -0.02, 0.015, 0, -0.01, 0.02, -0.005, 0.01))
   mod <- lm(FAT ~ porc_VO2 + I(porc_VO2^2), data = db)
+  s <- summary(mod)$sigma          # s^2 = RSS / (n - p), n - p = 5
   set.seed(7)
   e <- .error_generator(mod, "parametric")
-  draws <- replicate(2000, e())
-  # sigma = sqrt(RSS / (n - p)) = summary(mod)$sigma; 16000 draws, SE ~ 0.6 %
-  expect_equal(sd(as.vector(draws)), summary(mod)$sigma, tolerance = 0.02)
-  expect_equal(nrow(.bootstrap_fit(.parabola_db(), "P2", 20, type = "parametric")), 20)
+  draws <- replicate(20000, e())    # 8 errors per draw, one sigma per draw
+  # E[sigma^2] = df s^2 / (df - 2) = 5/3 s^2; each error is s t_5, variance
+  # 5/3 s^2. 160000 errors: SE of the variance about 1 % (t_5 tails)
+  expect_equal(var(as.vector(draws)), 5 / 3 * s^2, tolerance = 0.03)
+  # errors of one draw share their sigma: the per-draw variances spread like
+  # sigma^2 (Inv-chi^2), not like a fixed-sigma sample
+  v <- apply(draws, 2, var)
+  expect_gt(sd(v) / mean(v), 0.8)
+  expect_equal(nrow(.bootstrap_fit(.parabola_db(noise = c(0.01, -0.02, 0.015, 0, -0.01,
+                                                          0.02, -0.005, 0.01)),
+                                   "P2", 20, type = "parametric")), 20)
   mod3 <- lm(FAT ~ porc_VO2 + I(porc_VO2^2), data = db[1:3, ])
   expect_error(.error_generator(mod3, "parametric"), "more steps than model parameters")
 })

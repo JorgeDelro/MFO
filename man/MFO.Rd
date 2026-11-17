@@ -27,7 +27,7 @@ MFO(
   min_steps = 6,
   protocol = NULL,
   age = NULL,
-  ci = c("none", "bootstrap", "parametric"),
+  ci = c("none", "parametric", "bootstrap"),
   B = 2000,
   conf = 0.95,
   seed = NULL,
@@ -125,10 +125,11 @@ gives the same results as v0.2.1. See SPEC 14.}
 [VO2max_from_test()] when VO2max comes from `db_graded`. Without it that
 criterion is not evaluated and a message says so once per session.}
 
-\item{ci}{`"none"` (default), `"bootstrap"` or `"parametric"`: percentile
-confidence intervals of the fit for MFO, Fatmax, the Fatmax zone and
-Fatmax in load units (see *Fit uncertainty*). Not available for
-`method = "MV"`.}
+\item{ci}{`"none"` (default), `"parametric"` or `"bootstrap"`: percentile
+intervals of the fit for MFO, Fatmax, the Fatmax zone and Fatmax in
+load units (see *Fit uncertainty*). `TRUE` means `"parametric"`, the
+recommended one. Not available for `method = "MV"`. Their coverage by
+method, number of steps and noise is in `vignette("validation")`.}
 
 \item{B}{number of bootstrap replicates (default 2000).}
 
@@ -192,26 +193,43 @@ methods to locate MFO (P3, P2, MV, MRER) and stoichiometric equations
 }
 \section{Fit uncertainty}{
 
-With `ci = "bootstrap"` the curve is refitted to B replicates made of the
-fitted values plus residuals resampled with replacement (residual
-bootstrap, SPEC 13.1). The residuals are modified, r / sqrt(1 - h), with h
-the leverage of each step (diagonal of X (X'X)^-1 X'), and centred, so
-that their spread matches that of the errors (Davison & Hinkley 1997,
-Bootstrap Methods and their Application, ch. 6). The interval is the
-percentile one. With `ci = "parametric"` the new errors are normal, with
-the residual standard deviation of the fit, sqrt(RSS / (n - p)), instead of
-resampled residuals. For `"MRER"` the residuals of its two regressions, 1 - RER
-and VO2 on \% VO2max, are resampled separately. Replicates in which the
-fit falls back to another method (e.g. P3 to P2) are dropped and counted.
+The curve is refitted to B replicates made of the fitted values plus new
+errors (SPEC 13.1), and the interval is the percentile one.
+\itemize{
+\item `ci = "parametric"` (also `ci = TRUE`): for each replicate the error
+  variance is drawn from its posterior, sigma^2 ~ Inv-chi^2(n - p, s^2) with
+  s^2 = RSS / (n - p), and the errors are normal with that sigma. This is
+  the posterior interval of normal regression with a flat prior (Gelman et
+  al. 2013, Bayesian Data Analysis, 3rd ed., ch. 14), i.e. a parametric
+  bootstrap that carries the uncertainty of sigma.
+\item `ci = "bootstrap"`: residuals resampled with replacement, modified,
+  r / sqrt(1 - h), with h the leverage of each step (diagonal of
+  X (X'X)^-1 X'), and centred (Davison & Hinkley 1997, Bootstrap Methods
+  and their Application, ch. 6).
+}
+For `"MRER"` its two regressions, 1 - RER and VO2 on \% VO2max, are
+handled separately. Replicates in which the fit falls back to another
+method (e.g. P3 to P2) are dropped and counted.
 
-Both intervals are too narrow with few steps: in the ideal case (correct
-model, a parabola fitted by P2 to 8 steps with independent normal errors;
-500 simulated tests, B = 500) the 95 \% intervals covered Fatmax 88.2 \%
-(`"bootstrap"`) and 89.2 \% (`"parametric"`), and MFO 89.2 \% and 89.6 \%.
-This matches P(|t_5| < 1.96) = 0.893: neither interval carries the
-uncertainty of the residual SD, estimated with n - p = 5 degrees of
-freedom. Read them as lower bounds of the uncertainty; the study by
-method, number of steps and noise is in `inst/validation/`.
+With few steps the residual SD is estimated with few degrees of freedom,
+and only `"parametric"` carries that uncertainty. In the ideal case (P2 on a
+parabola, 8 steps, independent normal errors; 500 simulated tests,
+B = 500) the 95 \% intervals covered Fatmax 94.4 \% (`"parametric"`)
+and 88.2 \% (`"bootstrap"`), and MFO 95.4 \% and 89.2 \%; the bootstrap
+behaves like a z interval with 5 degrees of freedom,
+P(|t_5| < 1.96) = 0.893.
+
+**MRER.** Against SIN-shaped curves (the truth of the simulation study),
+MRER overestimated Fatmax by 3-4 \% VO2max and MFO by 3-7 \%, and its
+interval is centred on that bias, so it covered the true Fatmax in only
+48-74 \% of tests. It is kept for comparability with the literature and
+is not recommended as the main method. The study takes SIN curves as the
+truth, which favours the models closest to a SIN (P3), see
+`vignette("validation")`.
+
+**P2.** When the vertex of the parabola falls outside the measured
+intensities, Fatmax is an extrapolation: a warning says so and the rows of
+`ci` are flagged.
 
 This is the uncertainty of the fit within one test, not the day-to-day
 error (see [MFO_reliability()]). It assumes exchangeable residuals; fat
