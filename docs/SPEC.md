@@ -537,6 +537,11 @@ Cada coeficiente y regla que usará el paquete se ha contrastado con la fuente p
 | Zonas %HRpeak en obesidad: 61–66 % (> 35 % grasa), 57–64 % (< 35 %) | Igual | Chávez-Guevara 2023 | Verificado | Ninguna |
 | Valores normativos sedentarios (0,34 ± 0,10 g/min; 44,2 ± 12,4 % VO2max; percentiles) | Igual | Amaro-Gahete, Sanchez-Delgado y Ruiz 2018, tabla 1 | Verificado | Ninguna |
 | ICC(2,1), SEM = √MSE, MDC95 = 1,96√2·SEM | Igual | Weir 2005; Koo y Li 2016 | Verificado | Ninguna |
+| ICC(2,1) = ICC(A,1), fuente original | Dos factores aleatorios, acuerdo absoluto, medida única | Shrout PE, Fleiss JL (1979). *Psychol Bull* 86(2):420–428 | Verificado (Jorge, 17 nov 2026) | Citado en `MFO_reliability()` |
+| IC 95 % del ICC(A,1) por F | Aproximación de Satterthwaite (v) con cuantiles F(1 − α/2) | McGraw KO, Wong SP (1996). *Psychol Methods* 1(1):30–46, doi:10.1037/1082-989X.1.1.30, con la errata de la p. 390 | Verificado (Jorge, 17 nov 2026) | Implementado en `MFO_reliability()`; coincide con `psych::ICC` 2.6.9 (ICC2) hasta 1e-10 |
+| CV como error típico en logaritmos: 100 (e^SEM_log − 1) | Para todas las variables, junto a CV = SEM/media | Hopkins WG (2000). *Sports Med* 30(1):1–15, doi:10.2165/00007256-200030010-00001 | Verificado (Jorge, 17 nov 2026) | `CV_log` en `MFO_reliability()` |
+| Límites de acuerdo: sesgo ± 1,96 DE de las diferencias | Por pares de sesiones consecutivas | Bland JM, Altman DG (1986). *Lancet* 1(8476):307–310 | Verificado (Jorge, 17 nov 2026) | `pairs` y `plot()` de `MFO_reliability()` |
+| Tamaño de muestra: al menos 30 participantes heterogéneos y, si es posible, 3 evaluadores | Aviso con n < 30 | Koo y Li (2016), *J Chiropr Med* 15:155–163, doi:10.1016/j.jcm.2016.02.012: "researchers should try to obtain at least 30 heterogeneous samples and involve at least 3 raters whenever possible" | Verificado (Claude en el texto de PMC4913118, a petición de Jorge, 17 nov 2026) | Aviso en `MFO_reliability()` |
 | Fatmax típico 45–65 % VO2max; Achten 2002: 64 % VO2max, 74 % HRmax | Igual | Achten 2002; Maunder 2018 | Verificado | Ninguna |
 | Interpretación de s | s > 1 asimetría a la derecha | Chenevière 2009, Discusión: 0 < s < 1 izquierda, s > 1 derecha | Verificado | Ninguna |
 
@@ -595,9 +600,11 @@ Fiabilidad, error de medida y estadística (Parte II)
 - Chrzanowski-Smith OJ, Edinburgh RM, Thomas MP, et al. (2020). The day-to-day reliability of peak fat oxidation and FATMAX. *Eur J Appl Physiol* 120:1745–1759. [doi](https://doi.org/10.1007/s00421-020-04397-3)
 - De Souza Silveira R, Carlsohn A, Langen G, et al. (2016). Reliability and day-to-day variability of peak fat oxidation during treadmill ergometry. *J Int Soc Sports Nutr* 13:4.
 - Weir JP (2005). Quantifying test-retest reliability using the intraclass correlation coefficient and the SEM. *J Strength Cond Res* 19:231–240.
-- Koo TK, Li MY (2016). A guideline of selecting and reporting intraclass correlation coefficients for reliability research. *J Chiropr Med* 15:155–163.
-- Hopkins WG (2000). Measures of reliability in sports medicine and science. *Sports Med* 30:1–15.
-- Bland JM, Altman DG (1986). Statistical methods for assessing agreement between two methods of clinical measurement. *Lancet* 1:307–310.
+- Koo TK, Li MY (2016). A guideline of selecting and reporting intraclass correlation coefficients for reliability research. *J Chiropr Med* 15:155–163. [doi](https://doi.org/10.1016/j.jcm.2016.02.012)
+- Hopkins WG (2000). Measures of reliability in sports medicine and science. *Sports Med* 30(1):1–15. [doi](https://doi.org/10.2165/00007256-200030010-00001)
+- Bland JM, Altman DG (1986). Statistical methods for assessing agreement between two methods of clinical measurement. *Lancet* 1(8476):307–310.
+- McGraw KO, Wong SP (1996). Forming inferences about some intraclass correlation coefficients. *Psychol Methods* 1(1):30–46 (errata p. 390). [doi](https://doi.org/10.1037/1082-989X.1.1.30)
+- Shrout PE, Fleiss JL (1979). Intraclass correlations: uses in assessing rater reliability. *Psychol Bull* 86(2):420–428.
 - Efron B, Tibshirani RJ (1993). *An Introduction to the Bootstrap*. Chapman & Hall.
 - Bürkner PC (2017). brms: an R package for Bayesian multilevel models using Stan. *J Stat Softw* 80(1):1–28.
 - Carpenter B, Gelman A, Hoffman MD, et al. (2017). Stan: a probabilistic programming language. *J Stat Softw* 76(1).
