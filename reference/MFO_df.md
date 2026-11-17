@@ -14,7 +14,7 @@ data(MFO_df)
 
 ## Format
 
-A data frame with 72 rows and 8 variables:
+A data frame with 72 rows and 9 variables:
 
 - Time:
 
@@ -23,6 +23,10 @@ A data frame with 72 rows and 8 variables:
 - HR:
 
   heart rate, in beats/min
+
+- Load:
+
+  external load, in W (25 W in the first stage, +25 W per stage)
 
 - VO2:
 

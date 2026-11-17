@@ -66,13 +66,13 @@ head(basal_df)   # resting measurement, 45 records = 15 min
 #> 5 1899-12-31 00:01:40 69.6 277  244 0.88 14  7   36.4
 #> 6 1899-12-31 00:02:00 66.2 258  221 0.86 14  7   35.3
 head(MFO_df)     # graded MFO test, 72 records = 8 steps of 3 min
-#>                  Time   HR VO2 VCO2  RER BF VE PETCO2
-#> 1 1899-12-31 00:00:20 90.2 635  487 0.77 17 18   35.8
-#> 2 1899-12-31 00:00:40 94.9 627  479 0.76 16 19   35.6
-#> 3 1899-12-31 00:01:00 93.3 634  468 0.74 14 17   36.1
-#> 4 1899-12-31 00:01:20 95.6 646  486 0.75 16 18   35.3
-#> 5 1899-12-31 00:01:40 93.5 630  483 0.77 17 18   36.6
-#> 6 1899-12-31 00:02:00 99.4 679  517 0.76 16 17   35.7
+#>                  Time   HR Load VO2 VCO2  RER BF VE PETCO2
+#> 1 1899-12-31 00:00:20 90.2   25 635  487 0.77 17 18   35.8
+#> 2 1899-12-31 00:00:40 94.9   25 627  479 0.76 16 19   35.6
+#> 3 1899-12-31 00:01:00 93.3   25 634  468 0.74 14 17   36.1
+#> 4 1899-12-31 00:01:20 95.6   25 646  486 0.75 16 18   35.3
+#> 5 1899-12-31 00:01:40 93.5   25 630  483 0.77 17 18   36.6
+#> 6 1899-12-31 00:02:00 99.4   25 679  517 0.76 16 17   35.7
 head(VO2max_df)  # maximal graded test
 #>                  Time    HR Load  VO2 VCO2  RER BF VE PETCO2
 #> 1 1899-12-31 00:00:20 110.7   75  894  706 0.79 20 26   35.8
@@ -93,7 +93,8 @@ columns
 | `RER`  | — (VCO2/VO2) | basal window, `RER_cutoff`      |
 | `HR`   | beats/min    | heart rate at Fatmax (optional) |
 
-Other columns (`Time`, `BF`, `VE`, `PETCO2`, `Load`) are ignored.
+An optional `Load` column (W or km/h) gives Fatmax and the Fatmax zone
+in load units. Other columns (`Time`, `BF`, `VE`, `PETCO2`) are ignored.
 Columns with other names are mapped with the `col_name_*` arguments of
 [`MFOs()`](https://jorgedelro.github.io/MFO/reference/MFOs.md). Heart
 rate never decides which rows or steps are dropped: without HR,
@@ -303,6 +304,7 @@ res <- MFO(step_time = 20, db_MFO = MFO_df, db_basal = basal_df,
            db_graded = VO2max_df, cv_var = "RER", author = "Frayn",
            energy_equivalents = "classic")
 #> VO2max: a 30-s window is not a multiple of step_time (20 s); using 2 record(s) = 40 s.
+#> VO2max_type: age not given, so the heart-rate criterion of VO2max is not evaluated and VO2max is labelled from the plateau only. Set age to evaluate it (shown once per session).
 #> Warning in MFO(step_time = 20, db_MFO = MFO_df, db_basal = basal_df, db_graded
 #> = VO2max_df, : 1 step(s) with negative fat oxidation detected (RER > 1.0
 #> artifact).
@@ -317,30 +319,31 @@ all.equal(unname(hand), unname(package))
 
 The warning reports the step with RER \> 1 that was truncated (3.5); the
 message reports the effective VO2max window (3.1). `res$MFO_db` is the
-step table that entered the fit. Its `Load` column is a step index, not
-the measured load.
+step table that entered the fit: `Step` numbers the steps of the test
+and `Load` is the measured load of each step (W). `res$FAT_MAX_load`
+gives Fatmax in W, interpolated linearly between steps.
 
 ``` r
 
 res$MFO_db
-#>   Load       VO2      VCO2        HR       RER       CHO       FAT      Kcal
-#> 2   15  660.0000  509.3333  95.13333 0.7733333 0.1988667 0.2516133  3.059987
-#> 3   30  843.3333  662.6667 110.30000 0.7833333 0.3080333 0.3017133  3.947553
-#> 4   45 1063.0000  879.0000 120.43333 0.8266667 0.5872200 0.3072800  5.114400
-#> 5   60 1358.3333 1162.6667 137.60000 0.8533333 0.9298833 0.3267633  6.660403
-#> 6   75 1626.6667 1465.0000 145.56667 0.9033333 1.4441500 0.2699833  8.206450
-#> 7   90 1907.3333 1787.6667 154.86667 0.9400000 2.0113433 0.1998433  9.843963
-#> 8  105 2233.0000 2142.6667 170.86667 0.9600000 2.5812033 0.1508567 11.682523
-#> 9  120 2477.6667 2550.6667 178.30000 1.0300000 3.6522233 0.0000000 13.511703
-#>   porc_VO2
-#> 2 19.90950
-#> 3 25.43992
-#> 4 32.06637
-#> 5 40.97536
-#> 6 49.06988
-#> 7 57.53645
-#> 8 67.36048
-#> 9 74.74108
+#>   Step Load       VO2      VCO2        HR       RER       CHO       FAT
+#> 2    1   25  660.0000  509.3333  95.13333 0.7733333 0.1988667 0.2516133
+#> 3    2   50  843.3333  662.6667 110.30000 0.7833333 0.3080333 0.3017133
+#> 4    3   75 1063.0000  879.0000 120.43333 0.8266667 0.5872200 0.3072800
+#> 5    4  100 1358.3333 1162.6667 137.60000 0.8533333 0.9298833 0.3267633
+#> 6    5  125 1626.6667 1465.0000 145.56667 0.9033333 1.4441500 0.2699833
+#> 7    6  150 1907.3333 1787.6667 154.86667 0.9400000 2.0113433 0.1998433
+#> 8    7  175 2233.0000 2142.6667 170.86667 0.9600000 2.5812033 0.1508567
+#> 9    8  200 2477.6667 2550.6667 178.30000 1.0300000 3.6522233 0.0000000
+#>        Kcal porc_VO2
+#> 2  3.059987 19.90950
+#> 3  3.947553 25.43992
+#> 4  5.114400 32.06637
+#> 5  6.660403 40.97536
+#> 6  8.206450 49.06988
+#> 7  9.843963 57.53645
+#> 8 11.682523 67.36048
+#> 9 13.511703 74.74108
 res$MFO_plot
 ```
 
@@ -581,7 +584,150 @@ knitr::kable(data.frame(
 | FALSE         |    8 | 0.317 | 36.170 | 0.971 |     36.182 |
 | TRUE          |    9 | 0.322 | 36.112 | 0.975 |     35.851 |
 
-## 7. Reporting
+## 7. Protocols, load and VO2max
+
+### 7.1 Describing the protocol
+
+[`MFO()`](https://jorgedelro.github.io/MFO/reference/MFO.md) cuts the
+test into steps from `step_duration` and `steady_state_duration`.
+[`MFO_protocol()`](https://jorgedelro.github.io/MFO/reference/MFO_protocol.md)
+describes the test in one object and also covers steps of different
+duration, loads relative to body mass, ramps and single-day tests. The
+default reproduces the two arguments:
+
+``` r
+
+MFO_protocol()
+#> <MFO_protocol> step 
+#>   steps:        180 s 
+#>   averaged:    last 60 s of each step
+#>   load unit:    W 
+#>   mode:         cycling
+```
+
+With `"step_variable"` each step has its own duration; the last one is
+repeated until the data end. If the first two 3-min stages of the
+example had been a single 6-min warm-up step, its last minute would be
+the last minute of stage 2, so the 7 steps are stages 2 to 8:
+
+``` r
+
+warm_up <- MFO_protocol("step_variable", step_duration = c(360, 180))
+r_var <- run_MFO(protocol = warm_up)
+all.equal(r_var$MFO_db$VO2, res$MFO_db$VO2[2:8])
+#> [1] TRUE
+```
+
+### 7.2 Load and Fatmax in watts
+
+The example test has a `Load` column (25 W in the first stage, +25 W per
+stage), averaged per step like VO2. Fatmax and the Fatmax zone are
+converted to watts by linear interpolation of load against %VO2max
+between steps, as heart rate at Fatmax:
+
+``` r
+
+res$MFO_db[, c("Step", "Load", "porc_VO2")]
+#>   Step Load porc_VO2
+#> 2    1   25 19.90950
+#> 3    2   50 25.43992
+#> 4    3   75 32.06637
+#> 5    4  100 40.97536
+#> 6    5  125 49.06988
+#> 7    6  150 57.53645
+#> 8    7  175 67.36048
+#> 9    8  200 74.74108
+c(Fatmax_W = res$FAT_MAX_load, zone_lower_W = res$FatMax_zone_lower_load,
+  zone_upper_W = res$FatMax_zone_upper_load)
+#>     Fatmax_W zone_lower_W zone_upper_W 
+#>     86.51649     44.35272    122.74787
+approx(res$MFO_db$porc_VO2, res$MFO_db$Load, xout = res$FAT_MAX)$y
+#> [1] 86.51649
+```
+
+Without a `Load` column, the load schedule of the protocol is used
+(`load_start + (Step - 1) * load_increment`), and `load_source` says so:
+
+``` r
+
+no_load <- MFO_df[, setdiff(names(MFO_df), "Load")]
+r_sched <- suppressWarnings(suppressMessages(
+  MFO(step_time = 20, db_MFO = no_load, db_basal = basal_df, db_graded = VO2max_df,
+      cv_var = "RER", author = "Frayn", energy_equivalents = "classic",
+      protocol = MFO_protocol(load_start = 25, load_increment = 25))))
+c(r_sched$load_source, round(r_sched$FAT_MAX_load, 1))
+#> [1] "protocol" "86.5"
+```
+
+With `MFO_protocol("relative")` a `Load` column in W is divided by
+`body_mass` and the results are in W/kg.
+
+### 7.3 VO2max or VO2peak
+
+[`VO2max_from_test()`](https://jorgedelro.github.io/MFO/reference/VO2max_from_test.md)
+takes the same rolling-mean VO2max as
+[`MFO()`](https://jorgedelro.github.io/MFO/reference/MFO.md) and checks
+whether the graded test was maximal: a plateau of VO2 between the last
+two stages, the peak RER and the peak heart rate relative to the
+predicted HRmax (Tanaka by default, Fox optional). The value is labelled
+“VO2max” with a plateau, or without one when both RER and heart rate
+meet their thresholds, and “VO2peak” otherwise. The heart-rate criterion
+needs `age`; the example participant is taken as 30 years old here.
+
+``` r
+
+VO2max_from_test(VO2max_df, step_time = 20, age = 30)
+#> VO2max: a 30-s window is not a multiple of step_time (20 s); using 2 record(s) = 40 s.
+#> <MFO_VO2max> VO2max = 3315.0 ml/min (highest 40-s mean)
+#>   plateau  not met        value 247, threshold 150
+#>   RER      met            value 1.16, threshold 1.1
+#>   HR       met            value 0.987, threshold 0.9
+```
+
+[`MFO()`](https://jorgedelro.github.io/MFO/reference/MFO.md) returns the
+label as `VO2max_type`. Without `age` the heart-rate criterion is not
+evaluated, so the example would be labelled “VO2peak”. Thresholds and
+the HRmax equation are arguments of
+[`VO2max_from_test()`](https://jorgedelro.github.io/MFO/reference/VO2max_from_test.md),
+whose result can be passed to
+[`MFO()`](https://jorgedelro.github.io/MFO/reference/MFO.md) as
+`VO2max`.
+
+### 7.4 Ramps and single-day tests
+
+In a ramp the load rises continuously ([“Indexes of Fat Oxidation from
+Ramp Vs. Graded Incremental Protocols in Postmenopausal Women”
+2025](#ref-physiologia2025)). `MFO_protocol("ramp")` replaces steps by
+windows of `ramp_window` s (30 s by default), one every `ramp_step` s.
+Overlapping windows are not independent, so `min_steps` counts
+non-overlapping windows, and `method = "MV"` is not available because
+there are no steps to read a measured maximum from.
+
+In a single-day test the maximal test follows the MFO test in the same
+recording ([“Validity and Reliability of VO2max Determination
+Immediately After a Maximal Fat Oxidation Assessment in
+Pre-Diabetes/Type 2 Diabetes” 2026](#ref-smhs2026)).
+`MFO_protocol("single_day", cut_time = )` gives the time at which the
+MFO test ends; the records after it are used as the graded test. Joining
+the two example tables reproduces the separate analysis:
+
+``` r
+
+cols <- c("HR", "Load", "VO2", "VCO2", "RER")
+one_recording <- rbind(MFO_df[, cols], VO2max_df[, cols])
+r_day <- suppressWarnings(suppressMessages(
+  MFO(step_time = 20, db_MFO = one_recording, db_basal = basal_df,
+      cv_var = "RER", author = "Frayn", energy_equivalents = "classic",
+      protocol = MFO_protocol("single_day", cut_time = nrow(MFO_df) * 20))))
+c(MFO = r_day$MFO - res$MFO, Fatmax = r_day$FAT_MAX - res$FAT_MAX)
+#>    MFO Fatmax 
+#>      0      0
+```
+
+Detecting the cut automatically from the analyser’s phase markers
+belongs to the importers planned for MFO 0.3.0.
+
+## 8. Reporting
 
 The paragraph below is generated from the results of this example;
 replace the protocol details (in brackets) with your own. HRmax is taken
@@ -591,7 +737,7 @@ here as the highest 20-s heart rate of the maximal test.
 
 HRmax <- max(VO2max_df$HR)
 final <- run_MFO(HRmax = HRmax)
-n_steps <- sum(final$MFO_db$Load != "basal")
+n_steps <- sum(final$MFO_db$Step != 0)
 ```
 
 > Substrate oxidation was computed from the mean VO2 and VCO2 of the
@@ -606,11 +752,11 @@ n_steps <- sum(final$MFO_db$Load != "basal")
 > zone was defined as the intensities eliciting at least 90% of MFO
 > (Achten et al., 2002). Fat oxidation kinetics were described with the
 > SIN model (Chenevière et al., 2009). MFO was 0.32 g/min at 36.2%
-> VO2max (128 bpm, 68.7% HRmax; Fatmax zone 24.2–48.3% VO2max); the SIN
-> parameters were d = -0.38, s = 0.91 and t = 0.36, with Fatmin at 76.4%
-> VO2max. Analyses were run with the R package MFO, version 0.2.1.9000,
-> \[protocol: ergometer, initial load and increment, fasting and
-> pre-test conditions\].
+> VO2max (87 W, 128 bpm, 68.7% HRmax; Fatmax zone 24.2–48.3% VO2max);
+> the SIN parameters were d = -0.38, s = 0.91 and t = 0.36, with Fatmin
+> at 76.4% VO2max. Analyses were run with the R package MFO, version
+> 0.2.1.9000, \[protocol: ergometer, initial load and increment, fasting
+> and pre-test conditions\].
 
 Add MFO relative to body mass or fat-free mass when you have them
 (`body_mass`, `fat_free_mass`). Also report the day-to-day error of the
@@ -620,7 +766,7 @@ was 21 % for MFO and 26 % for Fatmax, and in Croci et al.
 ([2014](#ref-croci2014)) (n = 15) the CV of Fatmax was 16.4 % with SIN,
 18.6 % with P3 and 20.8 % with MV.
 
-## 8. Batch processing with `MFOs()`
+## 9. Batch processing with `MFOs()`
 
 [`MFOs()`](https://jorgedelro.github.io/MFO/reference/MFOs.md) applies
 the same analysis to many participants and returns one row per
@@ -709,6 +855,10 @@ Males.” *PLoS ONE* 9: e97930.
 Frayn, K. N. 1983. “Calculation of Substrate Oxidation Rates in Vivo
 from Gaseous Exchange.” *Journal of Applied Physiology* 55: 628–34.
 
+“Indexes of Fat Oxidation from Ramp Vs. Graded Incremental Protocols in
+Postmenopausal Women.” 2025. *Physiologia* 5 (1): 3.
+<https://doi.org/10.3390/physiologia5010003>.
+
 Jeukendrup, A. E., and G. A. Wallis. 2005. “Measurement of Substrate
 Oxidation During Exercise by Means of Gas Exchange Measurements.”
 *International Journal of Sports Medicine* 26 (Suppl 1): S28–37.
@@ -723,3 +873,8 @@ People.” *Diabetes and Metabolism* 27: 466–74.
 
 Péronnet, F., and D. Massicotte. 1991. “Table of Nonprotein Respiratory
 Quotient: An Update.” *Canadian Journal of Sport Sciences* 16: 23–29.
+
+“Validity and Reliability of VO2max Determination Immediately After a
+Maximal Fat Oxidation Assessment in Pre-Diabetes/Type 2 Diabetes.” 2026.
+*Sports Medicine and Health Science* 8 (3): 327–34.
+<https://doi.org/10.1016/j.smhs.2025.02.004>.

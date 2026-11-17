@@ -15,7 +15,8 @@ calculate_vars(
   steady_state_duration = 60,
   RER_cutoff = NULL,
   energy_equivalents = "classic",
-  use_incomplete_step = FALSE
+  use_incomplete_step = FALSE,
+  protocol = NULL
 )
 ```
 
@@ -59,10 +60,16 @@ calculate_vars(
 
   logical (default \`FALSE\`). See \[MFO()\].
 
+- protocol:
+
+  optional \[MFO_protocol()\]; if given, \`step_duration\` and
+  \`steady_state_duration\` are not used.
+
 ## Value
 
-data frame with columns: VO2, VCO2, HR, RER, CHO, FAT, Kcal (one row per
-step)
+data frame with columns: Step (step number in the test), Load (mean of
+an optional \`Load\` column, else NA), VO2, VCO2, HR, RER, CHO, FAT,
+Kcal (one row per step kept)
 
 ## Details
 

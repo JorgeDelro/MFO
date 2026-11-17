@@ -28,7 +28,9 @@ MFO(
   include_basal = FALSE,
   energy_equivalents = c("classic", "source"),
   use_incomplete_step = FALSE,
-  min_steps = 6
+  min_steps = 6,
+  protocol = NULL,
+  age = NULL
 )
 ```
 
@@ -40,7 +42,9 @@ MFO(
 
 - db_MFO:
 
-  database containing MFO test.
+  database containing MFO test. An optional \`Load\` column (W or km/h,
+  in the unit of \`protocol\`) is averaged per step like VO2 and gives
+  Fatmax and the Fatmax zone in load units.
 
 - db_basal:
 
@@ -66,9 +70,10 @@ MFO(
 
 - VO2max:
 
-  VO2max can be passed directly (ml/min) instead of using db_graded. If
-  both are given, \`VO2max\` is used as is and \`db_graded\` is ignored
-  with a warning.
+  VO2max can be passed directly (ml/min) instead of using db_graded, or
+  as the result of \[VO2max_from_test()\] (to set its thresholds or
+  HRmax equation). If both are given, \`VO2max\` is used as is and
+  \`db_graded\` is ignored with a warning.
 
 - method:
 
@@ -161,13 +166,31 @@ MFO(
   \`negative_FAT = "exclude"\`; the resting row of \`include_basal =
   TRUE\` does not count. See SPEC 14.
 
+- protocol:
+
+  optional \[MFO_protocol()\] describing the test: step durations (equal
+  or variable), averaged segment, load and mode. If given,
+  \`step_duration\` and \`steady_state_duration\` are not used (a
+  warning says so if they were also supplied). Default \`NULL\` builds
+  \`MFO_protocol("step", step_duration, steady_state_duration)\`, which
+  gives the same results as v0.2.1. See SPEC 14.
+
+- age:
+
+  age in years (optional), for the heart-rate criterion of
+  \[VO2max_from_test()\] when VO2max comes from \`db_graded\`. Without
+  it that criterion is not evaluated and a message says so once per
+  session.
+
 ## Value
 
 Returns a list which contains:
 
-- MFO_db: database with Load, VO2, VCO2, HR, RER, CHO, FAT, Kcal,
-  porc_VO2 (one row per exercise step, plus the resting row first if
-  \`include_basal = TRUE\`).
+- MFO_db: database with Step, Load (see \*Load\*), VO2, VCO2, HR, RER,
+  CHO, FAT, Kcal, porc_VO2 (one row per exercise step, plus the resting
+  row first if \`include_basal = TRUE\`). \`Step\` is the step number in
+  the test (0 = resting row); steps removed by \`RER_cutoff\` or
+  \`negative_FAT = "exclude"\` leave gaps in it.
 
 - MFO_plot: ggplot object with the MFO plot including FAT and CHO
   curves.
@@ -193,6 +216,13 @@ Returns a list which contains:
 - FatMax_zone_method: "fitted curve", or "linear interpolation" for
   \`method = "MV"\`.
 
+- FAT_MAX_load, FatMax_zone_lower_load, FatMax_zone_upper_load: Fatmax
+  and the Fatmax zone in \`load_unit\` (\`NA\` without load).
+
+- load_unit: "W", "km/h" or "W/kg" (\`NA\` without load).
+
+- load_source: "file", "protocol" or "none".
+
 - crossover_point: Intensity at which CHO \> FAT (% VO2max).
 
 - R_squared: R-squared of the fitted model (\`NA\` for "MV").
@@ -212,12 +242,36 @@ Returns a list which contains:
 - VO2max_window_requested: \`vo2max_window\` as requested (s); NA if
   VO2max was supplied.
 
+- VO2max_type: "VO2max" or "VO2peak" from the maximality criteria of
+  \[VO2max_from_test()\]; NA if a number was supplied as VO2max.
+
+- VO2max_criteria: data frame of those criteria (NULL if a number was
+  supplied).
+
 - x_CHO: carbohydrates in basal metabolism (g/min), with the same
   \`author\` equations as the test.
 
 - x_FAT: fat in basal metabolism (g/min).
 
 - x_Kcal: Kcal in basal metabolism (kcal/min).
+
+- protocol: the \[MFO_protocol()\] used.
+
+- mode: exercise mode of the protocol ("cycling", "running" or
+  "walking").
+
+## Load
+
+\`Load\` in \`MFO_db\` is the measured external load of each step (mean
+over the averaged segment) when \`db_MFO\` has a \`Load\` column;
+otherwise the load schedule of \`protocol\` (\`load_start + (Step - 1)
+\* load_increment\`); otherwise \`NA\` (\`load_source\` says which).
+Fatmax and the Fatmax zone are converted to load units by linear
+interpolation of Load against % VO2max between steps, as HR at Fatmax.
+With \`MFO_protocol("relative")\` a \`Load\` column is taken as W and
+divided by \`body_mass\` to give W/kg; without \`body_mass\` it stays in
+W with a warning. Up to v0.2.1 \`Load\` was a synthetic step label. See
+SPEC 14.
 
 ## Quality warnings
 

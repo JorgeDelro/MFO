@@ -122,13 +122,13 @@ of one participant, averaged every 20 s
 <span><span class="co">#&gt; 5 1899-12-31 00:01:40 69.6 277  244 0.88 14  7   36.4</span></span>
 <span><span class="co">#&gt; 6 1899-12-31 00:02:00 66.2 258  221 0.86 14  7   35.3</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">MFO_df</span><span class="op">)</span>     <span class="co"># graded MFO test, 72 records = 8 steps of 3 min</span></span>
-<span><span class="co">#&gt;                  Time   HR VO2 VCO2  RER BF VE PETCO2</span></span>
-<span><span class="co">#&gt; 1 1899-12-31 00:00:20 90.2 635  487 0.77 17 18   35.8</span></span>
-<span><span class="co">#&gt; 2 1899-12-31 00:00:40 94.9 627  479 0.76 16 19   35.6</span></span>
-<span><span class="co">#&gt; 3 1899-12-31 00:01:00 93.3 634  468 0.74 14 17   36.1</span></span>
-<span><span class="co">#&gt; 4 1899-12-31 00:01:20 95.6 646  486 0.75 16 18   35.3</span></span>
-<span><span class="co">#&gt; 5 1899-12-31 00:01:40 93.5 630  483 0.77 17 18   36.6</span></span>
-<span><span class="co">#&gt; 6 1899-12-31 00:02:00 99.4 679  517 0.76 16 17   35.7</span></span>
+<span><span class="co">#&gt;                  Time   HR Load VO2 VCO2  RER BF VE PETCO2</span></span>
+<span><span class="co">#&gt; 1 1899-12-31 00:00:20 90.2   25 635  487 0.77 17 18   35.8</span></span>
+<span><span class="co">#&gt; 2 1899-12-31 00:00:40 94.9   25 627  479 0.76 16 19   35.6</span></span>
+<span><span class="co">#&gt; 3 1899-12-31 00:01:00 93.3   25 634  468 0.74 14 17   36.1</span></span>
+<span><span class="co">#&gt; 4 1899-12-31 00:01:20 95.6   25 646  486 0.75 16 18   35.3</span></span>
+<span><span class="co">#&gt; 5 1899-12-31 00:01:40 93.5   25 630  483 0.77 17 18   36.6</span></span>
+<span><span class="co">#&gt; 6 1899-12-31 00:02:00 99.4   25 679  517 0.76 16 17   35.7</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">VO2max_df</span><span class="op">)</span>  <span class="co"># maximal graded test</span></span>
 <span><span class="co">#&gt;                  Time    HR Load  VO2 VCO2  RER BF VE PETCO2</span></span>
 <span><span class="co">#&gt; 1 1899-12-31 00:00:20 110.7   75  894  706 0.79 20 26   35.8</span></span>
@@ -169,11 +169,12 @@ seconds, the columns</p>
 </tr>
 </tbody>
 </table>
-<p>Other columns (<code>Time</code>, <code>BF</code>, <code>VE</code>,
-<code>PETCO2</code>, <code>Load</code>) are ignored. Columns with other
-names are mapped with the <code>col_name_*</code> arguments of
-<code><a href="../reference/MFOs.html">MFOs()</a></code>. Heart rate never decides which rows or steps are
-dropped: without HR, <code><a href="../reference/MFO.html">MFO()</a></code> warns and returns
+<p>An optional <code>Load</code> column (W or km/h) gives Fatmax and the
+Fatmax zone in load units. Other columns (<code>Time</code>,
+<code>BF</code>, <code>VE</code>, <code>PETCO2</code>) are ignored.
+Columns with other names are mapped with the <code>col_name_*</code>
+arguments of <code><a href="../reference/MFOs.html">MFOs()</a></code>. Heart rate never decides which rows or
+steps are dropped: without HR, <code><a href="../reference/MFO.html">MFO()</a></code> warns and returns
 <code>NA</code> for the heart-rate outputs, and MFO and Fatmax do not
 change.</p>
 </div>
@@ -357,6 +358,7 @@ interpolated linearly from the step values.</p>
 <span>           db_graded <span class="op">=</span> <span class="va">VO2max_df</span>, cv_var <span class="op">=</span> <span class="st">"RER"</span>, author <span class="op">=</span> <span class="st">"Frayn"</span>,</span>
 <span>           energy_equivalents <span class="op">=</span> <span class="st">"classic"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; VO2max: a 30-s window is not a multiple of step_time (20 s); using 2 record(s) = 40 s.</span></span>
+<span><span class="co">#&gt; VO2max_type: age not given, so the heart-rate criterion of VO2max is not evaluated and VO2max is labelled from the plateau only. Set age to evaluate it (shown once per session).</span></span>
 <span><span class="co">#&gt; Warning in MFO(step_time = 20, db_MFO = MFO_df, db_basal = basal_df, db_graded</span></span>
 <span><span class="co">#&gt; = VO2max_df, : 1 step(s) with negative fat oxidation detected (RER &gt; 1.0</span></span>
 <span><span class="co">#&gt; artifact).</span></span>
@@ -369,28 +371,30 @@ interpolated linearly from the step values.</p>
 <span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
 <p>The warning reports the step with RER &gt; 1 that was truncated
 (3.5); the message reports the effective VO2max window (3.1).
-<code>res$MFO_db</code> is the step table that entered the fit. Its
-<code>Load</code> column is a step index, not the measured load.</p>
+<code>res$MFO_db</code> is the step table that entered the fit:
+<code>Step</code> numbers the steps of the test and <code>Load</code> is
+the measured load of each step (W). <code>res$FAT_MAX_load</code> gives
+Fatmax in W, interpolated linearly between steps.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res</span><span class="op">$</span><span class="va">MFO_db</span></span>
-<span><span class="co">#&gt;   Load       VO2      VCO2        HR       RER       CHO       FAT      Kcal</span></span>
-<span><span class="co">#&gt; 2   15  660.0000  509.3333  95.13333 0.7733333 0.1988667 0.2516133  3.059987</span></span>
-<span><span class="co">#&gt; 3   30  843.3333  662.6667 110.30000 0.7833333 0.3080333 0.3017133  3.947553</span></span>
-<span><span class="co">#&gt; 4   45 1063.0000  879.0000 120.43333 0.8266667 0.5872200 0.3072800  5.114400</span></span>
-<span><span class="co">#&gt; 5   60 1358.3333 1162.6667 137.60000 0.8533333 0.9298833 0.3267633  6.660403</span></span>
-<span><span class="co">#&gt; 6   75 1626.6667 1465.0000 145.56667 0.9033333 1.4441500 0.2699833  8.206450</span></span>
-<span><span class="co">#&gt; 7   90 1907.3333 1787.6667 154.86667 0.9400000 2.0113433 0.1998433  9.843963</span></span>
-<span><span class="co">#&gt; 8  105 2233.0000 2142.6667 170.86667 0.9600000 2.5812033 0.1508567 11.682523</span></span>
-<span><span class="co">#&gt; 9  120 2477.6667 2550.6667 178.30000 1.0300000 3.6522233 0.0000000 13.511703</span></span>
-<span><span class="co">#&gt;   porc_VO2</span></span>
-<span><span class="co">#&gt; 2 19.90950</span></span>
-<span><span class="co">#&gt; 3 25.43992</span></span>
-<span><span class="co">#&gt; 4 32.06637</span></span>
-<span><span class="co">#&gt; 5 40.97536</span></span>
-<span><span class="co">#&gt; 6 49.06988</span></span>
-<span><span class="co">#&gt; 7 57.53645</span></span>
-<span><span class="co">#&gt; 8 67.36048</span></span>
-<span><span class="co">#&gt; 9 74.74108</span></span>
+<span><span class="co">#&gt;   Step Load       VO2      VCO2        HR       RER       CHO       FAT</span></span>
+<span><span class="co">#&gt; 2    1   25  660.0000  509.3333  95.13333 0.7733333 0.1988667 0.2516133</span></span>
+<span><span class="co">#&gt; 3    2   50  843.3333  662.6667 110.30000 0.7833333 0.3080333 0.3017133</span></span>
+<span><span class="co">#&gt; 4    3   75 1063.0000  879.0000 120.43333 0.8266667 0.5872200 0.3072800</span></span>
+<span><span class="co">#&gt; 5    4  100 1358.3333 1162.6667 137.60000 0.8533333 0.9298833 0.3267633</span></span>
+<span><span class="co">#&gt; 6    5  125 1626.6667 1465.0000 145.56667 0.9033333 1.4441500 0.2699833</span></span>
+<span><span class="co">#&gt; 7    6  150 1907.3333 1787.6667 154.86667 0.9400000 2.0113433 0.1998433</span></span>
+<span><span class="co">#&gt; 8    7  175 2233.0000 2142.6667 170.86667 0.9600000 2.5812033 0.1508567</span></span>
+<span><span class="co">#&gt; 9    8  200 2477.6667 2550.6667 178.30000 1.0300000 3.6522233 0.0000000</span></span>
+<span><span class="co">#&gt;        Kcal porc_VO2</span></span>
+<span><span class="co">#&gt; 2  3.059987 19.90950</span></span>
+<span><span class="co">#&gt; 3  3.947553 25.43992</span></span>
+<span><span class="co">#&gt; 4  5.114400 32.06637</span></span>
+<span><span class="co">#&gt; 5  6.660403 40.97536</span></span>
+<span><span class="co">#&gt; 6  8.206450 49.06988</span></span>
+<span><span class="co">#&gt; 7  9.843963 57.53645</span></span>
+<span><span class="co">#&gt; 8 11.682523 67.36048</span></span>
+<span><span class="co">#&gt; 9 13.511703 74.74108</span></span>
 <span><span class="va">res</span><span class="op">$</span><span class="va">MFO_plot</span></span></code></pre></div>
 <p><img src="mfo-workflow_files/figure-html/mfo-db-1.png" class="r-plt" alt="Fat and carbohydrate oxidation (g/min) against %VO2max for the example participant: observed steps, fitted P3 curves, shaded Fatmax zone and vertical lines at Fatmax and at the crossover point." width="100%"></p>
 </div>
@@ -782,15 +786,141 @@ the fit, and of the SIN model, which departs from <span class="citation">Chenevi
 </div>
 </div>
 <div class="section level2">
-<h2 id="reporting">7. Reporting<a class="anchor" aria-label="anchor" href="#reporting"></a>
+<h2 id="protocols-load-and-vo2max">7. Protocols, load and VO2max<a class="anchor" aria-label="anchor" href="#protocols-load-and-vo2max"></a>
+</h2>
+<div class="section level3">
+<h3 id="describing-the-protocol">7.1 Describing the protocol<a class="anchor" aria-label="anchor" href="#describing-the-protocol"></a>
+</h3>
+<p><code><a href="../reference/MFO.html">MFO()</a></code> cuts the test into steps from
+<code>step_duration</code> and <code>steady_state_duration</code>.
+<code><a href="../reference/MFO_protocol.html">MFO_protocol()</a></code> describes the test in one object and also
+covers steps of different duration, loads relative to body mass, ramps
+and single-day tests. The default reproduces the two arguments:</p>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/MFO_protocol.html">MFO_protocol</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; &lt;MFO_protocol&gt; step </span></span>
+<span><span class="co">#&gt;   steps:        180 s </span></span>
+<span><span class="co">#&gt;   averaged:    last 60 s of each step</span></span>
+<span><span class="co">#&gt;   load unit:    W </span></span>
+<span><span class="co">#&gt;   mode:         cycling</span></span></code></pre></div>
+<p>With <code>"step_variable"</code> each step has its own duration; the
+last one is repeated until the data end. If the first two 3-min stages
+of the example had been a single 6-min warm-up step, its last minute
+would be the last minute of stage 2, so the 7 steps are stages 2 to
+8:</p>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">warm_up</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/MFO_protocol.html">MFO_protocol</a></span><span class="op">(</span><span class="st">"step_variable"</span>, step_duration <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">360</span>, <span class="fl">180</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">r_var</span> <span class="op">&lt;-</span> <span class="fu">run_MFO</span><span class="op">(</span>protocol <span class="op">=</span> <span class="va">warm_up</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/all.equal.html" class="external-link">all.equal</a></span><span class="op">(</span><span class="va">r_var</span><span class="op">$</span><span class="va">MFO_db</span><span class="op">$</span><span class="va">VO2</span>, <span class="va">res</span><span class="op">$</span><span class="va">MFO_db</span><span class="op">$</span><span class="va">VO2</span><span class="op">[</span><span class="fl">2</span><span class="op">:</span><span class="fl">8</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="load-and-fatmax-in-watts">7.2 Load and Fatmax in watts<a class="anchor" aria-label="anchor" href="#load-and-fatmax-in-watts"></a>
+</h3>
+<p>The example test has a <code>Load</code> column (25 W in the first
+stage, +25 W per stage), averaged per step like VO2. Fatmax and the
+Fatmax zone are converted to watts by linear interpolation of load
+against %VO2max between steps, as heart rate at Fatmax:</p>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span><span class="op">$</span><span class="va">MFO_db</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Step"</span>, <span class="st">"Load"</span>, <span class="st">"porc_VO2"</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="co">#&gt;   Step Load porc_VO2</span></span>
+<span><span class="co">#&gt; 2    1   25 19.90950</span></span>
+<span><span class="co">#&gt; 3    2   50 25.43992</span></span>
+<span><span class="co">#&gt; 4    3   75 32.06637</span></span>
+<span><span class="co">#&gt; 5    4  100 40.97536</span></span>
+<span><span class="co">#&gt; 6    5  125 49.06988</span></span>
+<span><span class="co">#&gt; 7    6  150 57.53645</span></span>
+<span><span class="co">#&gt; 8    7  175 67.36048</span></span>
+<span><span class="co">#&gt; 9    8  200 74.74108</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>Fatmax_W <span class="op">=</span> <span class="va">res</span><span class="op">$</span><span class="va">FAT_MAX_load</span>, zone_lower_W <span class="op">=</span> <span class="va">res</span><span class="op">$</span><span class="va">FatMax_zone_lower_load</span>,</span>
+<span>  zone_upper_W <span class="op">=</span> <span class="va">res</span><span class="op">$</span><span class="va">FatMax_zone_upper_load</span><span class="op">)</span></span>
+<span><span class="co">#&gt;     Fatmax_W zone_lower_W zone_upper_W </span></span>
+<span><span class="co">#&gt;     86.51649     44.35272    122.74787</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/approxfun.html" class="external-link">approx</a></span><span class="op">(</span><span class="va">res</span><span class="op">$</span><span class="va">MFO_db</span><span class="op">$</span><span class="va">porc_VO2</span>, <span class="va">res</span><span class="op">$</span><span class="va">MFO_db</span><span class="op">$</span><span class="va">Load</span>, xout <span class="op">=</span> <span class="va">res</span><span class="op">$</span><span class="va">FAT_MAX</span><span class="op">)</span><span class="op">$</span><span class="va">y</span></span>
+<span><span class="co">#&gt; [1] 86.51649</span></span></code></pre></div>
+<p>Without a <code>Load</code> column, the load schedule of the protocol
+is used (<code>load_start + (Step - 1) * load_increment</code>), and
+<code>load_source</code> says so:</p>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">no_load</span> <span class="op">&lt;-</span> <span class="va">MFO_df</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/sets.html" class="external-link">setdiff</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">MFO_df</span><span class="op">)</span>, <span class="st">"Load"</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="va">r_sched</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/warning.html" class="external-link">suppressWarnings</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressMessages</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="../reference/MFO.html">MFO</a></span><span class="op">(</span>step_time <span class="op">=</span> <span class="fl">20</span>, db_MFO <span class="op">=</span> <span class="va">no_load</span>, db_basal <span class="op">=</span> <span class="va">basal_df</span>, db_graded <span class="op">=</span> <span class="va">VO2max_df</span>,</span>
+<span>      cv_var <span class="op">=</span> <span class="st">"RER"</span>, author <span class="op">=</span> <span class="st">"Frayn"</span>, energy_equivalents <span class="op">=</span> <span class="st">"classic"</span>,</span>
+<span>      protocol <span class="op">=</span> <span class="fu"><a href="../reference/MFO_protocol.html">MFO_protocol</a></span><span class="op">(</span>load_start <span class="op">=</span> <span class="fl">25</span>, load_increment <span class="op">=</span> <span class="fl">25</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">r_sched</span><span class="op">$</span><span class="va">load_source</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">r_sched</span><span class="op">$</span><span class="va">FAT_MAX_load</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "protocol" "86.5"</span></span></code></pre></div>
+<p>With <code>MFO_protocol("relative")</code> a <code>Load</code> column
+in W is divided by <code>body_mass</code> and the results are in
+W/kg.</p>
+</div>
+<div class="section level3">
+<h3 id="vo2max-or-vo2peak">7.3 VO2max or VO2peak<a class="anchor" aria-label="anchor" href="#vo2max-or-vo2peak"></a>
+</h3>
+<p><code><a href="../reference/VO2max_from_test.html">VO2max_from_test()</a></code> takes the same rolling-mean VO2max as
+<code><a href="../reference/MFO.html">MFO()</a></code> and checks whether the graded test was maximal: a
+plateau of VO2 between the last two stages, the peak RER and the peak
+heart rate relative to the predicted HRmax (Tanaka by default, Fox
+optional). The value is labelled “VO2max” with a plateau, or without one
+when both RER and heart rate meet their thresholds, and “VO2peak”
+otherwise. The heart-rate criterion needs <code>age</code>; the example
+participant is taken as 30 years old here.
+<!-- TODO: source for the plateau, RER and HR thresholds and the HRmax equations (Jorge) --></p>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/VO2max_from_test.html">VO2max_from_test</a></span><span class="op">(</span><span class="va">VO2max_df</span>, step_time <span class="op">=</span> <span class="fl">20</span>, age <span class="op">=</span> <span class="fl">30</span><span class="op">)</span></span>
+<span><span class="co">#&gt; VO2max: a 30-s window is not a multiple of step_time (20 s); using 2 record(s) = 40 s.</span></span>
+<span><span class="co">#&gt; &lt;MFO_VO2max&gt; VO2max = 3315.0 ml/min (highest 40-s mean)</span></span>
+<span><span class="co">#&gt;   plateau  not met        value 247, threshold 150</span></span>
+<span><span class="co">#&gt;   RER      met            value 1.16, threshold 1.1</span></span>
+<span><span class="co">#&gt;   HR       met            value 0.987, threshold 0.9</span></span></code></pre></div>
+<p><code><a href="../reference/MFO.html">MFO()</a></code> returns the label as <code>VO2max_type</code>.
+Without <code>age</code> the heart-rate criterion is not evaluated, so
+the example would be labelled “VO2peak”. Thresholds and the HRmax
+equation are arguments of <code><a href="../reference/VO2max_from_test.html">VO2max_from_test()</a></code>, whose result
+can be passed to <code><a href="../reference/MFO.html">MFO()</a></code> as <code>VO2max</code>.</p>
+</div>
+<div class="section level3">
+<h3 id="ramps-and-single-day-tests">7.4 Ramps and single-day tests<a class="anchor" aria-label="anchor" href="#ramps-and-single-day-tests"></a>
+</h3>
+<p>In a ramp the load rises continuously <span class="citation">(<a href="#ref-physiologia2025"><span>“Indexes of Fat Oxidation from Ramp
+Vs. Graded Incremental Protocols in Postmenopausal Women”</span>
+2025</a>)</span>. <code>MFO_protocol("ramp")</code> replaces steps by
+windows of <code>ramp_window</code> s (30 s by default), one every
+<code>ramp_step</code> s. Overlapping windows are not independent, so
+<code>min_steps</code> counts non-overlapping windows, and
+<code>method = "MV"</code> is not available because there are no steps
+to read a measured maximum from.</p>
+<p>In a single-day test the maximal test follows the MFO test in the
+same recording <span class="citation">(<a href="#ref-smhs2026"><span>“Validity and Reliability of
+<span>VO2max</span> Determination Immediately After a Maximal Fat
+Oxidation Assessment in Pre-Diabetes/Type 2 Diabetes”</span>
+2026</a>)</span>. <code>MFO_protocol("single_day", cut_time = )</code>
+gives the time at which the MFO test ends; the records after it are used
+as the graded test. Joining the two example tables reproduces the
+separate analysis:</p>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cols</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"HR"</span>, <span class="st">"Load"</span>, <span class="st">"VO2"</span>, <span class="st">"VCO2"</span>, <span class="st">"RER"</span><span class="op">)</span></span>
+<span><span class="va">one_recording</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="va">MFO_df</span><span class="op">[</span>, <span class="va">cols</span><span class="op">]</span>, <span class="va">VO2max_df</span><span class="op">[</span>, <span class="va">cols</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="va">r_day</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/warning.html" class="external-link">suppressWarnings</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressMessages</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="../reference/MFO.html">MFO</a></span><span class="op">(</span>step_time <span class="op">=</span> <span class="fl">20</span>, db_MFO <span class="op">=</span> <span class="va">one_recording</span>, db_basal <span class="op">=</span> <span class="va">basal_df</span>,</span>
+<span>      cv_var <span class="op">=</span> <span class="st">"RER"</span>, author <span class="op">=</span> <span class="st">"Frayn"</span>, energy_equivalents <span class="op">=</span> <span class="st">"classic"</span>,</span>
+<span>      protocol <span class="op">=</span> <span class="fu"><a href="../reference/MFO_protocol.html">MFO_protocol</a></span><span class="op">(</span><span class="st">"single_day"</span>, cut_time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">MFO_df</span><span class="op">)</span> <span class="op">*</span> <span class="fl">20</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>MFO <span class="op">=</span> <span class="va">r_day</span><span class="op">$</span><span class="va">MFO</span> <span class="op">-</span> <span class="va">res</span><span class="op">$</span><span class="va">MFO</span>, Fatmax <span class="op">=</span> <span class="va">r_day</span><span class="op">$</span><span class="va">FAT_MAX</span> <span class="op">-</span> <span class="va">res</span><span class="op">$</span><span class="va">FAT_MAX</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    MFO Fatmax </span></span>
+<span><span class="co">#&gt;      0      0</span></span></code></pre></div>
+<p>Detecting the cut automatically from the analyser’s phase markers
+belongs to the importers planned for MFO 0.3.0.</p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="reporting">8. Reporting<a class="anchor" aria-label="anchor" href="#reporting"></a>
 </h2>
 <p>The paragraph below is generated from the results of this example;
 replace the protocol details (in brackets) with your own. HRmax is taken
 here as the highest 20-s heart rate of the maximal test.</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">HRmax</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">VO2max_df</span><span class="op">$</span><span class="va">HR</span><span class="op">)</span></span>
 <span><span class="va">final</span> <span class="op">&lt;-</span> <span class="fu">run_MFO</span><span class="op">(</span>HRmax <span class="op">=</span> <span class="va">HRmax</span><span class="op">)</span></span>
-<span><span class="va">n_steps</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">final</span><span class="op">$</span><span class="va">MFO_db</span><span class="op">$</span><span class="va">Load</span> <span class="op">!=</span> <span class="st">"basal"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">n_steps</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">final</span><span class="op">$</span><span class="va">MFO_db</span><span class="op">$</span><span class="va">Step</span> <span class="op">!=</span> <span class="fl">0</span><span class="op">)</span></span></code></pre></div>
 <blockquote>
 <p>Substrate oxidation was computed from the mean VO2 and VCO2 of the
 last 60 s of each 3-min step with the equations of Frayn (1983), with
@@ -803,11 +933,12 @@ MFO and Fatmax were determined with a third-degree polynomial of fat
 oxidation on %VO2max fitted to 8 steps (R² = 0.97). The Fatmax zone was
 defined as the intensities eliciting at least 90% of MFO (Achten et al.,
 2002). Fat oxidation kinetics were described with the SIN model
-(Chenevière et al., 2009). MFO was 0.32 g/min at 36.2% VO2max (128 bpm,
-68.7% HRmax; Fatmax zone 24.2–48.3% VO2max); the SIN parameters were d =
--0.38, s = 0.91 and t = 0.36, with Fatmin at 76.4% VO2max. Analyses were
-run with the R package MFO, version 0.2.1.9000, [protocol: ergometer,
-initial load and increment, fasting and pre-test conditions].</p>
+(Chenevière et al., 2009). MFO was 0.32 g/min at 36.2% VO2max (87 W, 128
+bpm, 68.7% HRmax; Fatmax zone 24.2–48.3% VO2max); the SIN parameters
+were d = -0.38, s = 0.91 and t = 0.36, with Fatmin at 76.4% VO2max.
+Analyses were run with the R package MFO, version 0.2.1.9000, [protocol:
+ergometer, initial load and increment, fasting and pre-test
+conditions].</p>
 </blockquote>
 <p>Add MFO relative to body mass or fat-free mass when you have them
 (<code>body_mass</code>, <code>fat_free_mass</code>). Also report the
@@ -819,7 +950,7 @@ coefficient of variation was 21 % for MFO and 26 % for Fatmax, and in
 16.4 % with SIN, 18.6 % with P3 and 20.8 % with MV.</p>
 </div>
 <div class="section level2">
-<h2 id="batch-processing-with-mfos">8. Batch processing with <code>MFOs()</code><a class="anchor" aria-label="anchor" href="#batch-processing-with-mfos"></a>
+<h2 id="batch-processing-with-mfos">9. Batch processing with <code>MFOs()</code><a class="anchor" aria-label="anchor" href="#batch-processing-with-mfos"></a>
 </h2>
 <p><code><a href="../reference/MFOs.html">MFOs()</a></code> applies the same analysis to many participants
 and returns one row per participant. With <code>from = "folder"</code>
@@ -828,7 +959,7 @@ each participant has a subfolder with three xlsx files; with
 three sheets. The example builds two participants in a temporary folder:
 P01 is the example data and P02 the same data with VO2 and VCO2 scaled
 by 1.1 (same RER), so that the two rows differ.</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">root</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"mfo-batch"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/files2.html" class="external-link">dir.create</a></span><span class="op">(</span><span class="va">root</span>, showWarnings <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="va">scale_gas</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">db</span>, <span class="va">k</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/transform.html" class="external-link">transform</a></span><span class="op">(</span><span class="va">db</span>, VO2 <span class="op">=</span> <span class="va">VO2</span> <span class="op">*</span> <span class="va">k</span>, VCO2 <span class="op">=</span> <span class="va">VCO2</span> <span class="op">*</span> <span class="va">k</span><span class="op">)</span></span>
@@ -845,7 +976,7 @@ by 1.1 (same RER), so that the two rows differ.</p>
 <p><code>save_plot</code> and <code>save_result</code> write the plots
 and the summary table to the working directory; they are switched off
 here. Every warning is repeated with the participant ID in front.</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">batch</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/MFOs.html">MFOs</a></span><span class="op">(</span>from <span class="op">=</span> <span class="st">"folder"</span>, path <span class="op">=</span> <span class="va">root</span>,</span>
 <span>              db_basal_name <span class="op">=</span> <span class="st">"basal_df"</span>, db_MFO_name <span class="op">=</span> <span class="st">"MFO_df"</span>,</span>
 <span>              db_graded_name <span class="op">=</span> <span class="st">"VO2max_df"</span>, step_time <span class="op">=</span> <span class="fl">20</span>, cv_var <span class="op">=</span> <span class="st">"RER"</span>,</span>
@@ -959,6 +1090,11 @@ Frayn, K. N. 1983. <span>“Calculation of Substrate Oxidation Rates in
 Vivo from Gaseous Exchange.”</span> <em>Journal of Applied
 Physiology</em> 55: 628–34.
 </div>
+<div id="ref-physiologia2025" class="csl-entry">
+<span>“Indexes of Fat Oxidation from Ramp Vs. Graded Incremental
+Protocols in Postmenopausal Women.”</span> 2025. <em>Physiologia</em> 5
+(1): 3. <a href="https://doi.org/10.3390/physiologia5010003" class="external-link">https://doi.org/10.3390/physiologia5010003</a>.
+</div>
 <div id="ref-jeukendrup2005" class="csl-entry">
 Jeukendrup, A. E., and G. A. Wallis. 2005. <span>“Measurement of
 Substrate Oxidation During Exercise by Means of Gas Exchange
@@ -981,6 +1117,12 @@ Metabolism</em> 27: 466–74.
 Péronnet, F., and D. Massicotte. 1991. <span>“Table of Nonprotein
 Respiratory Quotient: An Update.”</span> <em>Canadian Journal of Sport
 Sciences</em> 16: 23–29.
+</div>
+<div id="ref-smhs2026" class="csl-entry">
+<span>“Validity and Reliability of <span>VO2max</span> Determination
+Immediately After a Maximal Fat Oxidation Assessment in
+Pre-Diabetes/Type 2 Diabetes.”</span> 2026. <em>Sports Medicine and
+Health Science</em> 8 (3): 327–34. <a href="https://doi.org/10.1016/j.smhs.2025.02.004" class="external-link">https://doi.org/10.1016/j.smhs.2025.02.004</a>.
 </div>
 </div>
 </div>

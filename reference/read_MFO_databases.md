@@ -15,7 +15,8 @@ read_MFO_databases(
   col_name_VCO2 = "VCO2",
   col_name_RER = "RER",
   col_name_HR = "HR",
-  remove_rows = NULL
+  remove_rows = NULL,
+  col_name_Load = "Load"
 )
 ```
 
@@ -61,6 +62,11 @@ read_MFO_databases(
 
   An integer (or a vector of integers) representing the position of the
   rows to delete
+
+- col_name_Load:
+
+  name given to the external load (W or km/h) in the databases. Default
+  "Load"; the column is optional.
 
 ## Value
 

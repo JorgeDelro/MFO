@@ -1,5 +1,15 @@
 # Package index
 
+## Describe the test
+
+Protocol of the MFO test (step durations, averaged segment, load and
+exercise mode) and VO2max of the graded test with maximality criteria.
+
+- [`MFO_protocol()`](https://jorgedelro.github.io/MFO/reference/MFO_protocol.md)
+  : Describe the protocol of an MFO test
+- [`VO2max_from_test()`](https://jorgedelro.github.io/MFO/reference/VO2max_from_test.md)
+  : VO2max of a graded test, with maximality criteria
+
 ## Compute MFO and Fatmax
 
 One participant: basal window, step averaging, stoichiometric equation,
