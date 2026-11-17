@@ -221,7 +221,7 @@ MFO_kinetics <- function(MFO_data, fatmin_threshold = NULL,
       mod_nls <- .fit_sin(data_nls, fit)
 
       # Extract parameters
-      coefs <- summary(mod_nls)$coefficients
+      coefs <- .sin_coef_table(mod_nls)
       d <- coefs["d", "Estimate"]
       s <- coefs["s", "Estimate"]
       t_param <- coefs["t_param", "Estimate"]
@@ -377,37 +377,70 @@ MFO_kinetics <- function(MFO_data, fatmin_threshold = NULL,
 }
 
 
-# SIN fit with nlsLM: "normalised" to the highest observed step (Cheneviere
-# et al. 2009) or "absolute" in g/min with MFO (M) as a fourth parameter,
-# started from the normalised estimates
+# SIN fit: "normalised" to the highest observed step (Cheneviere et al.
+# 2009) with nlsLM, or "absolute" in g/min with MFO (M) as a fourth parameter
+# with minpack.lm::nls.lm, started from the normalised estimates. The
+# absolute fit does not go through nls(), whose set-up checks the rank of a
+# numerical gradient at the start and failed on some R versions for
+# well-conditioned problems (condition number about 100).
 .fit_sin <- function(data_nls, fit, start = NULL) {
-  if (fit == "absolute") {
-    fml <- FAT ~ M * .sin_model(porc_VO2_kinetics, d, s, t_param)
-    if (!is.null(start)) {
-      return(nlsLM(fml, start = start, data = data_nls, control = list(maxiter = 200)))
-    }
-    # Starts tried in order: the normalised fit (its shape, scaled by the
-    # highest step), the same slightly moved, and the basic SIN. A start can
-    # give a singular numerical gradient in nls even when the model is well
-    # conditioned there
+  if (fit == "absolute") return(.fit_sin_absolute(data_nls, start))
+  if (is.null(start)) start <- list(d = 0, s = 1, t_param = 0)
+  nlsLM(porc_MFO_kinetics ~ .sin_model(porc_VO2_kinetics, d, s, t_param),
+        start = start, data = data_nls, control = list(maxiter = 200))
+}
+
+# Absolute SIN fit by Levenberg-Marquardt on the residuals. Returns a list
+# with coefficients (M, d, s, t_param), residuals, fitted.values, se and the
+# gradient J (central differences at the solution), so that coef(),
+# residuals() and fitted() work on it.
+.fit_sin_absolute <- function(data_nls, start = NULL) {
+  x <- data_nls$porc_VO2_kinetics
+  y <- data_nls$FAT
+  f <- function(p) p[["M"]] * .sin_model(x, p[["d"]], p[["s"]], p[["t_param"]])
+  resid <- function(p) {
+    r <- y - f(p)
+    r[!is.finite(r)] <- 1e3   # outside the support of the SIN: push away
+    r
+  }
+  starts <- if (!is.null(start)) list(unlist(start)) else {
     norm <- tryCatch(stats::coef(.fit_sin(data_nls, "normalised")),
                      error = function(e) c(d = 0, s = 1, t_param = 0))
-    m0 <- max(data_nls$FAT)
-    starts <- list(
-      list(M = m0, d = norm[["d"]], s = norm[["s"]], t_param = norm[["t_param"]]),
-      list(M = 1.01 * m0, d = norm[["d"]] + 0.01, s = norm[["s"]], t_param = norm[["t_param"]]),
-      list(M = m0, d = 0, s = 1, t_param = 0))
-    for (i in seq_along(starts)) {
-      mod <- tryCatch(nlsLM(fml, start = starts[[i]], data = data_nls,
-                            control = list(maxiter = 200)),
-                      error = function(e) if (i == length(starts)) stop(e) else NULL)
-      if (!is.null(mod)) return(mod)
-    }
-  } else {
-    if (is.null(start)) start <- list(d = 0, s = 1, t_param = 0)
-    nlsLM(porc_MFO_kinetics ~ .sin_model(porc_VO2_kinetics, d, s, t_param),
-          start = start, data = data_nls, control = list(maxiter = 200))
+    m0 <- max(y)
+    list(c(M = m0, d = norm[["d"]], s = norm[["s"]], t_param = norm[["t_param"]]),
+         c(M = 1.01 * m0, d = norm[["d"]] + 0.01, s = norm[["s"]], t_param = norm[["t_param"]]),
+         c(M = m0, d = 0.01, s = 1.05, t_param = 0.05))
   }
+  for (p0 in starts) {
+    fit <- tryCatch(minpack.lm::nls.lm(par = p0, fn = resid,
+                                       control = minpack.lm::nls.lm.control(maxiter = 200)),
+                    error = function(e) NULL)
+    if (is.null(fit) || !fit$info %in% 1:4 || any(!is.finite(fit$par))) next
+    p <- fit$par
+    fitted_y <- f(p)
+    if (any(!is.finite(fitted_y))) next
+    J <- vapply(seq_along(p), function(j) {
+      h <- 1e-6 * max(1, abs(p[[j]]))
+      up <- p; dn <- p
+      up[[j]] <- up[[j]] + h
+      dn[[j]] <- dn[[j]] - h
+      (f(up) - f(dn)) / (2 * h)
+    }, numeric(length(y)))
+    df <- length(y) - length(p)
+    s2 <- sum((y - fitted_y)^2) / df
+    XtX <- crossprod(J)
+    se <- if (rcond(XtX) > 1e-12) sqrt(diag(s2 * solve(XtX))) else rep(NA_real_, length(p))
+    names(se) <- names(p)
+    return(list(coefficients = p, residuals = y - fitted_y, fitted.values = fitted_y,
+                se = se, gradient = J))
+  }
+  stop("the absolute SIN fit did not converge from any start", call. = FALSE)
+}
+
+# Estimate and standard error of each parameter, from nls or the absolute fit
+.sin_coef_table <- function(mod) {
+  if (inherits(mod, "nls")) return(summary(mod)$coefficients[, 1:2, drop = FALSE])
+  cbind(Estimate = mod$coefficients, "Std. Error" = mod$se)
 }
 
 # Replicates of the SIN fit: fitted values plus new errors, refitted from the
@@ -425,7 +458,7 @@ MFO_kinetics <- function(MFO_data, fatmin_threshold = NULL,
     s2 <- sum(r^2) / df
     draw <- function() stats::rnorm(n, 0, sqrt(df * s2 / stats::rchisq(1, df)))
   } else {
-    J <- mod$m$gradient()
+    J <- if (inherits(mod, "nls")) mod$m$gradient() else mod$gradient
     h <- diag(J %*% solve(crossprod(J)) %*% t(J))
     if (any(h > 1 - 1e-8)) {
       stop("The bootstrap needs more steps than SIN parameters (leverage 1).", call. = FALSE)
