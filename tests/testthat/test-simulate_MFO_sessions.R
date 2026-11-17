@@ -142,6 +142,9 @@ test_that("write_MFO_sessions() writes folders that MFOs() reads", {
   folders <- write_MFO_sessions(sim, root)
   expect_equal(basename(folders), c("P01_S1", "P01_S2"))
   expect_true(file.exists(file.path(root, "P01_S1", "MFO_df.xlsx")))
+  index <- utils::read.csv(file.path(root, "sessions.csv"))
+  expect_equal(index, data.frame(id = c("P01_S1", "P01_S2"), participant = "P01",
+                                 session = c("S1", "S2")))
   res <- suppressWarnings(suppressMessages(
     MFOs(from = "folder", path = root, db_basal_name = "basal_df",
          db_MFO_name = "MFO_df", db_graded_name = "VO2max_df", step_time = 20,

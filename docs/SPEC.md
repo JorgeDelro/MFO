@@ -581,7 +581,7 @@ Software
 
 Valores de referencia, protocolos adicionales y cinética (Parte II)
 
-- Amaro-Gahete FJ, Sanchez-Delgado G, Ruiz JR (2018). Commentary: Contextualising maximal fat oxidation during exercise: determinants and normative values. *Front Physiol* 9:1460. [enlace](https://pmc.ncbi.nlm.nih.gov/articles/PMC6201563/)
+- Amaro-Gahete FJ, Sanchez-Delgado G, Ruiz JR (2018). Commentary: Contextualising maximal fat oxidation during exercise: determinants and normative values. *Front Physiol* 9:1460. [doi](https://doi.org/10.3389/fphys.2018.01460)
 - Amaro-Gahete FJ, Sanchez-Delgado G, Jurado-Fasoli L, et al. (2019). Assessment of maximal fat oxidation during exercise: a systematic review. *Scand J Med Sci Sports* 29:910–921.
 - Randell RK, Rollo I, Roberts TJ, et al. (2017). Maximal fat oxidation rates in an athletic population. *Med Sci Sports Exerc* 49:133–140.
 - Chenevière X, Malatesta D, Gojanovic B, Borrani F (2010). Differences in whole-body fat oxidation kinetics between cycling and running. *Eur J Appl Physiol* 109:1037–1045. [enlace](https://doc.rero.ch/record/310501?ln=en)
@@ -591,8 +591,8 @@ Valores de referencia, protocolos adicionales y cinética (Parte II)
 
 Fiabilidad, error de medida y estadística (Parte II)
 
-- Croci I, Borrani F, Byrne NM, et al. (2014). Reproducibility of Fatmax and fat oxidation rates during exercise in recreationally trained males. *PLoS ONE* 9:e97930. [enlace](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4041727/)
-- Chrzanowski-Smith OJ, Edinburgh RM, Thomas MP, et al. (2020). The day-to-day reliability of peak fat oxidation and FATMAX. *Eur J Appl Physiol* 120:1745–1759. [enlace](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7340634/)
+- Croci I, Borrani F, Byrne NM, et al. (2014). Reproducibility of Fatmax and fat oxidation rates during exercise in recreationally trained males. *PLoS ONE* 9:e97930. [doi](https://doi.org/10.1371/journal.pone.0097930)
+- Chrzanowski-Smith OJ, Edinburgh RM, Thomas MP, et al. (2020). The day-to-day reliability of peak fat oxidation and FATMAX. *Eur J Appl Physiol* 120:1745–1759. [doi](https://doi.org/10.1007/s00421-020-04397-3)
 - De Souza Silveira R, Carlsohn A, Langen G, et al. (2016). Reliability and day-to-day variability of peak fat oxidation during treadmill ergometry. *J Int Soc Sports Nutr* 13:4.
 - Weir JP (2005). Quantifying test-retest reliability using the intraclass correlation coefficient and the SEM. *J Strength Cond Res* 19:231–240.
 - Koo TK, Li MY (2016). A guideline of selecting and reporting intraclass correlation coefficients for reliability research. *J Chiropr Med* 15:155–163.
