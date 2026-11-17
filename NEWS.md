@@ -52,6 +52,18 @@
   Without `age`, `MFO()` says once per session that the HR criterion was not
   evaluated.
 
+* `read_cart()` reads a metabolic cart export (Cortex, Cosmed, Vyntus or
+  ZAN, parsed by the spiro package, now in Suggests) and returns the tables
+  `MFO()` expects in the internal data contract (SPEC 16): `Time`, `VO2`,
+  `VCO2` (mL/min), `RER` and, when present, `HR`, `Load`, `VE`. Breaths
+  are averaged in fixed intervals (10 s by default; empty intervals are kept
+  as `NA` so records stay aligned); VO2 above a median of 100 is read as
+  mL/min and below it the unit must be given (`vo2_unit`, with `body_mass`
+  for mL/kg/min); RER is recomputed as VCO2/VO2 and an exported RER off by
+  more than 0.02 is counted with a warning; phases are split by the user's
+  `cuts` (`basal_end`, `MFO_end`). No personal data from the file are kept.
+  None of the devices has yet been validated with a real export of MFO's own.
+
 * The example data `MFO_df` gain a `Load` column (25–200 W, 25-W stages),
   as described in their documentation.
 
