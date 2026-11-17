@@ -66,6 +66,7 @@ physiology.</p>
 <span>  familiarization <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  noise_cv <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  noise_cor <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  fat_noise_cv <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  protocol <span class="op">=</span> <span class="fu"><a href="MFO_protocol.html">MFO_protocol</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  n_steps <span class="op">=</span> <span class="fl">8</span>,</span>
 <span>  intensity <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">75</span><span class="op">)</span>,</span>
@@ -114,6 +115,11 @@ Fatmax or `c(MFO = , Fatmax = )` (default 0).</p></dd>
 <dt id="arg-noise-cv-noise-cor">noise_cv, noise_cor<a class="anchor" aria-label="anchor" href="#arg-noise-cv-noise-cor"></a></dt>
 <dd><p>analyser noise per record: coefficient of
 variation of VO2 and VCO2 and their correlation (defaults 0).</p></dd>
+
+
+<dt id="arg-fat-noise-cv">fat_noise_cv<a class="anchor" aria-label="anchor" href="#arg-fat-noise-cv"></a></dt>
+<dd><p>error of the FAT of each step around the true curve,
+as a proportion of MFO (default 0).</p></dd>
 
 
 <dt id="arg-protocol">protocol<a class="anchor" aria-label="anchor" href="#arg-protocol"></a></dt>
@@ -187,12 +193,19 @@ schedule (`Load` column only when `load_start` and `load_increment` are set).</p
   test-retest variability an upper bound. For Fatmax, Croci et al. (2014,
   n = 15) report CVs of 16.4 % (SIN), 18.6 % (P3) and 20.8 % (MV).
   `familiarization` shifts session 1 only (a relative bias).</p></li>
-<li><p>within a session: every record of VO2 and VCO2 is multiplied by
-  (1 + e), with e normal, standard deviation `noise_cv` and correlation
-  `noise_cor` between the two gases. There is no recommended value: the
-  default 0 gives noiseless tests, and studies of the fit uncertainty set
-  it explicitly as a design parameter.</p></li>
-</ul><p>**Resting and graded tests.** Conveniences for [MFO()], not physiological
+<li><p>within a session, on fat oxidation: `fat_noise_cv` adds to the
+  true FAT of each step a normal error with standard deviation
+  `fat_noise_cv` x MFO (the CV of the step FAT around the true curve,
+  residual SD / MFO; SPEC 17). VCO2 is then solved from the noisy FAT, so
+  [MFO()] sees exactly that error.</p></li>
+<li><p>within a session, on the gases: every record of VO2 and VCO2 is
+  multiplied by (1 + e), with e normal, standard deviation `noise_cv` and
+  correlation `noise_cor` between the two gases. Small errors in the gases
+  become large errors in FAT, which depends on their difference; there is
+  no source for a realistic correlation, so `noise_cor` defaults to 0.</p></li>
+</ul><p>Both noises default to 0 (noiseless tests); studies of the fit
+uncertainty set them explicitly as design parameters.</p>
+<p>**Resting and graded tests.** Conveniences for [MFO()], not physiological
 claims: the resting measure lasts 15 min at 10 % VO2max with RER 0.80; the
 graded test has 60-s stages from 50 to 100 % VO2max with RER rising
 linearly from 0.90 to 1.15, so the last stage gives VO2max exactly. Heart
@@ -227,7 +240,7 @@ ONE 9: e97930. <a href="https://doi.org/10.1371/journal.pone.0097930" class="ext
 <span class="r-in"><span><span class="va">sim</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;MFO_sim&gt; 3 participant(s) x 2 session(s), 8 steps of step, 20-s records (Frayn)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   between sessions: CV MFO 0.21, CV Fatmax 0.26; familiarization MFO 0, Fatmax 0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   analyser noise: CV 0, correlation 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   noise: FAT CV 0 of MFO; gases CV 0, correlation 0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   true MFO 0.222-0.548 g/min, Fatmax 41.5-71.6 % VO2max</span>
 <span class="r-in"><span><span class="va">sim</span><span class="op">$</span><span class="va">truth</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    id session   VO2max       MFO   Fatmax d s           t    Fatmin</span>

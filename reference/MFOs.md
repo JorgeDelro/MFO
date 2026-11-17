@@ -42,7 +42,7 @@ MFOs(
   protocol = NULL,
   age = NULL,
   col_name_Load = "Load",
-  ci = c("none", "bootstrap"),
+  ci = c("none", "bootstrap", "parametric"),
   B = 2000,
   conf = 0.95,
   seed = NULL
@@ -208,9 +208,9 @@ MFOs(
 
 - ci, B, conf, seed:
 
-  bootstrap confidence intervals of the fit, passed to \[MFO()\]
-  (default \`ci = "none"\`). The same \`seed\` is used for every
-  participant.
+  bootstrap confidence intervals of the fit, passed to \[MFO()\]: \`ci\`
+  is \`"none"\` (default), \`"bootstrap"\` or \`"parametric"\`. The same
+  \`seed\` is used for every participant.
 
 ## Value
 

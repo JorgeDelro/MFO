@@ -19,6 +19,7 @@ simulate_MFO_sessions(
   familiarization = 0,
   noise_cv = 0,
   noise_cor = 0,
+  fat_noise_cv = 0,
   protocol = MFO_protocol(),
   n_steps = 8,
   intensity = c(20, 75),
@@ -66,6 +67,11 @@ simulate_MFO_sessions(
 
   analyser noise per record: coefficient of variation of VO2 and VCO2
   and their correlation (defaults 0).
+
+- fat_noise_cv:
+
+  error of the FAT of each step around the true curve, as a proportion
+  of MFO (default 0).
 
 - protocol:
 
@@ -150,11 +156,21 @@ load schedule (\`Load\` column only when \`load_start\` and
   al. (2014, n = 15) report CVs of 16.4 % (SIN), 18.6 % (P3) and 20.8 %
   (MV). \`familiarization\` shifts session 1 only (a relative bias).
 
-- within a session: every record of VO2 and VCO2 is multiplied by (1 +
-  e), with e normal, standard deviation \`noise_cv\` and correlation
-  \`noise_cor\` between the two gases. There is no recommended value:
-  the default 0 gives noiseless tests, and studies of the fit
-  uncertainty set it explicitly as a design parameter.
+- within a session, on fat oxidation: \`fat_noise_cv\` adds to the true
+  FAT of each step a normal error with standard deviation
+  \`fat_noise_cv\` x MFO (the CV of the step FAT around the true curve,
+  residual SD / MFO; SPEC 17). VCO2 is then solved from the noisy FAT,
+  so \[MFO()\] sees exactly that error.
+
+- within a session, on the gases: every record of VO2 and VCO2 is
+  multiplied by (1 + e), with e normal, standard deviation \`noise_cv\`
+  and correlation \`noise_cor\` between the two gases. Small errors in
+  the gases become large errors in FAT, which depends on their
+  difference; there is no source for a realistic correlation, so
+  \`noise_cor\` defaults to 0.
+
+Both noises default to 0 (noiseless tests); studies of the fit
+uncertainty set them explicitly as design parameters.
 
 \*\*Resting and graded tests.\*\* Conveniences for \[MFO()\], not
 physiological claims: the resting measure lasts 15 min at 10 % VO2max
@@ -195,7 +211,7 @@ sim <- simulate_MFO_sessions(n_participants = 3, n_sessions = 2,
 sim
 #> <MFO_sim> 3 participant(s) x 2 session(s), 8 steps of step, 20-s records (Frayn)
 #>   between sessions: CV MFO 0.21, CV Fatmax 0.26; familiarization MFO 0, Fatmax 0
-#>   analyser noise: CV 0, correlation 0
+#>   noise: FAT CV 0 of MFO; gases CV 0, correlation 0
 #>   true MFO 0.222-0.548 g/min, Fatmax 41.5-71.6 % VO2max
 sim$truth
 #>    id session   VO2max       MFO   Fatmax d s           t    Fatmin

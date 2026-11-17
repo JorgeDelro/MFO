@@ -31,7 +31,7 @@ MFO(
   min_steps = 6,
   protocol = NULL,
   age = NULL,
-  ci = c("none", "bootstrap"),
+  ci = c("none", "bootstrap", "parametric"),
   B = 2000,
   conf = 0.95,
   seed = NULL,
@@ -189,10 +189,10 @@ MFO(
 
 - ci:
 
-  \`"none"\` (default) or \`"bootstrap"\`: percentile confidence
-  intervals of the fit for MFO, Fatmax, the Fatmax zone and Fatmax in
-  load units (see \*Fit uncertainty\*). Not available for \`method =
-  "MV"\`.
+  \`"none"\` (default), \`"bootstrap"\` or \`"parametric"\`: percentile
+  confidence intervals of the fit for MFO, Fatmax, the Fatmax zone and
+  Fatmax in load units (see \*Fit uncertainty\*). Not available for
+  \`method = "MV"\`.
 
 - B:
 
@@ -306,10 +306,21 @@ bootstrap, SPEC 13.1). The residuals are modified, r / sqrt(1 - h), with
 h the leverage of each step (diagonal of X (X'X)^-1 X'), and centred, so
 that their spread matches that of the errors (Davison & Hinkley 1997,
 Bootstrap Methods and their Application, ch. 6). The interval is the
-percentile one. For \`"MRER"\` the residuals of its two regressions, 1 -
-RER and VO2 on % VO2max, are resampled separately. Replicates in which
-the fit falls back to another method (e.g. P3 to P2) are dropped and
-counted.
+percentile one. With \`ci = "parametric"\` the new errors are normal,
+with the residual standard deviation of the fit, sqrt(RSS / (n - p)),
+instead of resampled residuals. For \`"MRER"\` the residuals of its two
+regressions, 1 - RER and VO2 on % VO2max, are resampled separately.
+Replicates in which the fit falls back to another method (e.g. P3 to P2)
+are dropped and counted.
+
+Both intervals are too narrow with few steps: in the ideal case (correct
+model, a parabola fitted by P2 to 8 steps with independent normal
+errors; 500 simulated tests, B = 500) the 95 % intervals covered Fatmax
+88.2 % (\`"bootstrap"\`) and 89.2 % (\`"parametric"\`), and MFO 89.2 %
+and 89.6 %. This matches P(\|t_5\| \< 1.96) = 0.893: neither interval
+carries the uncertainty of the residual SD, estimated with n - p = 5
+degrees of freedom. Read them as lower bounds of the uncertainty; the
+study by method, number of steps and noise is in \`inst/validation/\`.
 
 This is the uncertainty of the fit within one test, not the day-to-day
 error (see \[MFO_reliability()\]). It assumes exchangeable residuals;

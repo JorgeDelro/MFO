@@ -82,7 +82,7 @@ Supports all parameters from the MFO() and MFO_kinetics() functions.</p>
 <span>  protocol <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  age <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  col_name_Load <span class="op">=</span> <span class="st">"Load"</span>,</span>
-<span>  ci <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"bootstrap"</span><span class="op">)</span>,</span>
+<span>  ci <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"bootstrap"</span>, <span class="st">"parametric"</span><span class="op">)</span>,</span>
 <span>  B <span class="op">=</span> <span class="fl">2000</span>,</span>
 <span>  conf <span class="op">=</span> <span class="fl">0.95</span>,</span>
 <span>  seed <span class="op">=</span> <span class="cn">NULL</span></span>
@@ -243,7 +243,7 @@ databases. Default "Load"; the column is optional. See [MFO()].</p></dd>
 
 <dt id="arg-ci-b-conf-seed">ci, B, conf, seed<a class="anchor" aria-label="anchor" href="#arg-ci-b-conf-seed"></a></dt>
 <dd><p>bootstrap confidence intervals of the fit, passed to
-[MFO()] (default `ci = "none"`). The same `seed` is used for every
+[MFO()]: `ci` is `"none"` (default), `"bootstrap"` or `"parametric"`. The same `seed` is used for every
 participant.</p></dd>
 
 </dl></div>

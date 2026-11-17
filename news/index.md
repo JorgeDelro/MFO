@@ -86,9 +86,14 @@
   shows the interval in the subtitle and Fatmax’s as a grey band. It is
   the uncertainty of the fit within one test; it assumes exchangeable
   residuals. The default `"none"` leaves results and run time unchanged.
-  In the ideal case (correct model, normal errors, 8 steps) the
-  percentile interval of Fatmax covered 87 %, not 95 %; the coverage
-  study is in `inst/validation/bootstrap_coverage.R`.
+  `ci = "parametric"` draws normal errors with the residual SD, sqrt(RSS
+  / (n - p)), instead of resampling residuals. Both are too narrow with
+  few steps: in the ideal case (P2 on a parabola, 8 steps, normal
+  errors, 500 tests) the 95 % intervals covered Fatmax 88.2 % and 89.2 %
+  and MFO 89.2 % and 89.6 %, as expected from ignoring the uncertainty
+  of the residual SD with 5 degrees of freedom (P(\|t_5\| \< 1.96) =
+  0.893). The study by method, steps and noise is in
+  `inst/validation/bootstrap_coverage.R`.
 
 - [`MFO_reliability()`](https://jorgedelro.github.io/MFO/reference/MFO_reliability.md)
   computes the test-retest reliability of the
@@ -131,6 +136,10 @@
   writes the sessions as folders for
   [`MFOs()`](https://jorgedelro.github.io/MFO/reference/MFOs.md) and a
   `sessions.csv` mapping each folder to its participant and session.
+  `fat_noise_cv` adds to each step an error of SD `fat_noise_cv` x MFO
+  around the true curve, the noise definition of SPEC 17; the gas noise
+  (`noise_cv`, `noise_cor`) stays as an option, with no realistic value
+  for the correlation.
 
 - [`read_cart()`](https://jorgedelro.github.io/MFO/reference/read_cart.md)
   reads a metabolic cart export (Cortex, Cosmed, Vyntus or ZAN, parsed
