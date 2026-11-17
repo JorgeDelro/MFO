@@ -32,12 +32,19 @@
 #'   test-retest variability an upper bound. For Fatmax, Croci et al. (2014,
 #'   n = 15) report CVs of 16.4 \% (SIN), 18.6 \% (P3) and 20.8 \% (MV).
 #'   `familiarization` shifts session 1 only (a relative bias).
-#' \item within a session: every record of VO2 and VCO2 is multiplied by
-#'   (1 + e), with e normal, standard deviation `noise_cv` and correlation
-#'   `noise_cor` between the two gases. There is no recommended value: the
-#'   default 0 gives noiseless tests, and studies of the fit uncertainty set
-#'   it explicitly as a design parameter.
+#' \item within a session, on fat oxidation: `fat_noise_cv` adds to the
+#'   true FAT of each step a normal error with standard deviation
+#'   `fat_noise_cv` x MFO (the CV of the step FAT around the true curve,
+#'   residual SD / MFO; SPEC 17). VCO2 is then solved from the noisy FAT, so
+#'   [MFO()] sees exactly that error.
+#' \item within a session, on the gases: every record of VO2 and VCO2 is
+#'   multiplied by (1 + e), with e normal, standard deviation `noise_cv` and
+#'   correlation `noise_cor` between the two gases. Small errors in the gases
+#'   become large errors in FAT, which depends on their difference; there is
+#'   no source for a realistic correlation, so `noise_cor` defaults to 0.
 #' }
+#' Both noises default to 0 (noiseless tests); studies of the fit
+#' uncertainty set them explicitly as design parameters.
 #'
 #' **Resting and graded tests.** Conveniences for [MFO()], not physiological
 #' claims: the resting measure lasts 15 min at 10 \% VO2max with RER 0.80; the
@@ -59,6 +66,8 @@
 #'   (proportions; defaults 0.21 and 0.26).
 #' @param familiarization relative bias of session 1, one number for MFO and
 #'   Fatmax or `c(MFO = , Fatmax = )` (default 0).
+#' @param fat_noise_cv error of the FAT of each step around the true curve,
+#'   as a proportion of MFO (default 0).
 #' @param noise_cv,noise_cor analyser noise per record: coefficient of
 #'   variation of VO2 and VCO2 and their correlation (defaults 0).
 #' @param protocol an [MFO_protocol()] of type `"step"`, `"step_variable"` or
@@ -125,6 +134,7 @@ simulate_MFO_sessions <- function(n_participants = 10,
                                   familiarization = 0,
                                   noise_cv = 0,
                                   noise_cor = 0,
+                                  fat_noise_cv = 0,
                                   protocol = MFO_protocol(),
                                   n_steps = 8,
                                   intensity = c(20, 75),
@@ -148,7 +158,7 @@ simulate_MFO_sessions <- function(n_participants = 10,
     stop("intensity must be two increasing numbers between 0 and 100 (% VO2max).",
          call. = FALSE)
   }
-  for (nm in c("cv_MFO", "cv_Fatmax", "noise_cv")) {
+  for (nm in c("cv_MFO", "cv_Fatmax", "noise_cv", "fat_noise_cv")) {
     v <- get(nm)
     if (!is.numeric(v) || length(v) != 1 || is.na(v) || v < 0) {
       stop(nm, " must be a single number >= 0.", call. = FALSE)
@@ -209,7 +219,8 @@ simulate_MFO_sessions <- function(n_participants = 10,
         VO2max = participants$VO2max[p], MFO = MFO_k, d = d, s = s, t = t,
         pct = pct, durations = durations, protocol = protocol,
         step_time = step_time, author = author, noise_cv = noise_cv,
-        noise_cor = noise_cor, hr_rest = hr_rest, age = age)
+        noise_cor = noise_cor, fat_noise_cv = fat_noise_cv, hr_rest = hr_rest,
+        age = age)
     }
   }
   truth <- do.call(rbind, truth)
@@ -221,6 +232,7 @@ simulate_MFO_sessions <- function(n_participants = 10,
                                  shape = shape, cv_MFO = cv_MFO,
                                  cv_Fatmax = cv_Fatmax, familiarization = fam,
                                  noise_cv = noise_cv, noise_cor = noise_cor,
+                                 fat_noise_cv = fat_noise_cv,
                                  protocol = protocol, n_steps = n_steps,
                                  intensity = intensity, step_time = step_time,
                                  author = author, hr_rest = hr_rest, age = age,
@@ -238,7 +250,8 @@ print.MFO_sim <- function(x, ...) {
   cat(sprintf("  between sessions: CV MFO %g, CV Fatmax %g; familiarization %s\n",
               st$cv_MFO, st$cv_Fatmax,
               paste(names(st$familiarization), st$familiarization, sep = " ", collapse = ", ")))
-  cat(sprintf("  analyser noise: CV %g, correlation %g\n", st$noise_cv, st$noise_cor))
+  cat(sprintf("  noise: FAT CV %g of MFO; gases CV %g, correlation %g\n",
+              st$fat_noise_cv, st$noise_cv, st$noise_cor))
   cat(sprintf("  true MFO %.3f-%.3f g/min, Fatmax %.1f-%.1f %% VO2max\n",
               min(x$truth$MFO), max(x$truth$MFO), min(x$truth$Fatmax),
               max(x$truth$Fatmax)))
@@ -439,14 +452,18 @@ write_MFO_sessions <- function(sim, path,
 }
 
 .sim_session <- function(VO2max, MFO, d, s, t, pct, durations, protocol, step_time,
-                         author, noise_cv, noise_cor, hr_rest, age) {
+                         author, noise_cv, noise_cor, fat_noise_cv = 0, hr_rest, age) {
   HRmax <- 208 - 0.7 * age
   hr <- function(p) hr_rest + (HRmax - hr_rest) * p / 100
   reps <- as.integer(round(durations / step_time))
 
   # MFO test
   VO2_step <- pct / 100 * VO2max
-  VCO2_step <- .sim_vco2(VO2_step, .sim_fat(pct, MFO, d, s, t), author, VO2max)
+  FAT_step <- .sim_fat(pct, MFO, d, s, t)
+  if (fat_noise_cv > 0) {
+    FAT_step <- FAT_step + stats::rnorm(length(FAT_step), 0, fat_noise_cv * MFO)
+  }
+  VCO2_step <- .sim_vco2(VO2_step, FAT_step, author, VO2max)
   load_step <- if (!is.null(protocol$load_start)) {
     protocol$load_start + (seq_along(pct) - 1) * protocol$load_increment
   }

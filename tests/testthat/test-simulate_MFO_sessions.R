@@ -157,3 +157,21 @@ test_that("write_MFO_sessions() writes folders that MFOs() reads", {
   expect_silent(write_MFO_sessions(sim, root, overwrite = TRUE))
   expect_error(write_MFO_sessions(list(), root), "simulate_MFO_sessions")
 })
+
+test_that("fat_noise_cv adds step errors of SD fat_noise_cv x MFO to FAT", {
+  # 400 participants x 8 steps; MFO() recovers each noisy step FAT exactly,
+  # so the errors around the true curve have SD 0.10 x 0.4 = 0.04 g/min
+  # (SE of the SD about 0.0005)
+  sim <- simulate_MFO_sessions(400, 1, population = list(VO2max = c(3000, 0),
+                               MFO = c(0.4, 0), Fatmax = c(45, 0)),
+                               cv_MFO = 0, cv_Fatmax = 0, fat_noise_cv = 0.10, seed = 61)
+  err <- unlist(lapply(sim$data, function(p) {
+    r <- suppressWarnings(suppressMessages(.run(p$S1, negative_FAT = "keep")))
+    r$MFO_db$FAT - .sim_fat(r$MFO_db$porc_VO2, 0.4, 0, 1, sim$truth$t[1])
+  }))
+  expect_equal(sd(err), 0.04, tolerance = 0.002 / 0.04)
+  expect_equal(mean(err), 0, tolerance = 0.002)
+  expect_output(print(sim), "FAT CV 0.1 of MFO")
+  expect_error(simulate_MFO_sessions(2, 1, list(VO2max = c(3000, 0)), fat_noise_cv = -1),
+               ">= 0")
+})
