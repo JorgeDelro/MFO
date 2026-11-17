@@ -51,22 +51,41 @@ test_that("ICC and its CI equal psych::ICC (ICC2)", {
   }
 })
 
-test_that("on simulated tests the ICC is close to its theoretical value", {
-  # MFO between participants: mean 0.34, SD 0.10 (variance 0.01); between
-  # sessions a multiplicative factor with CV 0.21, so the within variance is
-  # E[MFO^2] 0.21^2 = (0.01 + 0.34^2) 0.0441. Theoretical ICC = 0.01 /
-  # (0.01 + 0.005539) = 0.644. With 2000 participants the SE is about 0.013.
+# Theoretical ICC of what the simulator generates (no familiarization here):
+# Y = P F, P the participant's MFO (log-normal, mean 0.34, SD 0.10, variance
+# 0.01) and F the day factor (log-normal, mean 1, CV 0.21). Then
+# Y = P + e with e = P (F - 1): mean 0, variance E[P^2] 0.21^2, uncorrelated
+# with P but proportional to it (multiplicative, heteroscedastic). The
+# ICC(A,1) of the ANOVA estimates Var(P) / (Var(P) + E[P^2] CV^2)
+# = 0.01 / (0.01 + (0.01 + 0.34^2) 0.21^2) = 0.6435. In 400 replicates with
+# n = 2000 the estimate had mean 0.6435 (bias -0.0001) and SD 0.0147; with
+# n = 20000, SD 0.0043.
+.theo_icc <- 0.01 / (0.01 + (0.01 + 0.34^2) * 0.21^2)
+
+test_that("simulated sessions give the theoretical ICC (integration, n = 2000)", {
   sim <- simulate_MFO_sessions(2000, 2, population = list(VO2max = c(3000, 0)),
                                n_steps = 2, seed = 31)
   res <- data.frame(ID = paste(sim$truth$id, sim$truth$session, sep = "_"),
                     MFO_g_min = sim$truth$MFO)
   # the between-session error is multiplicative: differences grow with the mean
   expect_warning(rel <- MFO_reliability(res), "Differences grow with the mean")
-  theo <- 0.01 / (0.01 + (0.01 + 0.34^2) * 0.21^2)
-  expect_equal(rel$table$ICC, theo, tolerance = 0.04 / theo)
-  expect_true(rel$table$ICC_lower < rel$table$ICC & rel$table$ICC < rel$table$ICC_upper)
+  # tolerance 0.045 = 3 SD of the estimate at n = 2000 (observed: 0.6506)
+  expect_equal(rel$table$ICC, .theo_icc, tolerance = 0.045 / .theo_icc)
+  expect_true(rel$table$ICC_lower < .theo_icc & .theo_icc < rel$table$ICC_upper)
   # CV_log ~ the between-session CV of 21 %: 100 (exp(sd of log factor) - 1)
   expect_equal(rel$table$CV_log, 100 * (exp(sqrt(log(1 + 0.21^2))) - 1), tolerance = 0.1)
+})
+
+test_that("the ICC estimator is accurate for the simulator's model (n = 50000)", {
+  # Same distributions as simulate_MFO_sessions(), without building the
+  # tables (70 s at this size). SD of the estimate about 0.0147 sqrt(2000 /
+  # 50000) = 0.0029, so a tolerance of 0.01 is about 3 SD.
+  set.seed(32)
+  n <- 50000
+  P <- .rlnorm_mean_sd(n, c(0.34, 0.10))
+  s2 <- log(1 + 0.21^2)
+  Y <- P * matrix(stats::rlnorm(2 * n, -s2 / 2, sqrt(s2)), n, 2)
+  expect_equal(.icc_a1(Y, 0.95)$ICC, .theo_icc, tolerance = 0.01 / .theo_icc)
 })
 
 test_that("familiarization is flagged when session 1 is biased", {

@@ -23,8 +23,10 @@
 #' \item ICC(2,1), two-way random effects, absolute agreement, single
 #'   measure (Shrout & Fleiss 1979; McGraw & Wong 1996, ICC(A,1)):
 #'   (MSR - MSE) / (MSR + (k - 1) MSE + k (MSC - MSE) / n), with the F-based
-#'   confidence interval of McGraw & Wong (1996), as corrected in their
-#'   erratum (1996, p. 390). It is classified on the lower bound of the
+#'   confidence interval of McGraw & Wong (1996). The interval is checked
+#'   numerically against `psych::ICC` 2.6.9 (ICC2), which applies their
+#'   erratum (p. 390); the text of the erratum has not been consulted. It is
+#'   classified on the lower bound of the
 #'   interval (Koo & Li 2016): < 0.50 poor, 0.50-0.75 moderate, 0.75-0.90
 #'   good, > 0.90 excellent.
 #' \item SEM = sqrt(MSE), MDC95 = 1.96 sqrt(2) SEM and MDC90 = 1.645 sqrt(2)
