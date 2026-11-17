@@ -75,7 +75,12 @@ methods to locate MFO (P3, P2, MV, MRER) and stoichiometric equations
 <span>  use_incomplete_step <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  min_steps <span class="op">=</span> <span class="fl">6</span>,</span>
 <span>  protocol <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  age <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  age <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  ci <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"bootstrap"</span><span class="op">)</span>,</span>
+<span>  B <span class="op">=</span> <span class="fl">2000</span>,</span>
+<span>  conf <span class="op">=</span> <span class="fl">0.95</span>,</span>
+<span>  seed <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  show_ci <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -218,6 +223,30 @@ gives the same results as v0.2.1. See SPEC 14.</p></dd>
 [VO2max_from_test()] when VO2max comes from `db_graded`. Without it that
 criterion is not evaluated and a message says so once per session.</p></dd>
 
+
+<dt id="arg-ci">ci<a class="anchor" aria-label="anchor" href="#arg-ci"></a></dt>
+<dd><p>`"none"` (default) or `"bootstrap"`: percentile confidence
+intervals of the fit for MFO, Fatmax, the Fatmax zone and Fatmax in
+load units (see *Fit uncertainty*). Not available for `method = "MV"`.</p></dd>
+
+
+<dt id="arg-b">B<a class="anchor" aria-label="anchor" href="#arg-b"></a></dt>
+<dd><p>number of bootstrap replicates (default 2000).</p></dd>
+
+
+<dt id="arg-conf">conf<a class="anchor" aria-label="anchor" href="#arg-conf"></a></dt>
+<dd><p>confidence level of the intervals (default 0.95).</p></dd>
+
+
+<dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
+<dd><p>optional integer for reproducible intervals; the random state
+of the session is restored afterwards.</p></dd>
+
+
+<dt id="arg-show-ci">show_ci<a class="anchor" aria-label="anchor" href="#arg-show-ci"></a></dt>
+<dd><p>logical; with `ci = "bootstrap"`, show the interval in the
+plot subtitle and Fatmax's as a grey band (default `TRUE`).</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -254,9 +283,37 @@ criterion is not evaluated and a message says so once per session.</p></dd>
 <li><p>x_CHO: carbohydrates in basal metabolism (g/min), with the same `author` equations as the test.</p></li>
 <li><p>x_FAT: fat in basal metabolism (g/min).</p></li>
 <li><p>x_Kcal: Kcal in basal metabolism (kcal/min).</p></li>
+<li><p>ci: with `ci = "bootstrap"`, a data frame with rows MFO, FAT_MAX,
+  FatMax_zone_lower, FatMax_zone_upper and FAT_MAX_load and columns
+  estimate, lower and upper; otherwise `NULL`.</p></li>
+<li><p>bootstrap: with `ci = "bootstrap"`, a list with `B`, `kept`
+  (replicates used), `conf` and the `replicates` matrix; otherwise `NULL`.</p></li>
 <li><p>protocol: the [MFO_protocol()] used.</p></li>
 <li><p>mode: exercise mode of the protocol ("cycling", "running" or "walking").</p></li>
 </ul></div>
+    <div class="section level2">
+    <h2 id="fit-uncertainty">Fit uncertainty<a class="anchor" aria-label="anchor" href="#fit-uncertainty"></a></h2>
+
+
+<p>With `ci = "bootstrap"` the curve is refitted to B replicates made of the
+fitted values plus residuals resampled with replacement (residual
+bootstrap, SPEC 13.1). The residuals are modified, r / sqrt(1 - h), with h
+the leverage of each step (diagonal of X (X'X)^-1 X'), and centred, so
+that their spread matches that of the errors (Davison &amp; Hinkley 1997,
+Bootstrap Methods and their Application, ch. 6). The interval is the
+percentile one. For `"MRER"` the residuals of its two regressions, 1 - RER
+and VO2 on % VO2max, are resampled separately. Replicates in which the
+fit falls back to another method (e.g. P3 to P2) are dropped and counted.</p>
+<p>This is the uncertainty of the fit within one test, not the day-to-day
+error (see [MFO_reliability()]). It assumes exchangeable residuals; fat
+oxidation errors grow with intensity (FAT is about 1.67 (VO2 - VCO2), which
+amplifies the error of VCO2), so the interval is approximate. A wild
+bootstrap (Wu 1986, Ann Stat 14(4): 1261-1295,
+<a href="https://doi.org/10.1214/aos/1176350142" class="external-link">doi:10.1214/aos/1176350142</a>
+) would allow for it, but with 6-10 steps and
+two-point weights it can produce only 2^n distinct samples, so it is not
+offered.</p>
+    </div>
     <div class="section level2">
     <h2 id="load">Load<a class="anchor" aria-label="anchor" href="#load"></a></h2>
 

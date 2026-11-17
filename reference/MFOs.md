@@ -41,7 +41,11 @@ MFOs(
   min_steps = 6,
   protocol = NULL,
   age = NULL,
-  col_name_Load = "Load"
+  col_name_Load = "Load",
+  ci = c("none", "bootstrap"),
+  B = 2000,
+  conf = 0.95,
+  seed = NULL
 )
 ```
 
@@ -202,6 +206,12 @@ MFOs(
   column name for the external load (W or km/h) in the databases.
   Default "Load"; the column is optional. See \[MFO()\].
 
+- ci, B, conf, seed:
+
+  bootstrap confidence intervals of the fit, passed to \[MFO()\]
+  (default \`ci = "none"\`). The same \`seed\` is used for every
+  participant.
+
 ## Value
 
 Data frame with one row per participant containing:
@@ -225,6 +235,9 @@ Data frame with one row per participant containing:
   VO2max was supplied.
 
 - FAT_MAX_perVO2max: FatMax as % VO2max.
+
+- FAT_MAX_lower, FAT_MAX_upper, MFO_lower, MFO_upper: bootstrap
+  confidence limits with \`ci = "bootstrap"\`, otherwise \`NA\`.
 
 - FAT_MAX_HR: Heart rate at FatMax (bpm).
 

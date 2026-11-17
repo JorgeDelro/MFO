@@ -30,7 +30,12 @@ MFO(
   use_incomplete_step = FALSE,
   min_steps = 6,
   protocol = NULL,
-  age = NULL
+  age = NULL,
+  ci = c("none", "bootstrap"),
+  B = 2000,
+  conf = 0.95,
+  seed = NULL,
+  show_ci = TRUE
 )
 ```
 
@@ -182,6 +187,31 @@ MFO(
   it that criterion is not evaluated and a message says so once per
   session.
 
+- ci:
+
+  \`"none"\` (default) or \`"bootstrap"\`: percentile confidence
+  intervals of the fit for MFO, Fatmax, the Fatmax zone and Fatmax in
+  load units (see \*Fit uncertainty\*). Not available for \`method =
+  "MV"\`.
+
+- B:
+
+  number of bootstrap replicates (default 2000).
+
+- conf:
+
+  confidence level of the intervals (default 0.95).
+
+- seed:
+
+  optional integer for reproducible intervals; the random state of the
+  session is restored afterwards.
+
+- show_ci:
+
+  logical; with \`ci = "bootstrap"\`, show the interval in the plot
+  subtitle and Fatmax's as a grey band (default \`TRUE\`).
+
 ## Value
 
 Returns a list which contains:
@@ -255,10 +285,40 @@ Returns a list which contains:
 
 - x_Kcal: Kcal in basal metabolism (kcal/min).
 
+- ci: with \`ci = "bootstrap"\`, a data frame with rows MFO, FAT_MAX,
+  FatMax_zone_lower, FatMax_zone_upper and FAT_MAX_load and columns
+  estimate, lower and upper; otherwise \`NULL\`.
+
+- bootstrap: with \`ci = "bootstrap"\`, a list with \`B\`, \`kept\`
+  (replicates used), \`conf\` and the \`replicates\` matrix; otherwise
+  \`NULL\`.
+
 - protocol: the \[MFO_protocol()\] used.
 
 - mode: exercise mode of the protocol ("cycling", "running" or
   "walking").
+
+## Fit uncertainty
+
+With \`ci = "bootstrap"\` the curve is refitted to B replicates made of
+the fitted values plus residuals resampled with replacement (residual
+bootstrap, SPEC 13.1). The residuals are modified, r / sqrt(1 - h), with
+h the leverage of each step (diagonal of X (X'X)^-1 X'), and centred, so
+that their spread matches that of the errors (Davison & Hinkley 1997,
+Bootstrap Methods and their Application, ch. 6). The interval is the
+percentile one. For \`"MRER"\` the residuals of its two regressions, 1 -
+RER and VO2 on % VO2max, are resampled separately. Replicates in which
+the fit falls back to another method (e.g. P3 to P2) are dropped and
+counted.
+
+This is the uncertainty of the fit within one test, not the day-to-day
+error (see \[MFO_reliability()\]). It assumes exchangeable residuals;
+fat oxidation errors grow with intensity (FAT is about 1.67 (VO2 -
+VCO2), which amplifies the error of VCO2), so the interval is
+approximate. A wild bootstrap (Wu 1986, Ann Stat 14(4): 1261-1295,
+[doi:10.1214/aos/1176350142](https://doi.org/10.1214/aos/1176350142) )
+would allow for it, but with 6-10 steps and two-point weights it can
+produce only 2^n distinct samples, so it is not offered.
 
 ## Load
 
