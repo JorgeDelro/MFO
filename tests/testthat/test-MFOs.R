@@ -173,6 +173,22 @@ test_that("MFOs() reads a renamed Load column and reports load and VO2max type",
   expect_true(all(is.na(res0$FAT_MAX_load)))
 })
 
+test_that("MFOs() passes ci = 'bootstrap' and reports the limits", {
+  root <- withr::local_tempdir()
+  parts <- .participants()
+  .write_folder(root, parts)
+  res <- suppressWarnings(suppressMessages(.mfos("folder", root, ci = "bootstrap",
+                                                 B = 100, seed = 2)))
+  r <- suppressWarnings(suppressMessages(
+    MFO(step_time = 20, db_MFO = .as_read(parts$P01$MFO), db_basal = .as_read(parts$P01$basal),
+        db_graded = .as_read(parts$P01$graded), cv_var = "RER", author = "Frayn",
+        energy_equivalents = "classic", ci = "bootstrap", B = 100, seed = 2)))
+  expect_equal(res$FAT_MAX_lower[1], round(r$ci["FAT_MAX", "lower"], 2))
+  expect_equal(res$MFO_upper[1], round(r$ci["MFO", "upper"], 4))
+  res0 <- suppressWarnings(suppressMessages(.mfos("folder", root)))
+  expect_true(all(is.na(res0$FAT_MAX_lower)))
+})
+
 test_that("a participant that cannot be processed gives an NA row and a warning", {
   root <- withr::local_tempdir()
   parts <- .participants()

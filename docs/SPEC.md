@@ -403,13 +403,15 @@ La v0.3.0 convierte el paquete de una calculadora de MFO/Fatmax en una herramien
 
 La fiabilidad (§12) cuantifica el error entre días; esta sección cuantifica el error *dentro* de un test: con 6–10 escalones ruidosos, la posición del máximo de un P3 o de un SIN es incierta aunque el test se repitiera idéntico. Ningún software de MFO publicado reporta esa incertidumbre; es el principal aporte metodológico de la v0.3.0.
 
-**13.1 Bootstrap de residuos (por defecto, `ci = "bootstrap"`).** Se ajusta el modelo, se guardan los residuos, se generan B = 2000 réplicas sumando a los valores ajustados residuos remuestreados con reemplazo, se reajusta cada réplica y se recalcula MFO, Fatmax, zona y parámetros SIN. El IC 95 % es el intervalo percentil (2,5–97,5) o, si el usuario lo pide, BCa (Efron y Tibshirani, 1993). Con pocos escalones (n ≤ 6) el bootstrap de residuos es preferible al de casos porque no deja fuera escalones enteros. Limitaciones que el paquete declara: asume residuos intercambiables (homocedasticidad) y no captura el error del analizador ni el biológico; por eso el informe presenta este IC como "incertidumbre del ajuste" y el MDC como "incertidumbre de la medida".
+**13.1 Bootstrap de residuos (`ci = "bootstrap"`; por defecto `ci = "none"`, decisión de Jorge, 17 nov 2026, para no cambiar resultados ni tiempos sin pedirlo).** Se ajusta el modelo, se guardan los residuos **modificados** r/√(1 − h), con h el leverage de cada escalón (diagonal de J(JᵀJ)⁻¹Jᵀ; en P3/P2/MRER, la matriz de diseño), y centrados (Davison y Hinkley, 1997, cap. 6), se generan B = 2000 réplicas sumando a los valores ajustados esos residuos remuestreados con reemplazo, se reajusta cada réplica y se recalcula MFO, Fatmax, zona y parámetros SIN. El IC 95 % es el intervalo percentil (2,5–97,5); BCa no se ofrece en la 0.3.0 (decisión de Jorge). MV no admite bootstrap (no ajusta modelo); en MRER se remuestrean por separado los residuos de sus dos rectas. **Implementado en la 0.3.0 para `MFO()`** (P3, P2, MRER); el SIN, con el ajuste en g/min. Sin *wild bootstrap* (Wu, 1986): con 6–10 escalones y pesos de dos puntos solo hay 2^n muestras distintas; la heterocedasticidad queda como limitación documentada. Con pocos escalones (n ≤ 6) el bootstrap de residuos es preferible al de casos porque no deja fuera escalones enteros. Limitaciones que el paquete declara: asume residuos intercambiables (homocedasticidad) y no captura el error del analizador ni el biológico; por eso el informe presenta este IC como "incertidumbre del ajuste" y el MDC como "incertidumbre de la medida".
 
 **13.2 Modelo bayesiano (`MFO_bayes()`, opcional).** Se formula el P3 o el SIN como modelo no lineal con `brms` (Bürkner, 2017) sobre Stan (Carpenter et al., 2017):
 
 ```latex
 \text{FAT}_i \sim \mathcal{N}\!\left(f(x_i;\theta),\ \sigma\right), \qquad f_{\text{SIN}}(x;\theta) = \text{MFO}\cdot\sin\!\left\{\left[\frac{\pi^{1/s}}{\pi+2d}\left(\tfrac{\pi}{100}x+d+t\right)\right]^{s}\right\}
 ```
+
+**Soporte del SIN en Stan (decisión de Jorge, 17 nov 2026).** Fuera de sus dos ceros la base u = π^(1/s)/(π + 2d)·(Kx + d + t) es negativa y u^s da NaN con s no entero: el modelo usa FAT = MFO·sin(max(u, 0)^s), recortado a 0 tras Fatmin, igual que `simulate_MFO_sessions()`.
 
 A diferencia de la implementación clásica, el SIN bayesiano se ajusta en g/min directamente (MFO como parámetro de escala), sin la normalización previa por el máximo observado ni el suavizado con P3, lo que elimina dos pasos que introducen sesgo (§9.5). Priors por defecto, débilmente informativos y justificados por la literatura: MFO \~ Normal(0,45, 0,25) truncada en 0 (rango de Maunder 2018 y Amaro-Gahete 2018); d \~ Normal(0, 0,3); s \~ LogNormal(0, 0,3) (s > 0, centrado en 1); t \~ Normal(0, 0,2); σ \~ Exponential(10). El usuario puede sustituirlos (p. ej., priors de deportistas de resistencia). Salida: posteriores y intervalos creíbles del 95 % para MFO, Fatmax (derivado numéricamente de cada muestra posterior), zona Fatmax, Fatmin, d, s, t; diagnósticos (R-hat, ESS, divergencias) y gráfico de curvas posteriores. Ventajas concretas: converge donde `nlsLM` cae en la solución trivial (pocos escalones, curvas planas), permite comparar pre-post como distribución de la diferencia, y escala a un modelo jerárquico multi-participante (priors de grupo) en una versión posterior.
 
@@ -542,6 +544,10 @@ Cada coeficiente y regla que usará el paquete se ha contrastado con la fuente p
 | CV como error típico en logaritmos: 100 (e^SEM_log − 1) | Para todas las variables, junto a CV = SEM/media | Hopkins WG (2000). *Sports Med* 30(1):1–15, doi:10.2165/00007256-200030010-00001 | Verificado (Jorge, 17 nov 2026) | `CV_log` en `MFO_reliability()` |
 | Límites de acuerdo: sesgo ± 1,96 DE de las diferencias | Por pares de sesiones consecutivas | Bland JM, Altman DG (1986). *Lancet* 1(8476):307–310 | Verificado (Jorge, 17 nov 2026) | `pairs` y `plot()` de `MFO_reliability()` |
 | Tamaño de muestra: al menos 30 participantes heterogéneos y, si es posible, 3 evaluadores | Aviso con n < 30 | Koo y Li (2016), *J Chiropr Med* 15:155–163, doi:10.1016/j.jcm.2016.02.012: "researchers should try to obtain at least 30 heterogeneous samples and involve at least 3 raters whenever possible" | Verificado (Claude en el texto de PMC4913118, a petición de Jorge, 17 nov 2026) | Aviso en `MFO_reliability()` |
+| Residuos modificados r/√(1 − h), centrados, para el bootstrap de residuos; regresión no lineal | `MFO(ci = "bootstrap")` | Davison AC, Hinkley DV (1997). *Bootstrap Methods and their Application*. Cambridge University Press, cap. 6 y §7.4 | Verificado por el índice (Jorge, 17 nov 2026); **ecuación pendiente** de comprobar en el texto | Citado en `?MFO` (*Fit uncertainty*) |
+| *Wild bootstrap* (no ofrecido; limitación) | Con n escalones y pesos de dos puntos, 2^n muestras distintas | Wu CFJ (1986). *Ann Stat* 14(4):1261–1295, doi:10.1214/aos/1176350142 | Verificado (Jorge, 17 nov 2026) | Citado en `?MFO` |
+| brms | Modelos no lineales bayesianos sobre Stan | Bürkner PC (2017). *J Stat Softw* 80(1):1–28, doi:10.18637/jss.v080.i01 | Verificado (Jorge, 17 nov 2026) | `MFO_bayes()` (fase 3 de #13) |
+| Stan | Lenguaje de programación probabilística | Carpenter B, et al. (2017). *J Stat Softw* 76(1):1–32, doi:10.18637/jss.v076.i01 | Verificado (Jorge, 17 nov 2026) | `MFO_bayes()` (fase 3 de #13) |
 | Fatmax típico 45–65 % VO2max; Achten 2002: 64 % VO2max, 74 % HRmax | Igual | Achten 2002; Maunder 2018 | Verificado | Ninguna |
 | Interpretación de s | s > 1 asimetría a la derecha | Chenevière 2009, Discusión: 0 < s < 1 izquierda, s > 1 derecha | Verificado | Ninguna |
 
@@ -606,8 +612,10 @@ Fiabilidad, error de medida y estadística (Parte II)
 - McGraw KO, Wong SP (1996). Forming inferences about some intraclass correlation coefficients. *Psychol Methods* 1(1):30–46 (errata p. 390). [doi](https://doi.org/10.1037/1082-989X.1.1.30)
 - Shrout PE, Fleiss JL (1979). Intraclass correlations: uses in assessing rater reliability. *Psychol Bull* 86(2):420–428.
 - Efron B, Tibshirani RJ (1993). *An Introduction to the Bootstrap*. Chapman & Hall.
-- Bürkner PC (2017). brms: an R package for Bayesian multilevel models using Stan. *J Stat Softw* 80(1):1–28.
-- Carpenter B, Gelman A, Hoffman MD, et al. (2017). Stan: a probabilistic programming language. *J Stat Softw* 76(1).
+- Bürkner PC (2017). brms: an R package for Bayesian multilevel models using Stan. *J Stat Softw* 80(1):1–28. [doi](https://doi.org/10.18637/jss.v080.i01)
+- Carpenter B, Gelman A, Hoffman MD, et al. (2017). Stan: a probabilistic programming language. *J Stat Softw* 76(1):1–32. [doi](https://doi.org/10.18637/jss.v076.i01)
+- Davison AC, Hinkley DV (1997). *Bootstrap Methods and their Application*. Cambridge University Press.
+- Wu CFJ (1986). Jackknife, bootstrap and other resampling methods in regression analysis. *Ann Stat* 14(4):1261–1295. [doi](https://doi.org/10.1214/aos/1176350142)
 
 Herramientas relacionadas y verificación (secciones 18–19)
 

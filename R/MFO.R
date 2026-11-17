@@ -74,6 +74,35 @@
 #' @param age age in years (optional), for the heart-rate criterion of
 #'        [VO2max_from_test()] when VO2max comes from `db_graded`. Without it that
 #'        criterion is not evaluated and a message says so once per session.
+#' @param ci `"none"` (default) or `"bootstrap"`: percentile confidence
+#'        intervals of the fit for MFO, Fatmax, the Fatmax zone and Fatmax in
+#'        load units (see *Fit uncertainty*). Not available for `method = "MV"`.
+#' @param B number of bootstrap replicates (default 2000).
+#' @param conf confidence level of the intervals (default 0.95).
+#' @param seed optional integer for reproducible intervals; the random state
+#'        of the session is restored afterwards.
+#' @param show_ci logical; with `ci = "bootstrap"`, show the interval in the
+#'        plot subtitle and Fatmax's as a grey band (default `TRUE`).
+#'
+#' @section Fit uncertainty:
+#' With `ci = "bootstrap"` the curve is refitted to B replicates made of the
+#' fitted values plus residuals resampled with replacement (residual
+#' bootstrap, SPEC 13.1). The residuals are modified, r / sqrt(1 - h), with h
+#' the leverage of each step (diagonal of X (X'X)^-1 X'), and centred, so
+#' that their spread matches that of the errors (Davison & Hinkley 1997,
+#' Bootstrap Methods and their Application, ch. 6). The interval is the
+#' percentile one. For `"MRER"` the residuals of its two regressions, 1 - RER
+#' and VO2 on \% VO2max, are resampled separately. Replicates in which the
+#' fit falls back to another method (e.g. P3 to P2) are dropped and counted.
+#'
+#' This is the uncertainty of the fit within one test, not the day-to-day
+#' error (see [MFO_reliability()]). It assumes exchangeable residuals; fat
+#' oxidation errors grow with intensity (FAT is about 1.67 (VO2 - VCO2), which
+#' amplifies the error of VCO2), so the interval is approximate. A wild
+#' bootstrap (Wu 1986, Ann Stat 14(4): 1261-1295,
+#' \doi{10.1214/aos/1176350142}) would allow for it, but with 6-10 steps and
+#' two-point weights it can produce only 2^n distinct samples, so it is not
+#' offered.
 #'
 #' @section Load:
 #' `Load` in `MFO_db` is the measured external load of each step (mean over
@@ -160,6 +189,11 @@
 #' \item x_CHO: carbohydrates in basal metabolism (g/min), with the same `author` equations as the test.
 #' \item x_FAT: fat in basal metabolism (g/min).
 #' \item x_Kcal: Kcal in basal metabolism (kcal/min).
+#' \item ci: with `ci = "bootstrap"`, a data frame with rows MFO, FAT_MAX,
+#'   FatMax_zone_lower, FatMax_zone_upper and FAT_MAX_load and columns
+#'   estimate, lower and upper; otherwise `NULL`.
+#' \item bootstrap: with `ci = "bootstrap"`, a list with `B`, `kept`
+#'   (replicates used), `conf` and the `replicates` matrix; otherwise `NULL`.
 #' \item protocol: the [MFO_protocol()] used.
 #' \item mode: exercise mode of the protocol ("cycling", "running" or "walking").
 #' }}
@@ -221,10 +255,28 @@ MFO <- function(step_time,
                 use_incomplete_step = FALSE,
                 min_steps = 6,
                 protocol = NULL,
-                age = NULL) {
+                age = NULL,
+                ci = c("none", "bootstrap"),
+                B = 2000,
+                conf = 0.95,
+                seed = NULL,
+                show_ci = TRUE) {
 
   # Validate inputs
   method <- match.arg(method, c("P3", "P2", "MV", "MRER"))
+  ci <- match.arg(ci)
+  if (ci == "bootstrap") {
+    if (method == "MV") {
+      stop('ci = "bootstrap" is not available for method = "MV": it fits no model. ',
+           'Use "P3", "P2" or "MRER".', call. = FALSE)
+    }
+    if (!is.numeric(B) || length(B) != 1 || is.na(B) || B < 2 || B != round(B)) {
+      stop("B must be a whole number >= 2.", call. = FALSE)
+    }
+    if (!is.numeric(conf) || length(conf) != 1 || is.na(conf) || conf <= 0 || conf >= 1) {
+      stop("conf must be a single number between 0 and 1.", call. = FALSE)
+    }
+  }
   negative_FAT <- match.arg(negative_FAT, c("truncate", "exclude", "keep"))
   if (missing(energy_equivalents)) .energy_default_message()
   energy_equivalents <- match.arg(energy_equivalents)
@@ -413,10 +465,33 @@ MFO <- function(step_time,
     MFO_FFM <- (VAR_MFO * 1000) / fat_free_mass  # mg/kgFFM/min
   }
 
+  # --- Bootstrap CI of the fit (SPEC 13.1) ---
+  ci_table <- NULL
+  bootstrap <- NULL
+  if (ci == "bootstrap") {
+    if (result$method != method) {
+      warning(sprintf("The %s fit fell back to %s; no bootstrap CI.", method, result$method),
+              call. = FALSE)
+    } else {
+      reps <- .with_seed(seed, .bootstrap_fit(MFO_db, method, B))
+      if (nrow(reps) < B) {
+        warning(sprintf("%d of %d bootstrap replicates fell back to another method and were dropped.",
+                        B - nrow(reps), B), call. = FALSE)
+      }
+      bounds <- .percentile_ci(reps, conf)
+      ci_table <- data.frame(
+        estimate = c(VAR_MFO, VO2_MFO, fatmax_zone$lower, fatmax_zone$upper, FAT_MAX_load),
+        lower = bounds[, 1], upper = bounds[, 2],
+        row.names = colnames(reps))
+      bootstrap <- list(B = B, kept = nrow(reps), conf = conf, replicates = reps)
+    }
+  }
+
   # --- Plot ---
   MFO_plot <- .create_MFO_plot(MFO_db, fat_predict_fn, cho_predict_fn,
                                VO2_MFO, VAR_MFO, fatmax_zone, crossover, method,
-                               FatMax_zone_method)
+                               FatMax_zone_method,
+                               ci = if (isTRUE(show_ci)) ci_table, conf = conf)
 
   return(list(MFO_db = MFO_db,
               MFO_plot = MFO_plot,
@@ -448,7 +523,9 @@ MFO <- function(step_time,
               x_FAT = basal$x_FAT,
               x_Kcal = basal$x_Kcal,
               protocol = protocol,
-              mode = protocol$mode))
+              mode = protocol$mode,
+              ci = ci_table,
+              bootstrap = bootstrap))
 }
 
 
@@ -775,7 +852,7 @@ MFO <- function(step_time,
 # --- Internal helper: Create MFO plot ---
 .create_MFO_plot <- function(MFO_db, fat_predict_fn, cho_predict_fn,
                               VO2_MFO, VAR_MFO, fatmax_zone, crossover, method,
-                              zone_method = "fitted curve") {
+                              zone_method = "fitted curve", ci = NULL, conf = 0.95) {
 
   # Rule: no numeric annotation inside the panel; numbers go to the subtitle
   # and the caption, and FAT/CHO are a legend, so nothing covers the curves.
@@ -789,11 +866,22 @@ MFO <- function(step_time,
   curves$substrate <- factor(curves$substrate, levels = c("FAT", "CHO"))
   points$substrate <- factor(points$substrate, levels = c("FAT", "CHO"))
 
-  subtitle <- sprintf("FATmax = %.1f %% VO2max \u00b7 MFO = %.3f g/min \u00b7 %s",
-                      VO2_MFO, VAR_MFO, method)
+  has_ci <- !is.null(ci) && !anyNA(ci[c("FAT_MAX", "MFO"), c("lower", "upper")])
+  subtitle <- if (has_ci) {
+    sprintf("FATmax = %.1f (%.1f-%.1f) %% VO2max \u00b7 MFO = %.3f (%.3f-%.3f) g/min \u00b7 %s, %g %% bootstrap CI",
+            VO2_MFO, ci["FAT_MAX", "lower"], ci["FAT_MAX", "upper"],
+            VAR_MFO, ci["MFO", "lower"], ci["MFO", "upper"], method, 100 * conf)
+  } else {
+    sprintf("FATmax = %.1f %% VO2max \u00b7 MFO = %.3f g/min \u00b7 %s",
+            VO2_MFO, VAR_MFO, method)
+  }
 
   has_zone <- !is.na(fatmax_zone$lower) && !is.na(fatmax_zone$upper)
   caption <- "Dotted line: FATmax."
+  if (has_ci) {
+    caption <- paste0(caption, sprintf(" Grey band: %g %% bootstrap CI of FATmax.",
+                                       100 * conf))
+  }
   if (has_zone) {
     zone_how <- if (zone_method == "linear interpolation") {
       "linear interpolation between steps"
@@ -817,6 +905,13 @@ MFO <- function(step_time,
                xmin = fatmax_zone$lower, xmax = fatmax_zone$upper,
                ymin = -Inf, ymax = Inf,
                alpha = 0.15, fill = "darkorange")
+    } +
+    # Bootstrap CI of Fatmax, behind the curves
+    {if (has_ci)
+      annotate("rect",
+               xmin = ci["FAT_MAX", "lower"], xmax = ci["FAT_MAX", "upper"],
+               ymin = -Inf, ymax = Inf,
+               alpha = 0.15, fill = "grey40")
     } +
     geom_line(data = curves,
               aes(x = porc_VO2, y = value, colour = substrate, linetype = substrate),

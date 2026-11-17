@@ -52,6 +52,21 @@
   Without `age`, `MFO()` says once per session that the HR criterion was not
   evaluated.
 
+* `MFO()` and `MFOs()` gain `ci = c("none", "bootstrap")`, `B` (2000),
+  `conf` (0.95) and `seed` (SPEC 13.1). With `"bootstrap"`, the fit is
+  repeated on fitted values plus resampled modified residuals, r / sqrt(1 -
+  h), centred (Davison & Hinkley 1997), and percentile intervals are
+  returned for MFO, Fatmax, the Fatmax zone and Fatmax in load units
+  (`ci`, `bootstrap`); `MFOs()` reports `MFO_lower`, `MFO_upper`,
+  `FAT_MAX_lower` and `FAT_MAX_upper`. Available for P3, P2 and MRER (its
+  two regressions resampled separately), not for MV. With `show_ci = TRUE`
+  (default) the plot shows the interval in the subtitle and Fatmax's as a
+  grey band. It is the uncertainty of the fit within one test; it assumes
+  exchangeable residuals. The default `"none"` leaves results and run time
+  unchanged. In the ideal case (correct model, normal errors, 8 steps) the
+  percentile interval of Fatmax covered 87 %, not 95 %; the coverage study
+  is in `inst/validation/bootstrap_coverage.R`.
+
 * `MFO_reliability()` computes the test-retest reliability of the `MFOs()`
   outcomes from two or more sessions per participant (SPEC 12): ICC(2,1)
   with the F-based confidence interval of McGraw & Wong (1996, corrected),

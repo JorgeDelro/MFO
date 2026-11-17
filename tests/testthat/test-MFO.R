@@ -662,3 +662,45 @@ test_that("relative protocols express a Load column in W/kg with body_mass", {
   expect_warning(r <- .mfo_load(protocol = p), "kept in W")
   expect_equal(r$load_unit, "W")
 })
+
+# --- Bootstrap CI of the fit (SPEC 13.1) ---
+
+test_that("ci = 'bootstrap' adds intervals without changing the estimates", {
+  r0 <- .mfo_load()
+  r <- .mfo_load(ci = "bootstrap", B = 200, seed = 3)
+  expect_equal(r$MFO, r0$MFO)
+  expect_equal(r$FAT_MAX, r0$FAT_MAX)
+  expect_equal(rownames(r$ci), c("MFO", "FAT_MAX", "FatMax_zone_lower",
+                                 "FatMax_zone_upper", "FAT_MAX_load"))
+  expect_equal(r$ci["FAT_MAX", "estimate"], r0$FAT_MAX)
+  expect_equal(r$ci["FAT_MAX_load", "estimate"], r0$FAT_MAX_load)
+  expect_true(all(r$ci$lower < r$ci$upper))
+  expect_equal(r$bootstrap$B, 200)
+  expect_equal(nrow(r$bootstrap$replicates), r$bootstrap$kept)
+  # reproducible with a seed
+  expect_identical(r$ci, .mfo_load(ci = "bootstrap", B = 200, seed = 3)$ci)
+  # without ci nothing is added
+  expect_null(r0$ci)
+  expect_null(r0$bootstrap)
+})
+
+test_that("the plot shows the interval in the subtitle and a grey band", {
+  r <- .mfo_load(ci = "bootstrap", B = 100, seed = 3)
+  expect_match(r$MFO_plot$labels$subtitle,
+               sprintf("FATmax = %.1f \\(%.1f-%.1f\\)", r$FAT_MAX,
+                       r$ci["FAT_MAX", "lower"], r$ci["FAT_MAX", "upper"]))
+  expect_match(r$MFO_plot$labels$caption, "Grey band: 95 % bootstrap CI")
+  rects <- Filter(function(l) inherits(l$geom, "GeomRect"), r$MFO_plot$layers)
+  expect_length(rects, 2)   # Fatmax zone and CI band, both before the curves
+  r2 <- .mfo_load(ci = "bootstrap", B = 100, seed = 3, show_ci = FALSE)
+  expect_false(grepl("bootstrap", r2$MFO_plot$labels$subtitle))
+  expect_equal(r2$ci, r$ci)
+})
+
+test_that("bootstrap arguments are checked; MV has none; MRER has one", {
+  expect_error(.mfo_load(method = "MV", ci = "bootstrap"), "not available for method = \"MV\"")
+  expect_error(.mfo_load(ci = "bootstrap", B = 1), "B must be")
+  expect_error(.mfo_load(ci = "bootstrap", conf = 1.5), "conf must be")
+  r <- .mfo_load(method = "MRER", ci = "bootstrap", B = 100, seed = 1)
+  expect_true(r$ci["FAT_MAX", "lower"] < r$FAT_MAX && r$FAT_MAX < r$ci["FAT_MAX", "upper"])
+})

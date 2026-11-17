@@ -38,7 +38,11 @@ MFOs(
   min_steps = 6,
   protocol = NULL,
   age = NULL,
-  col_name_Load = "Load"
+  col_name_Load = "Load",
+  ci = c("none", "bootstrap"),
+  B = 2000,
+  conf = 0.95,
+  seed = NULL
 )
 }
 \arguments{
@@ -121,6 +125,10 @@ heart-rate criterion of VO2max. See [MFO()] and [VO2max_from_test()].}
 
 \item{col_name_Load}{column name for the external load (W or km/h) in the
 databases. Default "Load"; the column is optional. See [MFO()].}
+
+\item{ci, B, conf, seed}{bootstrap confidence intervals of the fit, passed to
+[MFO()] (default `ci = "none"`). The same `seed` is used for every
+participant.}
 }
 \value{
 {Data frame with one row per participant containing:
@@ -133,6 +141,8 @@ databases. Default "Load"; the column is optional. See [MFO()].}
 \item VO2max_window: effective averaging window for VO2max (s); NA if VO2max was supplied.
 \item VO2max_type: "VO2max" or "VO2peak" (see [VO2max_from_test()]); NA if VO2max was supplied.
 \item FAT_MAX_perVO2max: FatMax as \% VO2max.
+\item FAT_MAX_lower, FAT_MAX_upper, MFO_lower, MFO_upper: bootstrap
+  confidence limits with `ci = "bootstrap"`, otherwise `NA`.
 \item FAT_MAX_HR: Heart rate at FatMax (bpm).
 \item FAT_MAX_porcHRmax: FatMax as \% HRmax, if HRmax provided.
 \item FatMax_zone_lower: Lower bound of FatMax zone (\% VO2max).
