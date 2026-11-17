@@ -92,8 +92,9 @@ Criteria (thresholds are arguments):
 Predicted HRmax: \`"tanaka"\` 208 - 0.7 x age (default; Tanaka, Monahan
 and Seals 2001, J Am Coll Cardiol 37(1): 153-156,
 [doi:10.1016/s0735-1097(00)01054-8](https://doi.org/10.1016/s0735-1097%2800%2901054-8)
-) or \`"fox"\` 220 - age. The RER (1.10) and HR (90 %) thresholds and
-the Fox equation are pending source verification (SPEC 19).
+) or \`"fox"\` 220 - age, the equation in common use that Tanaka et al.
+(2001) revisit. The RER (1.10) and HR (90 %) thresholds are pending
+source verification (SPEC 19).
 
 ## See also
 

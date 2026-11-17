@@ -862,12 +862,13 @@ the criteria reviewed by <span class="citation">Howley et al. (<a href="#ref-how
 last two stages (an increase below 150 mL/min, the threshold of Taylor
 et al. 1955 as reported by <span class="citation">Howley et al. (<a href="#ref-howley1995">1995</a>)</span>), the peak RER and the peak
 heart rate relative to the predicted HRmax (208 − 0.7 × age by default,
-<span class="citation">Tanaka et al. (<a href="#ref-tanaka2001">2001</a>)</span>; 220 − age optional). The value
-is labelled “VO2max” with a plateau, or without one when both RER and
-heart rate meet their thresholds, and “VO2peak” otherwise. The
-heart-rate criterion needs <code>age</code>; the example participant is
-taken as 30 years old here.
-<!-- TODO: source for the RER (1.10) and HR (90 %) thresholds (Howley et al. 1995, full text pending) and for 220 - age (Jorge) --></p>
+<span class="citation">Tanaka et al. (<a href="#ref-tanaka2001">2001</a>)</span>; optionally 220 − age, the
+equation in common use that <span class="citation">Tanaka et al. (<a href="#ref-tanaka2001">2001</a>)</span> revisit). The value is labelled
+“VO2max” with a plateau, or without one when both RER and heart rate
+meet their thresholds, and “VO2peak” otherwise. The heart-rate criterion
+needs <code>age</code>; the example participant is taken as 30 years old
+here.
+<!-- TODO: source for the RER (1.10) and HR (90 %) thresholds (Howley et al. 1995, full text pending; Jorge) --></p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/VO2max_from_test.html">VO2max_from_test</a></span><span class="op">(</span><span class="va">VO2max_df</span>, step_time <span class="op">=</span> <span class="fl">20</span>, age <span class="op">=</span> <span class="fl">30</span><span class="op">)</span></span>
 <span><span class="co">#&gt; VO2max: a 30-s window is not a multiple of step_time (20 s); using 2 record(s) = 40 s.</span></span>

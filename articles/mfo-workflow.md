@@ -672,11 +672,12 @@ et al. ([1995](#ref-howley1995)): a plateau of VO2 between the last two
 stages (an increase below 150 mL/min, the threshold of Taylor et
 al. 1955 as reported by Howley et al. ([1995](#ref-howley1995))), the
 peak RER and the peak heart rate relative to the predicted HRmax (208 −
-0.7 × age by default, Tanaka et al. ([2001](#ref-tanaka2001)); 220 − age
-optional). The value is labelled “VO2max” with a plateau, or without one
-when both RER and heart rate meet their thresholds, and “VO2peak”
-otherwise. The heart-rate criterion needs `age`; the example participant
-is taken as 30 years old here.
+0.7 × age by default, Tanaka et al. ([2001](#ref-tanaka2001));
+optionally 220 − age, the equation in common use that Tanaka et al.
+([2001](#ref-tanaka2001)) revisit). The value is labelled “VO2max” with
+a plateau, or without one when both RER and heart rate meet their
+thresholds, and “VO2peak” otherwise. The heart-rate criterion needs
+`age`; the example participant is taken as 30 years old here.
 
 ``` r
 

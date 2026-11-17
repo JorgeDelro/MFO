@@ -59,8 +59,9 @@
   Taylor et al.
 
   1955. they report; HRmax equation of Tanaka, Monahan & Seals (2001).
-        The RER and HR thresholds and the Fox equation are pending
-        source verification. Thresholds are arguments (SPEC 14, 19).
+        The Fox equation (220 - age) as the one in common use described
+        by Tanaka et al. The RER and HR thresholds are pending source
+        verification. Thresholds are arguments (SPEC 14, 19).
         [`MFO()`](https://jorgedelro.github.io/MFO/reference/MFO.md) and
         [`MFOs()`](https://jorgedelro.github.io/MFO/reference/MFOs.md)
         gain `age` and return `VO2max_type` (and
