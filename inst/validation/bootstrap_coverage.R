@@ -5,6 +5,11 @@
 #   Rscript inst/validation/bootstrap_coverage.R [bootstrap|parametric] [out.csv]
 # with the package installed, or after devtools::load_all().
 #
+# Resumable: each cell is appended to the output file as soon as it is done,
+# and cells already in the file are skipped, so the script can be stopped and
+# run again with the same arguments. Each cell has its own fixed seed
+# (seed + cell number), so results do not depend on interruptions.
+#
 # Design (Jorge, 2026-11-17): method (P3, P2, MRER) x steps (6, 8, 10) x
 # noise CV (5, 10, 20 %), R simulated tests per cell, one participant per test
 # drawn from the default population of simulate_MFO_sessions() (sedentary
@@ -66,10 +71,18 @@ one_cell <- function(method, n_steps, cv, cell_seed) {
 
 grid <- expand.grid(method = methods, steps = steps, fat_noise_cv = fat_noise_cv,
                     stringsAsFactors = FALSE)
-results <- do.call(rbind, lapply(seq_len(nrow(grid)), function(i) {
+key <- function(d) paste(d$method, d$steps, d$fat_noise_cv)
+done <- if (file.exists(out_file)) utils::read.csv(out_file, stringsAsFactors = FALSE)
+for (i in seq_len(nrow(grid))) {
+  if (!is.null(done) && key(grid[i, ]) %in% key(done)) {
+    message(sprintf("%s %d/%d: done, skipped", ci_type, i, nrow(grid)))
+    next
+  }
   message(sprintf("%s %d/%d: %s, %d steps, FAT CV %.2f", ci_type, i, nrow(grid),
                   grid$method[i], grid$steps[i], grid$fat_noise_cv[i]))
-  one_cell(grid$method[i], grid$steps[i], grid$fat_noise_cv[i], seed + i)
-}))
+  row <- one_cell(grid$method[i], grid$steps[i], grid$fat_noise_cv[i], seed + i)
+  utils::write.table(row, out_file, sep = ",", row.names = FALSE,
+                     col.names = !file.exists(out_file), append = file.exists(out_file))
+}
+results <- utils::read.csv(out_file, stringsAsFactors = FALSE)
 print(results, digits = 3)
-utils::write.csv(results, out_file, row.names = FALSE)
