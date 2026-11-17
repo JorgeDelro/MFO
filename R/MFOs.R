@@ -89,6 +89,7 @@
 #' \item crossover_point: Crossover intensity (\% VO2max).
 #' \item R_squared: R-squared of the curve fit.
 #' \item method: method requested.
+#' \item method_used: method actually used (differs after a fallback).
 #' \item energy_equivalents: "classic" or "source".
 #' \item protocol: protocol type (see [MFO_protocol()]).
 #' \item mode: exercise mode of the protocol.
@@ -292,6 +293,7 @@ MFOs <- function(from = c("folder", "files"),
                                        participant_result_MFO$crossover_point), 2),
         R_squared = round(participant_result_MFO$R_squared, 4),
         method = participant_result_MFO$method,
+        method_used = participant_result_MFO$method_used,
         energy_equivalents = participant_result_MFO$energy_equivalents,
         protocol = participant_result_MFO$protocol$type,
         mode = participant_result_MFO$mode,
@@ -327,7 +329,7 @@ MFOs <- function(from = c("folder", "files"),
         FatMax_zone_lower = NA, FatMax_zone_upper = NA, FatMax_zone_method = NA,
         FAT_MAX_load = NA, FatMax_zone_lower_load = NA, FatMax_zone_upper_load = NA,
         load_unit = NA, load_source = NA,
-        crossover_point = NA, R_squared = NA, method = method,
+        crossover_point = NA, R_squared = NA, method = method, method_used = NA,
         energy_equivalents = energy_equivalents,
         protocol = protocol$type, mode = protocol$mode,
         d = NA, t = NA, s = NA, Fatmin = NA, FatMax_SIN = NA,

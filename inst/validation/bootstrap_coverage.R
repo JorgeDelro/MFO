@@ -50,14 +50,17 @@ one_cell <- function(method, n_steps, cv, cell_seed) {
           author = "Frayn", energy_equivalents = "classic", age = 30,
           method = method, ci = ci_type, B = B, conf = conf, min_steps = 1,
           negative_FAT = "keep"))), error = function(e) NULL)
-    if (is.null(r) || is.null(r$ci)) return(rep(NA_real_, 7))
+    # fallback: the fit of the test fell back to another method (P3 -> P2,
+    # P2 without maximum or MRER -> MV), so it has no interval
+    fallback <- if (is.null(r)) NA_real_ else as.numeric(r$method_used != method)
+    if (is.null(r) || is.null(r$ci)) return(c(rep(NA_real_, 7), fallback = fallback))
     c(cov_fatmax = r$ci["FAT_MAX", "lower"] <= tr$Fatmax && tr$Fatmax <= r$ci["FAT_MAX", "upper"],
       cov_mfo = r$ci["MFO", "lower"] <= tr$MFO && tr$MFO <= r$ci["MFO", "upper"],
       width_fatmax = r$ci["FAT_MAX", "upper"] - r$ci["FAT_MAX", "lower"],
       err_fatmax = r$FAT_MAX - tr$Fatmax,
       err_mfo = r$MFO - tr$MFO,
       rel_err_mfo = (r$MFO - tr$MFO) / tr$MFO,
-      kept = r$bootstrap$kept / B)
+      kept = r$bootstrap$kept / B, fallback = fallback)
   })
   ok <- !is.na(out[1, ])
   data.frame(ci = ci_type, method = method, steps = n_steps, fat_noise_cv = cv,
@@ -66,7 +69,8 @@ one_cell <- function(method, n_steps, cv, cell_seed) {
              width_fatmax = mean(out[3, ok]),
              bias_fatmax = mean(out[4, ok]), rmse_fatmax = sqrt(mean(out[4, ok]^2)),
              bias_mfo_pct = 100 * mean(out[6, ok]),
-             replicates_kept = mean(out[7, ok]))
+             replicates_kept = mean(out[7, ok]),
+             fallback_tests = sum(out[8, ] == 1, na.rm = TRUE))
 }
 
 grid <- expand.grid(method = methods, steps = steps, fat_noise_cv = fat_noise_cv,

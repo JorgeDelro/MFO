@@ -165,7 +165,9 @@ plot subtitle and Fatmax's as a grey band (default `TRUE`).}
 \item crossover_point: Intensity at which CHO > FAT (\% VO2max).
 \item R_squared: R-squared of the fitted model (`NA` for "MV").
 \item RMSE: Root mean squared error of the fitted model (`NA` for "MV").
-\item method: Method used for curve fitting.
+\item method: Method requested for curve fitting.
+\item method_used: Method actually used: it differs from `method` when the
+  fit falls back (P3 to P2, P2 or MRER to MV), with a warning.
 \item energy_equivalents: energy equivalents used for `Kcal` ("classic" or "source").
 \item VO2max: VO2max used to express intensity (ml/min).
 \item VO2max_window: effective averaging window for VO2max (s); NA if VO2max was supplied.
