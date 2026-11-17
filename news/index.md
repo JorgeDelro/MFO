@@ -91,7 +91,8 @@
   value).
   [`write_MFO_sessions()`](https://jorgedelro.github.io/MFO/reference/write_MFO_sessions.md)
   writes the sessions as folders for
-  [`MFOs()`](https://jorgedelro.github.io/MFO/reference/MFOs.md).
+  [`MFOs()`](https://jorgedelro.github.io/MFO/reference/MFOs.md) and a
+  `sessions.csv` mapping each folder to its participant and session.
 
 - [`read_cart()`](https://jorgedelro.github.io/MFO/reference/read_cart.md)
   reads a metabolic cart export (Cortex, Cosmed, Vyntus or ZAN, parsed
@@ -134,6 +135,11 @@
   is the one before it with load \> 0. With the ZAN example of spiro the
   plateau goes from -1831 ml/min (met) to +1655 ml/min (not met); the
   example data of MFO are unchanged (+247 ml/min) (SPEC 14).
+
+- [`MFOs()`](https://jorgedelro.github.io/MFO/reference/MFOs.md) treated
+  every entry of `path` as a participant: a stray file (e.g. a note)
+  gave an error row. It now reads only folders with `from = "folder"`
+  and only `.xlsx` files with `from = "files"`.
 
 - `use_incomplete_step = TRUE` averaged only the last record of the
   incomplete step instead of its last `steady_state_duration` s, as

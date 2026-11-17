@@ -849,10 +849,12 @@ Exercise.” *Medicine and Science in Sports and Exercise* 41: 1615–25.
 Chrzanowski-Smith, O. J., R. M. Edinburgh, M. P. Thomas, et al. 2020.
 “The Day-to-Day Reliability of Peak Fat Oxidation and FATMAX.” *European
 Journal of Applied Physiology* 120: 1745–59.
+<https://doi.org/10.1007/s00421-020-04397-3>.
 
 Croci, I., F. Borrani, N. M. Byrne, et al. 2014. “Reproducibility of
 Fatmax and Fat Oxidation Rates During Exercise in Recreationally Trained
 Males.” *PLoS ONE* 9: e97930.
+<https://doi.org/10.1371/journal.pone.0097930>.
 
 Frayn, K. N. 1983. “Calculation of Substrate Oxidation Rates in Vivo
 from Gaseous Exchange.” *Journal of Applied Physiology* 55: 628–34.

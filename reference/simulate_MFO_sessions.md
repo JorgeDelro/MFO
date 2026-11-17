@@ -170,14 +170,17 @@ to the predicted HRmax of Tanaka, Monahan and Seals (2001,
 Amaro-Gahete FJ, Sanchez-Delgado G, Ruiz JR (2018). Commentary:
 Contextualising maximal fat oxidation during exercise: determinants and
 normative values. Front Physiol 9: 1460, Table 1 (sedentary adults).
+[doi:10.3389/fphys.2018.01460](https://doi.org/10.3389/fphys.2018.01460)
 
 Chrzanowski-Smith OJ, Edinburgh RM, Thomas MP, et al. (2020). The
 day-to-day reliability of peak fat oxidation and FATMAX. Eur J Appl
 Physiol 120: 1745-1759.
+[doi:10.1007/s00421-020-04397-3](https://doi.org/10.1007/s00421-020-04397-3)
 
 Croci I, Borrani F, Byrne NM, et al. (2014). Reproducibility of Fatmax
 and fat oxidation rates during exercise in recreationally trained males.
 PLoS ONE 9: e97930.
+[doi:10.1371/journal.pone.0097930](https://doi.org/10.1371/journal.pone.0097930)
 
 ## See also
 

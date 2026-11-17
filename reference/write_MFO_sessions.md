@@ -3,7 +3,10 @@
 Writes each participant and session of a \[simulate_MFO_sessions()\]
 result as a folder \`\<id\>\_\<session\>\` (e.g. \`P01_S1\`) with three
 xlsx files, the layout that \`MFOs(from = "folder")\` reads. The
-participant ID in the \`MFOs()\` summary is then the folder name.
+participant ID in the \`MFOs()\` summary is then the folder name. A file
+\`sessions.csv\` in \`path\` maps each folder name (\`id\`) to its
+\`participant\` and \`session\`; \`MFOs()\` ignores it, as it reads only
+folders.
 
 ## Usage
 
@@ -53,5 +56,5 @@ sim <- simulate_MFO_sessions(2, 2, population = list(VO2max = c(3000, 0)),
 out <- file.path(tempdir(), "sim")
 write_MFO_sessions(sim, out)
 list.files(out)
-#> [1] "P01_S1" "P01_S2" "P02_S1" "P02_S2"
+#> [1] "P01_S1"       "P01_S2"       "P02_S1"       "P02_S2"       "sessions.csv"
 ```
