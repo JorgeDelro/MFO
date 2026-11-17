@@ -735,3 +735,33 @@ test_that("a P2 vertex outside the measured range warns and flags the interval",
   # inside the range: no flag
   expect_true(all(is.na(.mfo_load(method = "P2", ci = TRUE, B = 50, seed = 1)$ci$flag)))
 })
+
+# --- P2 without a maximum (#38) and method_used ---
+# FAT = 0.10 + 0.0001 (x - 20)^2 rises convexly: the parabola has c > 0 and
+# its vertex (x = 20) is a minimum. Gas data built by solving VCO2 from FAT
+# with the Frayn equation (exact), 8 steps of 9 records, VO2max 3000.
+.convex_test <- function() {
+  pct <- seq(20, 75, length.out = 8)
+  VO2 <- pct / 100 * 3000
+  VCO2 <- .sim_vco2(VO2, 0.10 + 0.0001 * (pct - 20)^2, "Frayn", 3000)
+  data.frame(VO2 = rep(VO2, each = 9), VCO2 = rep(VCO2, each = 9),
+             RER = rep(VCO2 / VO2, each = 9), HR = rep(60 + pct, each = 9))
+}
+
+test_that("P2 with positive curvature uses MV with a warning and reports it", {
+  data(basal_df, package = "MFO", envir = environment())
+  w <- character(0)
+  r <- withCallingHandlers(
+    suppressMessages(MFO(step_time = 20, db_MFO = .convex_test(), db_basal = basal_df,
+                         VO2max = 3000, cv_var = "RER", author = "Frayn",
+                         energy_equivalents = "classic", method = "P2")),
+    warning = function(x) { w <<- c(w, conditionMessage(x)); invokeRestart("muffleWarning") })
+  expect_true(any(grepl("P2: the fitted parabola has no maximum", w)))
+  expect_equal(r$method, "P2")
+  expect_equal(r$method_used, "MV")
+  # MV: the highest observed step, the last one (75 %VO2max)
+  expect_equal(r$FAT_MAX, 75)
+  expect_equal(r$MFO, 0.10 + 0.0001 * 55^2, tolerance = 1e-10)
+  expect_match(r$MFO_plot$labels$subtitle, "MV \\(P2 requested\\)")
+  expect_equal(.mfo_load()$method_used, "P3")
+})

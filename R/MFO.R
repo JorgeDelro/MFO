@@ -208,7 +208,9 @@
 #' \item crossover_point: Intensity at which CHO > FAT (\% VO2max).
 #' \item R_squared: R-squared of the fitted model (`NA` for "MV").
 #' \item RMSE: Root mean squared error of the fitted model (`NA` for "MV").
-#' \item method: Method used for curve fitting.
+#' \item method: Method requested for curve fitting.
+#' \item method_used: Method actually used: it differs from `method` when the
+#'   fit falls back (P3 to P2, P2 or MRER to MV), with a warning.
 #' \item energy_equivalents: energy equivalents used for `Kcal` ("classic" or "source").
 #' \item VO2max: VO2max used to express intensity (ml/min).
 #' \item VO2max_window: effective averaging window for VO2max (s); NA if VO2max was supplied.
@@ -534,7 +536,9 @@ MFO <- function(step_time,
 
   # --- Plot ---
   MFO_plot <- .create_MFO_plot(MFO_db, fat_predict_fn, cho_predict_fn,
-                               VO2_MFO, VAR_MFO, fatmax_zone, crossover, method,
+                               VO2_MFO, VAR_MFO, fatmax_zone, crossover,
+                               if (result$method == method) method else
+                                 paste0(result$method, " (", method, " requested)"),
                                FatMax_zone_method,
                                ci = if (isTRUE(show_ci)) ci_table, conf = conf,
                                ci_label = if (ci == "parametric") "parametric bootstrap" else "bootstrap")
@@ -559,6 +563,7 @@ MFO <- function(step_time,
               R_squared = R_squared,
               RMSE = RMSE,
               method = method,
+              method_used = result$method,
               energy_equivalents = energy_equivalents,
               VO2max = VO2max,
               VO2max_window = VO2max_window,
@@ -751,15 +756,16 @@ MFO <- function(step_time,
 
   a <- coeffs[1]; b <- coeffs[2]; c <- coeffs[3]
 
-  # Check for NA coefficients
-  if (any(is.na(c(a, b, c)))) {
-    VO2_MFO <- MFO_db$porc_VO2[which.max(MFO_db$FAT)]
-    VAR_MFO <- max(MFO_db$FAT)
-  } else {
-    # Vertex of parabola: x = -b/(2c)
-    VO2_MFO <- -b / (2 * c)
-    VAR_MFO <- a + b * VO2_MFO + c * VO2_MFO^2
+  # No maximum: NA coefficients or c >= 0 (the vertex would be a minimum,
+  # returned as Fatmax up to v0.2.1, #38). Use MV, as MRER does
+  if (any(is.na(c(a, b, c))) || c >= 0) {
+    warning("P2: the fitted parabola has no maximum (curvature >= 0). Using MV.",
+            call. = FALSE)
+    return(.fit_MV(MFO_db))
   }
+  # Vertex of parabola: x = -b/(2c)
+  VO2_MFO <- -b / (2 * c)
+  VAR_MFO <- a + b * VO2_MFO + c * VO2_MFO^2
 
   # Guard: if polynomial predicts negative MFO, use observed max
   if (VAR_MFO < 0) {

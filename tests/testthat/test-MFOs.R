@@ -74,6 +74,7 @@ test_that("MFOs(from = 'folder') gives one row per participant matching MFO()", 
   expect_equal(res$VO2max_window, c(40, 40))
   expect_equal(res$FatMax_zone_method, c("fitted curve", "fitted curve"))
   expect_equal(res$energy_equivalents, c("classic", "classic"))
+  expect_equal(res$method_used, c("P3", "P3"))
   .expect_matches_MFO(res[1, ], parts$P01)
   .expect_matches_MFO(res[2, ], parts$P02)
   # the participants really differ, and P02 has no HR

@@ -154,6 +154,7 @@ participant.}
 \item crossover_point: Crossover intensity (\% VO2max).
 \item R_squared: R-squared of the curve fit.
 \item method: method requested.
+\item method_used: method actually used (differs after a fallback).
 \item energy_equivalents: "classic" or "source".
 \item protocol: protocol type (see [MFO_protocol()]).
 \item mode: exercise mode of the protocol.
