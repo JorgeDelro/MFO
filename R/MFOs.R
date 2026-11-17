@@ -32,6 +32,9 @@
 #' @param steady_state_duration duration of steady-state period within each step in seconds (default 60).
 #' @param age age in years (optional), the same for every participant, for the
 #'        heart-rate criterion of VO2max. See [MFO()] and [VO2max_from_test()].
+#' @param ci,B,conf,seed bootstrap confidence intervals of the fit, passed to
+#'        [MFO()] (default `ci = "none"`). The same `seed` is used for every
+#'        participant.
 #' @param protocol optional [MFO_protocol()], the same for every participant; if
 #'        given, `step_duration` and `steady_state_duration` are not used. See [MFO()].
 #' @param RER_cutoff RER value above which steps are excluded (default NULL), as a
@@ -73,6 +76,8 @@
 #' \item VO2max_window: effective averaging window for VO2max (s); NA if VO2max was supplied.
 #' \item VO2max_type: "VO2max" or "VO2peak" (see [VO2max_from_test()]); NA if VO2max was supplied.
 #' \item FAT_MAX_perVO2max: FatMax as \% VO2max.
+#' \item FAT_MAX_lower, FAT_MAX_upper, MFO_lower, MFO_upper: bootstrap
+#'   confidence limits with `ci = "bootstrap"`, otherwise `NA`.
 #' \item FAT_MAX_HR: Heart rate at FatMax (bpm).
 #' \item FAT_MAX_porcHRmax: FatMax as \% HRmax, if HRmax provided.
 #' \item FatMax_zone_lower: Lower bound of FatMax zone (\% VO2max).
@@ -148,7 +153,11 @@ MFOs <- function(from = c("folder", "files"),
                  min_steps = 6,
                  protocol = NULL,
                  age = NULL,
-                 col_name_Load = "Load") {
+                 col_name_Load = "Load",
+                 ci = c("none", "bootstrap"),
+                 B = 2000,
+                 conf = 0.95,
+                 seed = NULL) {
 
   from <- match.arg(from)
   output_format <- match.arg(output_format, c("xlsx", "csv", "rds"))
@@ -217,7 +226,11 @@ MFOs <- function(from = c("folder", "files"),
         energy_equivalents = energy_equivalents,
         use_incomplete_step = use_incomplete_step,
         min_steps = min_steps,
-        age = age
+        age = age,
+        ci = ci,
+        B = B,
+        conf = conf,
+        seed = seed
       )
 
       # Save MFO plot
@@ -256,6 +269,10 @@ MFOs <- function(from = c("folder", "files"),
         VO2max_window = participant_result_MFO$VO2max_window,
         VO2max_type = participant_result_MFO$VO2max_type,
         FAT_MAX_perVO2max = round(participant_result_MFO$FAT_MAX, 2),
+        FAT_MAX_lower = round(.ci_bound(participant_result_MFO, "FAT_MAX", "lower"), 2),
+        FAT_MAX_upper = round(.ci_bound(participant_result_MFO, "FAT_MAX", "upper"), 2),
+        MFO_lower = round(.ci_bound(participant_result_MFO, "MFO", "lower"), 4),
+        MFO_upper = round(.ci_bound(participant_result_MFO, "MFO", "upper"), 4),
         FAT_MAX_HR = round(ifelse(is.na(participant_result_MFO$FAT_MAX_HR), NA,
                                   participant_result_MFO$FAT_MAX_HR), 1),
         FAT_MAX_porcHRmax = round(ifelse(is.na(participant_result_MFO$FAT_MAX_porcHRmax), NA,
@@ -304,7 +321,8 @@ MFOs <- function(from = c("folder", "files"),
         ID = ID_participant,
         MFO_g_min = NA, MFO_relative = NA, MFO_FFM = NA,
         VO2max = NA, VO2max_window = NA, VO2max_type = NA,
-        FAT_MAX_perVO2max = NA, FAT_MAX_HR = NA, FAT_MAX_porcHRmax = NA,
+        FAT_MAX_perVO2max = NA, FAT_MAX_lower = NA, FAT_MAX_upper = NA,
+        MFO_lower = NA, MFO_upper = NA, FAT_MAX_HR = NA, FAT_MAX_porcHRmax = NA,
         FatMax_zone_lower = NA, FatMax_zone_upper = NA, FatMax_zone_method = NA,
         FAT_MAX_load = NA, FatMax_zone_lower_load = NA, FatMax_zone_upper_load = NA,
         load_unit = NA, load_source = NA,
@@ -337,4 +355,11 @@ MFOs <- function(from = c("folder", "files"),
   }
 
   return(dF_result)
+}
+
+
+# Bootstrap limit of a quantity from an MFO() result, NA without ci
+.ci_bound <- function(result, quantity, bound) {
+  if (is.null(result$ci)) return(NA_real_)
+  result$ci[quantity, bound]
 }
