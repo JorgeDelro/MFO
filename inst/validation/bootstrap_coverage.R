@@ -1,33 +1,39 @@
 # Coverage of the bootstrap confidence intervals of MFO() (SPEC 13.1, 17).
 #
-# Not run by R CMD check or the tests: it takes minutes to hours. Run it from
-# the package source folder with
-#   Rscript inst/validation/bootstrap_coverage.R
-# after devtools::load_all() or with the package installed.
+# Not run by R CMD check or the tests: it takes about an hour. From the
+# package source folder:
+#   Rscript inst/validation/bootstrap_coverage.R [bootstrap|parametric] [out.csv]
+# with the package installed, or after devtools::load_all().
+#
+# Resumable: each cell is appended to the output file as soon as it is done,
+# and cells already in the file are skipped, so the script can be stopped and
+# run again with the same arguments. Each cell has its own fixed seed
+# (seed + cell number), so results do not depend on interruptions.
 #
 # Design (Jorge, 2026-11-17): method (P3, P2, MRER) x steps (6, 8, 10) x
-# noise CV, R simulated tests per cell (one participant per test, drawn from
-# the default population of simulate_MFO_sessions()). The truth is the Fatmax
-# of the generating SIN curve; the model bias of each method (mean estimate
-# minus truth) is reported separately, because a polynomial fitted to a SIN
-# curve is biased whatever the interval.
-#
-# The noise is the analyser noise of simulate_MFO_sessions(): a CV per record
-# of VO2 and VCO2 with correlation `noise_cor`. Set `noise_cor` and the CV grid
-# before running (no recommended value exists).
+# noise CV (5, 10, 20 %), R simulated tests per cell, one participant per test
+# drawn from the default population of simulate_MFO_sessions() (sedentary
+# adults, Amaro-Gahete et al. 2018). The noise is on fat oxidation: the FAT of
+# each step deviates from the true curve with SD = CV x MFO (SPEC 17); there
+# is no analyser noise on the gases. The truth is the Fatmax and MFO of the
+# generating SIN curve, and the model bias of each method (mean estimate minus
+# truth) is reported apart: a polynomial fitted to a SIN curve is biased
+# whatever the interval.
+
+args <- setdiff(commandArgs(trailingOnly = TRUE), "--args")
+ci_type <- if (length(args) >= 1) args[1] else "bootstrap"
+out_file <- if (length(args) >= 2) args[2] else
+  paste0("bootstrap_coverage_", ci_type, ".csv")
 
 if (!exists("simulate_MFO_sessions")) library(MFO)
 
 R <- 200            # simulated tests per cell
-B <- 500            # bootstrap replicates per test
+B <- 400            # bootstrap replicates per test
 conf <- 0.95
 methods <- c("P3", "P2", "MRER")
 steps <- c(6, 8, 10)
-noise_cv <- c(0.05, 0.10, 0.15, 0.20)
-noise_cor <- NA     # set before running
+fat_noise_cv <- c(0.05, 0.10, 0.20)
 seed <- 2026
-
-if (is.na(noise_cor)) stop("Set noise_cor at the top of the script.")
 
 one_cell <- function(method, n_steps, cv, cell_seed) {
   set.seed(cell_seed)
@@ -35,35 +41,48 @@ one_cell <- function(method, n_steps, cv, cell_seed) {
     sim <- simulate_MFO_sessions(n_participants = 1, n_sessions = 1,
                                  population = list(VO2max = c(3000, 400)),
                                  cv_MFO = 0, cv_Fatmax = 0, n_steps = n_steps,
-                                 noise_cv = cv, noise_cor = noise_cor)
+                                 fat_noise_cv = cv)
     tabs <- sim$data$P01$S1
-    truth <- sim$truth$Fatmax
+    tr <- sim$truth
     r <- tryCatch(suppressWarnings(suppressMessages(
       MFO(step_time = sim$settings$step_time, db_MFO = tabs$db_MFO,
           db_basal = tabs$db_basal, db_graded = tabs$db_graded, cv_var = "RER",
           author = "Frayn", energy_equivalents = "classic", age = 30,
-          method = method, ci = "bootstrap", B = B, conf = conf,
-          min_steps = 1))), error = function(e) NULL)
-    if (is.null(r) || is.null(r$ci)) return(c(NA, NA, NA, NA))
-    lo <- r$ci["FAT_MAX", "lower"]
-    hi <- r$ci["FAT_MAX", "upper"]
-    c(covered = lo <= truth && truth <= hi, width = hi - lo,
-      error = r$FAT_MAX - truth, kept = r$bootstrap$kept / B)
+          method = method, ci = ci_type, B = B, conf = conf, min_steps = 1,
+          negative_FAT = "keep"))), error = function(e) NULL)
+    if (is.null(r) || is.null(r$ci)) return(rep(NA_real_, 7))
+    c(cov_fatmax = r$ci["FAT_MAX", "lower"] <= tr$Fatmax && tr$Fatmax <= r$ci["FAT_MAX", "upper"],
+      cov_mfo = r$ci["MFO", "lower"] <= tr$MFO && tr$MFO <= r$ci["MFO", "upper"],
+      width_fatmax = r$ci["FAT_MAX", "upper"] - r$ci["FAT_MAX", "lower"],
+      err_fatmax = r$FAT_MAX - tr$Fatmax,
+      err_mfo = r$MFO - tr$MFO,
+      rel_err_mfo = (r$MFO - tr$MFO) / tr$MFO,
+      kept = r$bootstrap$kept / B)
   })
   ok <- !is.na(out[1, ])
-  data.frame(method = method, steps = n_steps, noise_cv = cv, noise_cor = noise_cor,
+  data.frame(ci = ci_type, method = method, steps = n_steps, fat_noise_cv = cv,
              tests = sum(ok), failed = sum(!ok),
-             coverage = mean(out[1, ok]), mean_width = mean(out[2, ok]),
-             bias = mean(out[3, ok]), rmse = sqrt(mean(out[3, ok]^2)),
-             replicates_kept = mean(out[4, ok]))
+             coverage_fatmax = mean(out[1, ok]), coverage_mfo = mean(out[2, ok]),
+             width_fatmax = mean(out[3, ok]),
+             bias_fatmax = mean(out[4, ok]), rmse_fatmax = sqrt(mean(out[4, ok]^2)),
+             bias_mfo_pct = 100 * mean(out[6, ok]),
+             replicates_kept = mean(out[7, ok]))
 }
 
-grid <- expand.grid(method = methods, steps = steps, noise_cv = noise_cv,
+grid <- expand.grid(method = methods, steps = steps, fat_noise_cv = fat_noise_cv,
                     stringsAsFactors = FALSE)
-results <- do.call(rbind, lapply(seq_len(nrow(grid)), function(i) {
-  message(sprintf("%d/%d: %s, %d steps, CV %.2f", i, nrow(grid), grid$method[i],
-                  grid$steps[i], grid$noise_cv[i]))
-  one_cell(grid$method[i], grid$steps[i], grid$noise_cv[i], seed + i)
-}))
+key <- function(d) paste(d$method, d$steps, d$fat_noise_cv)
+done <- if (file.exists(out_file)) utils::read.csv(out_file, stringsAsFactors = FALSE)
+for (i in seq_len(nrow(grid))) {
+  if (!is.null(done) && key(grid[i, ]) %in% key(done)) {
+    message(sprintf("%s %d/%d: done, skipped", ci_type, i, nrow(grid)))
+    next
+  }
+  message(sprintf("%s %d/%d: %s, %d steps, FAT CV %.2f", ci_type, i, nrow(grid),
+                  grid$method[i], grid$steps[i], grid$fat_noise_cv[i]))
+  row <- one_cell(grid$method[i], grid$steps[i], grid$fat_noise_cv[i], seed + i)
+  utils::write.table(row, out_file, sep = ",", row.names = FALSE,
+                     col.names = !file.exists(out_file), append = file.exists(out_file))
+}
+results <- utils::read.csv(out_file, stringsAsFactors = FALSE)
 print(results, digits = 3)
-utils::write.csv(results, "bootstrap_coverage_results.csv", row.names = FALSE)

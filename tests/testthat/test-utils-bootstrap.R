@@ -72,3 +72,16 @@ test_that("coverage of the percentile interval in the ideal case (parabola, norm
   expect_gte(mean(hits), 0.78)
   expect_lte(mean(hits), 0.99)
 })
+
+test_that("the parametric bootstrap draws normal errors with the residual SD", {
+  db <- .parabola_db(noise = c(0.01, -0.02, 0.015, 0, -0.01, 0.02, -0.005, 0.01))
+  mod <- lm(FAT ~ porc_VO2 + I(porc_VO2^2), data = db)
+  set.seed(7)
+  e <- .error_generator(mod, "parametric")
+  draws <- replicate(2000, e())
+  # sigma = sqrt(RSS / (n - p)) = summary(mod)$sigma; 16000 draws, SE ~ 0.6 %
+  expect_equal(sd(as.vector(draws)), summary(mod)$sigma, tolerance = 0.02)
+  expect_equal(nrow(.bootstrap_fit(.parabola_db(), "P2", 20, type = "parametric")), 20)
+  mod3 <- lm(FAT ~ porc_VO2 + I(porc_VO2^2), data = db[1:3, ])
+  expect_error(.error_generator(mod3, "parametric"), "more steps than model parameters")
+})
