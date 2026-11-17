@@ -86,14 +86,19 @@
   shows the interval in the subtitle and Fatmax’s as a grey band. It is
   the uncertainty of the fit within one test; it assumes exchangeable
   residuals. The default `"none"` leaves results and run time unchanged.
-  `ci = "parametric"` draws normal errors with the residual SD, sqrt(RSS
-  / (n - p)), instead of resampling residuals. Both are too narrow with
-  few steps: in the ideal case (P2 on a parabola, 8 steps, normal
-  errors, 500 tests) the 95 % intervals covered Fatmax 88.2 % and 89.2 %
-  and MFO 89.2 % and 89.6 %, as expected from ignoring the uncertainty
-  of the residual SD with 5 degrees of freedom (P(\|t_5\| \< 1.96) =
-  0.893). The study by method, steps and noise is in
-  `inst/validation/bootstrap_coverage.R`.
+  `ci = "parametric"` (also `ci = TRUE`, the recommended interval) draws
+  sigma^2 ~ Inv-chi^2(n - p, s^2) for each replicate and then normal
+  errors: the posterior of normal regression with a flat prior (Gelman
+  et al. 2013), which carries the uncertainty of sigma. In the ideal
+  case (P2 on a parabola, 8 steps, normal errors, 500 tests) it covered
+  Fatmax 94.4 % and MFO 95.4 %, against 88.2 % and 89.2 % for the
+  residual bootstrap. A P2 vertex outside the measured intensities now
+  warns and flags the interval.
+  [`?MFO`](https://jorgedelro.github.io/MFO/reference/MFO.md) documents
+  that MRER overestimates Fatmax (+3-4 %VO2max) against SIN curves, so
+  its interval rarely covers the truth. The coverage study is in
+  [`vignette("validation")`](https://jorgedelro.github.io/MFO/articles/validation.md)
+  and `inst/validation/bootstrap_coverage.R`.
 
 - [`MFO_reliability()`](https://jorgedelro.github.io/MFO/reference/MFO_reliability.md)
   computes the test-retest reliability of the
@@ -197,6 +202,13 @@
   9.5).
 
 ### Documentation
+
+- New vignette “Validation of the confidence intervals”
+  ([`vignette("validation")`](https://jorgedelro.github.io/MFO/articles/validation.md)):
+  coverage of the intervals of `MFO(ci = )` by method, number of steps
+  and noise on simulated tests with a SIN truth, with the model bias of
+  each method. Results computed once with
+  `inst/validation/bootstrap_coverage.R` and written into the article.
 
 - Vignette: new section “Protocols, load and VO2max” (protocol types,
   Fatmax in watts, VO2max vs VO2peak, ramps and single-day tests); the
