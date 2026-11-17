@@ -608,7 +608,7 @@ n_steps <- sum(final$MFO_db$Load != "basal")
 > SIN model (Chenevière et al., 2009). MFO was 0.32 g/min at 36.2%
 > VO2max (128 bpm, 68.7% HRmax; Fatmax zone 24.2–48.3% VO2max); the SIN
 > parameters were d = -0.38, s = 0.91 and t = 0.36, with Fatmin at 76.4%
-> VO2max. Analyses were run with the R package MFO, version 0.2.1,
+> VO2max. Analyses were run with the R package MFO, version 0.2.1.9000,
 > \[protocol: ergometer, initial load and increment, fasting and
 > pre-test conditions\].
 

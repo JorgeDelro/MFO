@@ -1,6 +1,10 @@
 # Changelog
 
+## MFO (development version)
+
 ## MFO 0.2.1
+
+CRAN release: 2026-11-12
 
 First CRAN release since 0.1.0 (2022). Scientific background and sources
 of every formula in `docs/SPEC.md` (GitHub repository).
