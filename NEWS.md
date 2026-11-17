@@ -52,6 +52,21 @@
   Without `age`, `MFO()` says once per session that the HR criterion was not
   evaluated.
 
+* `simulate_MFO_sessions()` generates repeated MFO tests (resting, MFO and
+  graded tables ready for `MFO()`) for several participants and sessions
+  with a known truth (SPEC 12, 13). Fat oxidation follows the SIN model
+  (`shape = "basic"`, `"trained"` from Chenevière et al. 2009, Fig. 5, or d
+  and s per participant) and VCO2 inverts the chosen `author` equation, so
+  without noise `MFO()` and `MFO_kinetics()` recover MFO, Fatmax, d, s, t
+  and Fatmin (exactly when a step falls on Fatmax). Variability: between
+  participants (MFO and Fatmax defaults of Amaro-Gahete et al. 2018; VO2max
+  must be given), between sessions (`cv_MFO` 0.21 and `cv_Fatmax` 0.26, the
+  total test-retest CVs of Chrzanowski-Smith et al. 2020, an upper bound
+  when used as day-to-day variation), `familiarization` of session 1, and
+  analyser noise per record (`noise_cv`, `noise_cor`, 0 by default, with no
+  recommended value). `write_MFO_sessions()` writes the sessions as folders
+  for `MFOs()`.
+
 * `read_cart()` reads a metabolic cart export (Cortex, Cosmed, Vyntus or
   ZAN, parsed by the spiro package, now in Suggests) and returns the tables
   `MFO()` expects in the internal data contract (SPEC 16): `Time`, `VO2`,

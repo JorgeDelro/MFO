@@ -47,6 +47,13 @@ reference:
   desc: Many participants from a folder of xlsx files.
   contents:
   - MFOs
+- title: Simulate
+  desc: >
+    Synthetic repeated tests with a known truth, for reliability and
+    uncertainty studies and demonstrations.
+  contents:
+  - simulate_MFO_sessions
+  - write_MFO_sessions
 - title: Datasets
   desc: Anonymised example recordings of one participant (20-s averages).
   contents:
