@@ -260,6 +260,8 @@ Data frame with one row per participant containing:
 
 - method: method requested.
 
+- method_used: method actually used (differs after a fallback).
+
 - energy_equivalents: "classic" or "source".
 
 - protocol: protocol type (see \[MFO_protocol()\]).

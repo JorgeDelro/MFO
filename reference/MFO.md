@@ -261,7 +261,10 @@ Returns a list which contains:
 
 - RMSE: Root mean squared error of the fitted model (\`NA\` for "MV").
 
-- method: Method used for curve fitting.
+- method: Method requested for curve fitting.
+
+- method_used: Method actually used: it differs from \`method\` when the
+  fit falls back (P3 to P2, P2 or MRER to MV), with a warning.
 
 - energy_equivalents: energy equivalents used for \`Kcal\` ("classic" or
   "source").

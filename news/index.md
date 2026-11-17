@@ -179,6 +179,18 @@
 
 ### Bug fixes
 
+- `method = "P2"` returned the vertex of the parabola as Fatmax even
+  when its curvature was positive, i.e. a minimum of fat oxidation
+  ([\#38](https://github.com/JorgeDelro/MFO/issues/38); affects 0.2.1
+  and earlier). Without a maximum (curvature \>= 0 or NA coefficients)
+  P2 now uses the highest observed step (MV) with a warning, as MRER
+  does. New `method_used` in
+  [`MFO()`](https://jorgedelro.github.io/MFO/reference/MFO.md) (and the
+  [`MFOs()`](https://jorgedelro.github.io/MFO/reference/MFOs.md)
+  summary) reports the method actually used after any fallback (P3 to
+  P2, P2 or MRER to MV); `method` is still the one requested, and the
+  plot shows both when they differ.
+
 - [`VO2max_from_test()`](https://jorgedelro.github.io/MFO/reference/VO2max_from_test.md)
   (new in 0.3.0-alpha.1) compared the last two runs of equal `Load`, so
   a recovery or a rest pause at the end of the graded test was taken as
