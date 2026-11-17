@@ -72,6 +72,21 @@
         [`MFO()`](https://jorgedelro.github.io/MFO/reference/MFO.md)
         says once per session that the HR criterion was not evaluated.
 
+- [`read_cart()`](https://jorgedelro.github.io/MFO/reference/read_cart.md)
+  reads a metabolic cart export (Cortex, Cosmed, Vyntus or ZAN, parsed
+  by the spiro package, now in Suggests) and returns the tables
+  [`MFO()`](https://jorgedelro.github.io/MFO/reference/MFO.md) expects
+  in the internal data contract (SPEC 16): `Time`, `VO2`, `VCO2`
+  (mL/min), `RER` and, when present, `HR`, `Load`, `VE`. Breaths are
+  averaged in fixed intervals (10 s by default; empty intervals are kept
+  as `NA` so records stay aligned); VO2 above a median of 100 is read as
+  mL/min and below it the unit must be given (`vo2_unit`, with
+  `body_mass` for mL/kg/min); RER is recomputed as VCO2/VO2 and an
+  exported RER off by more than 0.02 is counted with a warning; phases
+  are split by the user’s `cuts` (`basal_end`, `MFO_end`). No personal
+  data from the file are kept. None of the devices has yet been
+  validated with a real export of MFO’s own.
+
 - The example data `MFO_df` gain a `Load` column (25–200 W, 25-W
   stages), as described in their documentation.
 
@@ -89,6 +104,15 @@
   the importers (SPEC 16).
 
 ### Bug fixes
+
+- [`VO2max_from_test()`](https://jorgedelro.github.io/MFO/reference/VO2max_from_test.md)
+  (new in 0.3.0-alpha.1) compared the last two runs of equal `Load`, so
+  a recovery or a rest pause at the end of the graded test was taken as
+  the final stage and a falling VO2 counted as a plateau. The final
+  stage is now the last one at the highest load and the previous stage
+  is the one before it with load \> 0. With the ZAN example of spiro the
+  plateau goes from -1831 ml/min (met) to +1655 ml/min (not met); the
+  example data of MFO are unchanged (+247 ml/min) (SPEC 14).
 
 - `use_incomplete_step = TRUE` averaged only the last record of the
   incomplete step instead of its last `steady_state_duration` s, as

@@ -261,6 +261,15 @@ and MRER issues do not affect MFO and Fatmax obtained with P3 or P2.
 
 # Package index
 
+## Import data
+
+Read a metabolic cart export into the tables that
+[`MFO()`](https://jorgedelro.github.io/MFO/reference/MFO.md) expects
+(internal data contract, 10-s averages).
+
+- [`read_cart()`](https://jorgedelro.github.io/MFO/reference/read_cart.md)
+  : Read a metabolic cart export
+
 ## Describe the test
 
 Protocol of the MFO test (step durations, averaged segment, load and
