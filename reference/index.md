@@ -41,6 +41,16 @@ Many participants from a folder of xlsx files.
 - [`MFOs()`](https://jorgedelro.github.io/MFO/reference/MFOs.md) :
   Maximal Fat Oxidation calculation of multiple databases
 
+## Reliability
+
+Test-retest reliability of a lab: ICC(2,1), SEM, MDC, CV, bias and
+limits of agreement (Bland-Altman plots).
+
+- [`MFO_reliability()`](https://jorgedelro.github.io/MFO/reference/MFO_reliability.md)
+  : Test-retest reliability of MFO outcomes
+- [`plot(`*`<MFO_reliability>`*`)`](https://jorgedelro.github.io/MFO/reference/plot.MFO_reliability.md)
+  : Bland-Altman plots of a reliability analysis
+
 ## Simulate
 
 Synthetic repeated tests with a known truth, for reliability and
