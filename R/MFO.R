@@ -123,7 +123,9 @@
 #'
 #' **P2.** When the vertex of the parabola falls outside the measured
 #' intensities, Fatmax is an extrapolation: a warning says so and the rows of
-#' `ci` are flagged.
+#' `ci` are flagged. P2 is not recommended with noisy data: the vertex,
+#' -b / (2c), is unstable when the curvature is close to 0, and that warning
+#' is the signal.
 #'
 #' This is the uncertainty of the fit within one test, not the day-to-day
 #' error (see [MFO_reliability()]). It assumes exchangeable residuals; fat
