@@ -1,8 +1,9 @@
-# Residual bootstrap of the curve fit (SPEC 13.1). The model is refitted to
-# fitted values plus resampled residuals; the residuals are modified,
-# r / sqrt(1 - h) and centred, so that their spread matches that of the errors
-# (Davison & Hinkley 1997, ch. 6). For a linear fit h is the diagonal of the
-# hat matrix X (X'X)^-1 X'.
+# Bootstrap of the curve fit (SPEC 13.1). The model is refitted to fitted
+# values plus new errors. "bootstrap": the residuals resampled with
+# replacement, modified, r / sqrt(1 - h), and centred, so that their spread
+# matches that of the errors (Davison & Hinkley 1997, ch. 6); for a linear fit
+# h is the diagonal of the hat matrix X (X'X)^-1 X'. "parametric": normal
+# errors with the residual SD of the fit, sqrt(RSS / (n - p)).
 
 # Modified, centred residuals of a linear model
 .modified_residuals <- function(mod) {
@@ -19,7 +20,7 @@
 # with one row per replicate that kept the method (fallbacks such as P3 -> P2
 # are dropped and counted) and columns MFO, FAT_MAX, FatMax_zone_lower,
 # FatMax_zone_upper, FAT_MAX_load.
-.bootstrap_fit <- function(MFO_db, method, B) {
+.bootstrap_fit <- function(MFO_db, method, B, type = "bootstrap") {
   fit_fn <- switch(method, P3 = .fit_P3, P2 = .fit_P2, MRER = .fit_MRER,
                    stop('ci = "bootstrap" is not available for method "', method,
                         '": it fits no model. Use "P3", "P2" or "MRER".', call. = FALSE))
@@ -28,12 +29,12 @@
     # Two regressions of %VO2max: 1 - RER and VO2 (Cheneviere et al. 2009)
     mod_rer <- stats::lm(I(1 - RER) ~ porc_VO2, data = MFO_db)
     mod_vo2 <- stats::lm(VO2 ~ porc_VO2, data = MFO_db)
-    m_rer <- .modified_residuals(mod_rer)
-    m_vo2 <- .modified_residuals(mod_vo2)
+    e_rer <- .error_generator(mod_rer, type)
+    e_vo2 <- .error_generator(mod_vo2, type)
     make <- function() {
       db <- MFO_db
-      db$RER <- 1 - (stats::fitted(mod_rer) + sample(m_rer, replace = TRUE))
-      db$VO2 <- stats::fitted(mod_vo2) + sample(m_vo2, replace = TRUE)
+      db$RER <- 1 - (stats::fitted(mod_rer) + e_rer())
+      db$VO2 <- stats::fitted(mod_vo2) + e_vo2()
       db
     }
   } else {
@@ -43,10 +44,10 @@
       FAT ~ porc_VO2 + I(porc_VO2^2)
     }
     mod <- stats::lm(form, data = MFO_db)
-    m <- .modified_residuals(mod)
+    e <- .error_generator(mod, type)
     make <- function() {
       db <- MFO_db
-      db$FAT <- stats::fitted(mod) + sample(m, replace = TRUE)
+      db$FAT <- stats::fitted(mod) + e()
       db
     }
   }
@@ -63,6 +64,21 @@
     kept[b] <- TRUE
   }
   out[kept, , drop = FALSE]
+}
+
+# Function drawing one set of errors for a fitted linear model
+.error_generator <- function(mod, type) {
+  n <- length(stats::residuals(mod))
+  if (type == "parametric") {
+    if (stats::df.residual(mod) < 1) {
+      stop("The parametric bootstrap needs more steps than model parameters.",
+           call. = FALSE)
+    }
+    sigma <- sqrt(sum(stats::residuals(mod)^2) / stats::df.residual(mod))
+    return(function() stats::rnorm(n, 0, sigma))
+  }
+  m <- .modified_residuals(mod)
+  function() sample(m, replace = TRUE)
 }
 
 # Percentile intervals of the replicates

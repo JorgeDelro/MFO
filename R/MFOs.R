@@ -33,7 +33,7 @@
 #' @param age age in years (optional), the same for every participant, for the
 #'        heart-rate criterion of VO2max. See [MFO()] and [VO2max_from_test()].
 #' @param ci,B,conf,seed bootstrap confidence intervals of the fit, passed to
-#'        [MFO()] (default `ci = "none"`). The same `seed` is used for every
+#'        [MFO()]: `ci` is `"none"` (default), `"bootstrap"` or `"parametric"`. The same `seed` is used for every
 #'        participant.
 #' @param protocol optional [MFO_protocol()], the same for every participant; if
 #'        given, `step_duration` and `steady_state_duration` are not used. See [MFO()].
@@ -154,7 +154,7 @@ MFOs <- function(from = c("folder", "files"),
                  protocol = NULL,
                  age = NULL,
                  col_name_Load = "Load",
-                 ci = c("none", "bootstrap"),
+                 ci = c("none", "bootstrap", "parametric"),
                  B = 2000,
                  conf = 0.95,
                  seed = NULL) {

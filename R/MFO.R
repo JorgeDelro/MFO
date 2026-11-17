@@ -74,9 +74,10 @@
 #' @param age age in years (optional), for the heart-rate criterion of
 #'        [VO2max_from_test()] when VO2max comes from `db_graded`. Without it that
 #'        criterion is not evaluated and a message says so once per session.
-#' @param ci `"none"` (default) or `"bootstrap"`: percentile confidence
-#'        intervals of the fit for MFO, Fatmax, the Fatmax zone and Fatmax in
-#'        load units (see *Fit uncertainty*). Not available for `method = "MV"`.
+#' @param ci `"none"` (default), `"bootstrap"` or `"parametric"`: percentile
+#'        confidence intervals of the fit for MFO, Fatmax, the Fatmax zone and
+#'        Fatmax in load units (see *Fit uncertainty*). Not available for
+#'        `method = "MV"`.
 #' @param B number of bootstrap replicates (default 2000).
 #' @param conf confidence level of the intervals (default 0.95).
 #' @param seed optional integer for reproducible intervals; the random state
@@ -91,9 +92,20 @@
 #' the leverage of each step (diagonal of X (X'X)^-1 X'), and centred, so
 #' that their spread matches that of the errors (Davison & Hinkley 1997,
 #' Bootstrap Methods and their Application, ch. 6). The interval is the
-#' percentile one. For `"MRER"` the residuals of its two regressions, 1 - RER
+#' percentile one. With `ci = "parametric"` the new errors are normal, with
+#' the residual standard deviation of the fit, sqrt(RSS / (n - p)), instead of
+#' resampled residuals. For `"MRER"` the residuals of its two regressions, 1 - RER
 #' and VO2 on \% VO2max, are resampled separately. Replicates in which the
 #' fit falls back to another method (e.g. P3 to P2) are dropped and counted.
+#'
+#' Both intervals are too narrow with few steps: in the ideal case (correct
+#' model, a parabola fitted by P2 to 8 steps with independent normal errors;
+#' 500 simulated tests, B = 500) the 95 \% intervals covered Fatmax 88.2 \%
+#' (`"bootstrap"`) and 89.2 \% (`"parametric"`), and MFO 89.2 \% and 89.6 \%.
+#' This matches P(|t_5| < 1.96) = 0.893: neither interval carries the
+#' uncertainty of the residual SD, estimated with n - p = 5 degrees of
+#' freedom. Read them as lower bounds of the uncertainty; the study by
+#' method, number of steps and noise is in `inst/validation/`.
 #'
 #' This is the uncertainty of the fit within one test, not the day-to-day
 #' error (see [MFO_reliability()]). It assumes exchangeable residuals; fat
@@ -256,7 +268,7 @@ MFO <- function(step_time,
                 min_steps = 6,
                 protocol = NULL,
                 age = NULL,
-                ci = c("none", "bootstrap"),
+                ci = c("none", "bootstrap", "parametric"),
                 B = 2000,
                 conf = 0.95,
                 seed = NULL,
@@ -265,9 +277,9 @@ MFO <- function(step_time,
   # Validate inputs
   method <- match.arg(method, c("P3", "P2", "MV", "MRER"))
   ci <- match.arg(ci)
-  if (ci == "bootstrap") {
+  if (ci != "none") {
     if (method == "MV") {
-      stop('ci = "bootstrap" is not available for method = "MV": it fits no model. ',
+      stop('ci = "', ci, '" is not available for method = "MV": it fits no model. ',
            'Use "P3", "P2" or "MRER".', call. = FALSE)
     }
     if (!is.numeric(B) || length(B) != 1 || is.na(B) || B < 2 || B != round(B)) {
@@ -468,12 +480,12 @@ MFO <- function(step_time,
   # --- Bootstrap CI of the fit (SPEC 13.1) ---
   ci_table <- NULL
   bootstrap <- NULL
-  if (ci == "bootstrap") {
+  if (ci != "none") {
     if (result$method != method) {
       warning(sprintf("The %s fit fell back to %s; no bootstrap CI.", method, result$method),
               call. = FALSE)
     } else {
-      reps <- .with_seed(seed, .bootstrap_fit(MFO_db, method, B))
+      reps <- .with_seed(seed, .bootstrap_fit(MFO_db, method, B, type = ci))
       if (nrow(reps) < B) {
         warning(sprintf("%d of %d bootstrap replicates fell back to another method and were dropped.",
                         B - nrow(reps), B), call. = FALSE)
@@ -483,7 +495,7 @@ MFO <- function(step_time,
         estimate = c(VAR_MFO, VO2_MFO, fatmax_zone$lower, fatmax_zone$upper, FAT_MAX_load),
         lower = bounds[, 1], upper = bounds[, 2],
         row.names = colnames(reps))
-      bootstrap <- list(B = B, kept = nrow(reps), conf = conf, replicates = reps)
+      bootstrap <- list(type = ci, B = B, kept = nrow(reps), conf = conf, replicates = reps)
     }
   }
 
@@ -491,7 +503,8 @@ MFO <- function(step_time,
   MFO_plot <- .create_MFO_plot(MFO_db, fat_predict_fn, cho_predict_fn,
                                VO2_MFO, VAR_MFO, fatmax_zone, crossover, method,
                                FatMax_zone_method,
-                               ci = if (isTRUE(show_ci)) ci_table, conf = conf)
+                               ci = if (isTRUE(show_ci)) ci_table, conf = conf,
+                               ci_label = if (ci == "parametric") "parametric bootstrap" else "bootstrap")
 
   return(list(MFO_db = MFO_db,
               MFO_plot = MFO_plot,
@@ -852,7 +865,8 @@ MFO <- function(step_time,
 # --- Internal helper: Create MFO plot ---
 .create_MFO_plot <- function(MFO_db, fat_predict_fn, cho_predict_fn,
                               VO2_MFO, VAR_MFO, fatmax_zone, crossover, method,
-                              zone_method = "fitted curve", ci = NULL, conf = 0.95) {
+                              zone_method = "fitted curve", ci = NULL, conf = 0.95,
+                              ci_label = "bootstrap") {
 
   # Rule: no numeric annotation inside the panel; numbers go to the subtitle
   # and the caption, and FAT/CHO are a legend, so nothing covers the curves.
@@ -868,9 +882,9 @@ MFO <- function(step_time,
 
   has_ci <- !is.null(ci) && !anyNA(ci[c("FAT_MAX", "MFO"), c("lower", "upper")])
   subtitle <- if (has_ci) {
-    sprintf("FATmax = %.1f (%.1f-%.1f) %% VO2max \u00b7 MFO = %.3f (%.3f-%.3f) g/min \u00b7 %s, %g %% bootstrap CI",
+    sprintf("FATmax = %.1f (%.1f-%.1f) %% VO2max \u00b7 MFO = %.3f (%.3f-%.3f) g/min \u00b7 %s, %g %% %s CI",
             VO2_MFO, ci["FAT_MAX", "lower"], ci["FAT_MAX", "upper"],
-            VAR_MFO, ci["MFO", "lower"], ci["MFO", "upper"], method, 100 * conf)
+            VAR_MFO, ci["MFO", "lower"], ci["MFO", "upper"], method, 100 * conf, ci_label)
   } else {
     sprintf("FATmax = %.1f %% VO2max \u00b7 MFO = %.3f g/min \u00b7 %s",
             VO2_MFO, VAR_MFO, method)
@@ -879,8 +893,8 @@ MFO <- function(step_time,
   has_zone <- !is.na(fatmax_zone$lower) && !is.na(fatmax_zone$upper)
   caption <- "Dotted line: FATmax."
   if (has_ci) {
-    caption <- paste0(caption, sprintf(" Grey band: %g %% bootstrap CI of FATmax.",
-                                       100 * conf))
+    caption <- paste0(caption, sprintf(" Grey band: %g %% %s CI of FATmax.",
+                                       100 * conf, ci_label))
   }
   if (has_zone) {
     zone_how <- if (zone_method == "linear interpolation") {

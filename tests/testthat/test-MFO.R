@@ -699,6 +699,9 @@ test_that("the plot shows the interval in the subtitle and a grey band", {
 
 test_that("bootstrap arguments are checked; MV has none; MRER has one", {
   expect_error(.mfo_load(method = "MV", ci = "bootstrap"), "not available for method = \"MV\"")
+  rp <- .mfo_load(ci = "parametric", B = 100, seed = 3)
+  expect_equal(rp$bootstrap$type, "parametric")
+  expect_match(rp$MFO_plot$labels$subtitle, "parametric bootstrap CI")
   expect_error(.mfo_load(ci = "bootstrap", B = 1), "B must be")
   expect_error(.mfo_load(ci = "bootstrap", conf = 1.5), "conf must be")
   r <- .mfo_load(method = "MRER", ci = "bootstrap", B = 100, seed = 1)
