@@ -190,6 +190,20 @@ test_that("MFOs() passes ci = 'bootstrap' and reports the limits", {
   expect_true(all(is.na(res0$FAT_MAX_lower)))
 })
 
+test_that("MFOs() passes sin_fit and reports the SIN limits", {
+  root <- withr::local_tempdir()
+  parts <- .participants()
+  .write_folder(root, parts)
+  res <- suppressWarnings(suppressMessages(.mfos("folder", root, sin_fit = "absolute",
+                                                 ci = TRUE, B = 50, seed = 2)))
+  expect_equal(res$sin_fit, c("absolute", "absolute"))
+  expect_false(anyNA(res$MFO_SIN))
+  expect_false(anyNA(res$Fatmin_lower))
+  res0 <- suppressWarnings(suppressMessages(.mfos("folder", root)))
+  expect_true(all(is.na(res0$MFO_SIN)))
+  expect_equal(res0$sin_fit, c("normalised", "normalised"))
+})
+
 test_that("a participant that cannot be processed gives an NA row and a warning", {
   root <- withr::local_tempdir()
   parts <- .participants()
