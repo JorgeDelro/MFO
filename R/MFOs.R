@@ -159,7 +159,13 @@ MFOs <- function(from = c("folder", "files"),
                                 durations_given = !missing(step_duration) ||
                                   !missing(steady_state_duration))
 
-  participants <- list.files(path)
+  # Participants are folders ("folder") or xlsx files ("files"); other files
+  # in path, such as the sessions.csv of write_MFO_sessions(), are ignored
+  participants <- if (from == "folder") {
+    list.dirs(path, full.names = FALSE, recursive = FALSE)
+  } else {
+    list.files(path, pattern = "\\.xlsx$", ignore.case = TRUE)
+  }
 
   if (length(participants) == 0) {
     stop("No participant folders found in the specified path.")

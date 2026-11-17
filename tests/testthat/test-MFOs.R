@@ -97,7 +97,10 @@ test_that("MFOs(from = 'files') reads one xlsx with 3 sheets per participant", {
   expect_equal(readxl::excel_sheets(file.path(root, "P01.xlsx")),
                c("basal_df", "MFO_df", "VO2max_df"))
 
-  # "files": path is the folder; each participant is one workbook
+  # "files": path is the folder; each participant is one workbook. Other
+  # files (here a note and a csv) are not participants
+  writeLines("notes", file.path(root, "notes.txt"))
+  write.csv(data.frame(x = 1), file.path(root, "sessions.csv"))
   res <- suppressWarnings(suppressMessages(.mfos("files", root)))
   expect_equal(nrow(res), 2)
   expect_equal(res$ID, c("P01.xlsx", "P02.xlsx"))
