@@ -32,7 +32,9 @@ The folders written, invisibly.
 Writes each participant and session of a [simulate_MFO_sessions()] result
 as a folder `<id>_<session>` (e.g. `P01_S1`) with three xlsx files, the
 layout that `MFOs(from = "folder")` reads. The participant ID in the
-`MFOs()` summary is then the folder name.
+`MFOs()` summary is then the folder name. A file `sessions.csv` in `path`
+maps each folder name (`id`) to its `participant` and `session`; `MFOs()`
+ignores it, as it reads only folders.
 }
 \examples{
 sim <- simulate_MFO_sessions(2, 2, population = list(VO2max = c(3000, 0)),

@@ -144,14 +144,15 @@ c(estimated = r$FAT_MAX, true = sim$truth$Fatmax[1])
 Amaro-Gahete FJ, Sanchez-Delgado G, Ruiz JR (2018). Commentary:
 Contextualising maximal fat oxidation during exercise: determinants and
 normative values. Front Physiol 9: 1460, Table 1 (sedentary adults).
+\doi{10.3389/fphys.2018.01460}
 
 Chrzanowski-Smith OJ, Edinburgh RM, Thomas MP, et al. (2020). The
 day-to-day reliability of peak fat oxidation and FATMAX. Eur J Appl
-Physiol 120: 1745-1759.
+Physiol 120: 1745-1759. \doi{10.1007/s00421-020-04397-3}
 
 Croci I, Borrani F, Byrne NM, et al. (2014). Reproducibility of Fatmax and
 fat oxidation rates during exercise in recreationally trained males. PLoS
-ONE 9: e97930.
+ONE 9: e97930. \doi{10.1371/journal.pone.0097930}
 }
 \seealso{
 [write_MFO_sessions()], [MFO()], [MFO_kinetics()]
