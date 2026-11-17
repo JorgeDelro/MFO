@@ -35,7 +35,10 @@ MFOs(
   fatmin_threshold = NULL,
   energy_equivalents = c("classic", "source"),
   use_incomplete_step = FALSE,
-  min_steps = 6
+  min_steps = 6,
+  protocol = NULL,
+  age = NULL,
+  col_name_Load = "Load"
 )
 }
 \arguments{
@@ -109,6 +112,15 @@ steady-state segment (default `FALSE`). See [MFO()].}
 
 \item{min_steps}{minimum number of exercise steps recommended for the fit
 (default 6); fewer give a warning. See [MFO()].}
+
+\item{protocol}{optional [MFO_protocol()], the same for every participant; if
+given, `step_duration` and `steady_state_duration` are not used. See [MFO()].}
+
+\item{age}{age in years (optional), the same for every participant, for the
+heart-rate criterion of VO2max. See [MFO()] and [VO2max_from_test()].}
+
+\item{col_name_Load}{column name for the external load (W or km/h) in the
+databases. Default "Load"; the column is optional. See [MFO()].}
 }
 \value{
 {Data frame with one row per participant containing:
@@ -119,16 +131,21 @@ steady-state segment (default `FALSE`). See [MFO()].}
 \item MFO_FFM: MFO relative to fat-free mass (mg/kgFFM/min), if fat_free_mass provided.
 \item VO2max: VO2max used (ml/min).
 \item VO2max_window: effective averaging window for VO2max (s); NA if VO2max was supplied.
+\item VO2max_type: "VO2max" or "VO2peak" (see [VO2max_from_test()]); NA if VO2max was supplied.
 \item FAT_MAX_perVO2max: FatMax as \% VO2max.
 \item FAT_MAX_HR: Heart rate at FatMax (bpm).
 \item FAT_MAX_porcHRmax: FatMax as \% HRmax, if HRmax provided.
 \item FatMax_zone_lower: Lower bound of FatMax zone (\% VO2max).
 \item FatMax_zone_upper: Upper bound of FatMax zone (\% VO2max).
 \item FatMax_zone_method: "fitted curve", or "linear interpolation" for "MV".
+\item FAT_MAX_load, FatMax_zone_lower_load, FatMax_zone_upper_load: Fatmax and
+  Fatmax zone in load units; load_unit and load_source as in [MFO()].
 \item crossover_point: Crossover intensity (\% VO2max).
 \item R_squared: R-squared of the curve fit.
 \item method: method requested.
 \item energy_equivalents: "classic" or "source".
+\item protocol: protocol type (see [MFO_protocol()]).
+\item mode: exercise mode of the protocol.
 \item d: SIN dilatation parameter.
 \item t: SIN translation parameter.
 \item s: SIN symmetry parameter.

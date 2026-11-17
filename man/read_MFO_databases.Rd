@@ -14,7 +14,8 @@ read_MFO_databases(
   col_name_VCO2 = "VCO2",
   col_name_RER = "RER",
   col_name_HR = "HR",
-  remove_rows = NULL
+  remove_rows = NULL,
+  col_name_Load = "Load"
 )
 }
 \arguments{
@@ -37,6 +38,9 @@ read_MFO_databases(
 \item{col_name_HR}{name given to the variable HR in the databases. Default "HR"}
 
 \item{remove_rows}{An integer (or a vector of integers) representing the position of the rows to delete}
+
+\item{col_name_Load}{name given to the external load (W or km/h) in the
+databases. Default "Load"; the column is optional.}
 }
 \value{
 {Returns 3 databases:

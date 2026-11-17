@@ -139,7 +139,8 @@ test_that("default energy_equivalents message is shown once per session", {
   run <- function(...) suppressWarnings(
     MFO(step_time = 20, db_MFO = MFO_df, db_basal = basal_df,
         db_graded = VO2max_df, cv_var = "RER", author = "Frayn",
-        vo2max_window = 40, ...))  # 40 s = 2 records: no rounding message
+        vo2max_window = 40, age = 30, ...))  # 40 s = 2 records: no rounding message;
+                                            # age: no VO2max_type message
   rm(list = ls(.mfo_state), envir = .mfo_state)
   expect_message(r_c <- run(), "will change to \"source\".*in MFO 0.3.0")
   expect_no_message(run())
@@ -243,6 +244,16 @@ test_that("use_incomplete_step = TRUE averages its last steady-state seconds", {
   # the first 8 steps are untouched
   data(MFO_df, package = "MFO", envir = environment())
   expect_equal(r[1:8, ], .cv(data.frame(MFO_df)), tolerance = 1e-10)
+})
+
+test_that("a used incomplete step averages its own last records, not one record", {
+  # Regression (0.2.1): the start was computed from the nominal step end, so
+  # only the last record was averaged. Tail VO2 2510..2560: the last 60 s
+  # (3 records) average (2540 + 2550 + 2560) / 3 = 2550 exactly.
+  db <- .with_tail(6)
+  db$VO2[73:78] <- c(2510, 2520, 2530, 2540, 2550, 2560)
+  r <- suppressWarnings(.cv(db, use_incomplete_step = TRUE))
+  expect_equal(r$VO2[9], 2550, tolerance = 1e-10)
 })
 
 test_that("an incomplete step shorter than the steady state is never used", {

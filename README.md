@@ -237,8 +237,6 @@ and MRER issues do not affect MFO and Fatmax obtained with P3 or P2.
   `method = "MV"`.
 - The **resting row** is not used in the curve fit unless
   `include_basal = TRUE` (development version).
-- The `Load` column of `MFO_db` is a step label, not the measured
-  external load.
 
 ## References
 

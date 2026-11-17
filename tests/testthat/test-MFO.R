@@ -383,7 +383,7 @@ test_that("include_basal = FALSE reproduces v0.2.0 on the example data", {
   expect_equal(r$FatMax_zone_upper, 48.340688602127, tolerance = 1e-10)
   expect_equal(r$crossover_point, 24.848177391000, tolerance = 1e-10)
   expect_equal(nrow(r$MFO_db), 8)
-  expect_false("basal" %in% r$MFO_db$Load)
+  expect_false(0 %in% r$MFO_db$Step)
 })
 
 
@@ -403,7 +403,8 @@ test_that("include_basal = TRUE adds the resting row as step 0 of the fit", {
 
   # The resting row is kept although its HR is NA
   expect_equal(nrow(r_on$MFO_db), nrow(r_off$MFO_db) + 1)
-  expect_equal(r_on$MFO_db$Load[1], "basal")
+  expect_equal(r_on$MFO_db$Step[1], 0L)
+  expect_true(is.na(r_on$MFO_db$Load[1]))
   expect_true(is.na(r_on$MFO_db$HR[1]))
   expect_equal(r_on$MFO_db$FAT[1], 0.1002, tolerance = 1e-10)
   expect_equal(r_on$MFO_db$porc_VO2[1], 300 / 2600 * 100, tolerance = 1e-10)
@@ -589,4 +590,75 @@ test_that("the edge rule uses the nearest exercise step, resting row excluded", 
         author = "Frayn", VO2max = d$VO2max, include_basal = TRUE,
         energy_equivalents = "classic")))
   expect_false(any(grepl("first exercise step", r_w)))
+})
+
+
+# --- Load and Fatmax in load units (SPEC 14) ---
+# Example data: Load 25-200 W in 25-W stages. Fatmax (36.17 %VO2max) lies
+# between step 3 (75 W, 32.07 %) and step 4 (100 W, 40.97 %), so by hand
+# 75 + (36.17 - 32.07) / (40.97 - 32.07) * 25 = 86.5 W (tolerance 0.05 W).
+.mfo_load <- function(db_MFO = NULL, ...) {
+  data(list = c("basal_df", "MFO_df", "VO2max_df"), package = "MFO",
+       envir = environment())
+  if (is.null(db_MFO)) db_MFO <- data.frame(MFO_df)
+  withCallingHandlers(
+    suppressMessages(MFO(step_time = 20, db_MFO = db_MFO, db_basal = basal_df,
+                         db_graded = VO2max_df, cv_var = "RER", author = "Frayn",
+                         energy_equivalents = "classic", ...)),
+    warning = function(w) {
+      if (grepl("negative fat oxidation", conditionMessage(w))) invokeRestart("muffleWarning")
+    })
+}
+
+test_that("Load comes from the file and gives Fatmax in W", {
+  r <- .mfo_load()
+  expect_equal(r$MFO_db$Load, seq(25, 200, by = 25))
+  expect_equal(r$load_source, "file")
+  expect_equal(r$load_unit, "W")
+  expect_equal(r$FAT_MAX_load, 86.5, tolerance = 0.05 / 86.5)
+  ex <- r$MFO_db
+  lin <- function(x) approx(ex$porc_VO2, ex$Load, xout = x)$y
+  expect_equal(r$FAT_MAX_load, lin(r$FAT_MAX))
+  expect_equal(r$FatMax_zone_lower_load, lin(r$FatMax_zone_lower))
+  expect_equal(r$FatMax_zone_upper_load, lin(r$FatMax_zone_upper))
+  # MV: Fatmax is step 4, so its load is exactly 100 W
+  expect_equal(.mfo_load(method = "MV")$FAT_MAX_load, 100)
+})
+
+test_that("without a Load column the protocol schedule is used, else NA", {
+  data(MFO_df, package = "MFO", envir = environment())
+  no_load <- data.frame(MFO_df)[, setdiff(names(MFO_df), "Load")]
+  r <- .mfo_load(no_load)
+  expect_equal(r$load_source, "none")
+  expect_true(all(is.na(r$MFO_db$Load)))
+  expect_true(is.na(r$FAT_MAX_load))
+  expect_true(is.na(r$load_unit))
+  p <- MFO_protocol(load_start = 25, load_increment = 25)
+  rp <- .mfo_load(no_load, protocol = p)
+  expect_equal(rp$load_source, "protocol")
+  expect_equal(rp$MFO_db$Load, seq(25, 200, by = 25))
+  expect_equal(rp$FAT_MAX_load, .mfo_load()$FAT_MAX_load)
+  # the file wins over the protocol schedule
+  expect_equal(.mfo_load(protocol = MFO_protocol(load_start = 10, load_increment = 10))$MFO_db$Load,
+               seq(25, 200, by = 25))
+})
+
+test_that("the protocol schedule follows Step when steps are removed", {
+  data(MFO_df, package = "MFO", envir = environment())
+  no_load <- data.frame(MFO_df)[, setdiff(names(MFO_df), "Load")]
+  p <- MFO_protocol(load_start = 25, load_increment = 25)
+  r <- .mfo_load(no_load, protocol = p, include_basal = TRUE, RER_cutoff = "safe",
+                 min_steps = 1)
+  expect_equal(r$MFO_db$Step, 0:6)
+  expect_equal(r$MFO_db$Load, c(NA, seq(25, 150, by = 25)))
+})
+
+test_that("relative protocols express a Load column in W/kg with body_mass", {
+  p <- MFO_protocol("relative")
+  r <- .mfo_load(protocol = p, body_mass = 80)
+  expect_equal(r$MFO_db$Load, seq(25, 200, by = 25) / 80)
+  expect_equal(r$load_unit, "W/kg")
+  expect_equal(r$FAT_MAX_load, .mfo_load()$FAT_MAX_load / 80)
+  expect_warning(r <- .mfo_load(protocol = p), "kept in W")
+  expect_equal(r$load_unit, "W")
 })
