@@ -18,6 +18,10 @@ articles:
   navbar: ~
   contents:
   - mfo-workflow
+- title: Validation
+  navbar: Validation
+  contents:
+  - validation
 
 reference:
 - title: Import data
