@@ -47,6 +47,13 @@ reference:
   desc: Many participants from a folder of xlsx files.
   contents:
   - MFOs
+- title: Reliability
+  desc: >
+    Test-retest reliability of a lab: ICC(2,1), SEM, MDC, CV, bias and
+    limits of agreement (Bland-Altman plots).
+  contents:
+  - MFO_reliability
+  - plot.MFO_reliability
 - title: Simulate
   desc: >
     Synthetic repeated tests with a known truth, for reliability and

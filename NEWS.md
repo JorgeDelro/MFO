@@ -52,6 +52,20 @@
   Without `age`, `MFO()` says once per session that the HR criterion was not
   evaluated.
 
+* `MFO_reliability()` computes the test-retest reliability of the `MFOs()`
+  outcomes from two or more sessions per participant (SPEC 12): ICC(2,1)
+  with the F-based confidence interval of McGraw & Wong (1996, corrected),
+  classified by its lower bound (Koo & Li 2016); SEM, MDC95 and MDC90
+  (Weir 2005); CV = SEM/mean and the log-scale CV of Hopkins (2000) for all
+  variables; bias with its confidence interval and limits of agreement
+  (Bland & Altman 1986) for each pair of consecutive sessions, with a
+  heteroscedasticity check; and, with three sessions or more, a
+  familiarization check of session 1 (p < 0.05 and a difference larger than
+  the SEM). Participants and sessions come from columns, the `sessions.csv`
+  of `write_MFO_sessions()` or the ID split at its last underscore. `plot()`
+  draws Bland-Altman plots. The ICC and its interval equal `psych::ICC`
+  (ICC2) to 1e-10; psych is in Suggests for that test.
+
 * `simulate_MFO_sessions()` generates repeated MFO tests (resting, MFO and
   graded tables ready for `MFO()`) for several participants and sessions
   with a known truth (SPEC 12, 13). Fat oxidation follows the SIN model

@@ -12,6 +12,10 @@ utils::globalVariables(c(
   "Load",
   "value",
   "substrate",
+  # MFO_reliability.R (Bland-Altman plot)
+  "bias",
+  "LoA_lower",
+  "LoA_upper",
   # MFO_kinetics.R variables
   "porc_VO2_kinetics",
   "porc_MFO_kinetics",
