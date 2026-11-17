@@ -49,19 +49,19 @@ MFO_protocol(
     as in \`"step"\`; the load unit is \`"W/kg"\`.
 
   - \`"ramp"\`: continuous load increase (e.g. 10-15 W/min) with no
-    steps (ramp vs. graded protocols in postmenopausal women,
-    Physiologia 2025, 5(1):3,
+    steps (Teso et al. 2025, Physiologia 5(1): 3,
     [doi:10.3390/physiologia5010003](https://doi.org/10.3390/physiologia5010003)
-    ). Each point of the curve is the mean of \`ramp_window\` s; windows
-    start every \`ramp_step\` s (default: back to back, no overlap).
-    \`step_duration\` and \`steady_state_duration\` are not used,
-    \`method = "MV"\` is not available and \`min_steps\` counts
-    non-overlapping windows. With overlapping windows the points are not
-    independent: R² and the SIN standard errors are optimistic.
+    , compared ramp and graded protocols). Each point of the curve is
+    the mean of \`ramp_window\` s; windows start every \`ramp_step\` s
+    (default: back to back, no overlap). \`step_duration\` and
+    \`steady_state_duration\` are not used, \`method = "MV"\` is not
+    available and \`min_steps\` counts non-overlapping windows. With
+    overlapping windows the points are not independent: R² and the SIN
+    standard errors are optimistic.
 
   - \`"single_day"\`: the MFO test followed, after a short pause, by the
-    maximal test in the same recording (Sports Med Health Sci 2026,
-    8(3):327-334,
+    maximal test in the same recording (Marin-Galindo et al. 2026,
+    Sports Med Health Sci 8(3): 327-334,
     [doi:10.1016/j.smhs.2025.02.004](https://doi.org/10.1016/j.smhs.2025.02.004)
     ). Steps are cut as in \`"step"\` up to \`cut_time\`; the records
     after it are the graded test, used for VO2max when \`db_graded\` and

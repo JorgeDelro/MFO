@@ -42,7 +42,7 @@ replaces `step_duration` and `steady_state_duration` (SPEC 14)."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Describe the protocol of an MFO test</h1>
-      <small class="dont-index">Source: <a href="https://github.com/JorgeDelro/MFO/blob/v0.3.0-alpha.1/R/MFO_protocol.R" class="external-link"><code>R/MFO_protocol.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/JorgeDelro/MFO/blob/main/R/MFO_protocol.R" class="external-link"><code>R/MFO_protocol.R</code></a></small>
       <div class="d-none name"><code>MFO_protocol.Rd</code></div>
     </div>
 
@@ -91,9 +91,9 @@ replaces `step_duration` and `steady_state_duration` (SPEC 14).</p>
   <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC13315815/" class="external-link">https://pmc.ncbi.nlm.nih.gov/articles/PMC13315815/</a>). Steps are
   cut as in `"step"`; the load unit is `"W/kg"`.</p></li>
 <li><p>`"ramp"`: continuous load increase (e.g. 10-15 W/min) with no
-  steps (ramp vs. graded protocols in postmenopausal women, Physiologia
-  2025, 5(1):3, <a href="https://doi.org/10.3390/physiologia5010003" class="external-link">doi:10.3390/physiologia5010003</a>
-). Each point of the
+  steps (Teso et al. 2025, Physiologia 5(1): 3,
+  <a href="https://doi.org/10.3390/physiologia5010003" class="external-link">doi:10.3390/physiologia5010003</a>
+, compared ramp and graded protocols). Each point of the
   curve is the mean of `ramp_window` s; windows start every `ramp_step` s
   (default: back to back, no overlap). `step_duration` and
   `steady_state_duration` are not used, `method = "MV"` is not available
@@ -101,8 +101,8 @@ replaces `step_duration` and `steady_state_duration` (SPEC 14).</p>
   the points are not independent: R² and the SIN standard errors are
   optimistic.</p></li>
 <li><p>`"single_day"`: the MFO test followed, after a short pause, by the
-  maximal test in the same recording (Sports Med Health Sci 2026,
-  8(3):327-334, <a href="https://doi.org/10.1016/j.smhs.2025.02.004" class="external-link">doi:10.1016/j.smhs.2025.02.004</a>
+  maximal test in the same recording (Marin-Galindo et al. 2026, Sports
+  Med Health Sci 8(3): 327-334, <a href="https://doi.org/10.1016/j.smhs.2025.02.004" class="external-link">doi:10.1016/j.smhs.2025.02.004</a>
 ). Steps are cut as in
   `"step"` up to `cut_time`; the records after it are the graded test,
   used for VO2max when `db_graded` and `VO2max` are not given. Automatic

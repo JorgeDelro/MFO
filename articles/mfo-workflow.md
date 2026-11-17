@@ -667,12 +667,16 @@ With `MFO_protocol("relative")` a `Load` column in W is divided by
 [`VO2max_from_test()`](https://jorgedelro.github.io/MFO/reference/VO2max_from_test.md)
 takes the same rolling-mean VO2max as
 [`MFO()`](https://jorgedelro.github.io/MFO/reference/MFO.md) and checks
-whether the graded test was maximal: a plateau of VO2 between the last
-two stages, the peak RER and the peak heart rate relative to the
-predicted HRmax (Tanaka by default, Fox optional). The value is labelled
-“VO2max” with a plateau, or without one when both RER and heart rate
-meet their thresholds, and “VO2peak” otherwise. The heart-rate criterion
-needs `age`; the example participant is taken as 30 years old here.
+whether the graded test was maximal with the criteria reviewed by Howley
+et al. ([1995](#ref-howley1995)): a plateau of VO2 between the last two
+stages (an increase below 150 mL/min, the threshold of Taylor et
+al. 1955 as reported by Howley et al. ([1995](#ref-howley1995))), the
+peak RER and the peak heart rate relative to the predicted HRmax (208 −
+0.7 × age by default, Tanaka et al. ([2001](#ref-tanaka2001)); 220 − age
+optional). The value is labelled “VO2max” with a plateau, or without one
+when both RER and heart rate meet their thresholds, and “VO2peak”
+otherwise. The heart-rate criterion needs `age`; the example participant
+is taken as 30 years old here.
 
 ``` r
 
@@ -695,8 +699,7 @@ whose result can be passed to
 
 ### 7.4 Ramps and single-day tests
 
-In a ramp the load rises continuously ([“Indexes of Fat Oxidation from
-Ramp Vs. Graded Incremental Protocols in Postmenopausal Women”
+In a ramp the load rises continuously ([Teso et al.
 2025](#ref-physiologia2025)). `MFO_protocol("ramp")` replaces steps by
 windows of `ramp_window` s (30 s by default), one every `ramp_step` s.
 Overlapping windows are not independent, so `min_steps` counts
@@ -704,9 +707,7 @@ non-overlapping windows, and `method = "MV"` is not available because
 there are no steps to read a measured maximum from.
 
 In a single-day test the maximal test follows the MFO test in the same
-recording ([“Validity and Reliability of VO2max Determination
-Immediately After a Maximal Fat Oxidation Assessment in
-Pre-Diabetes/Type 2 Diabetes” 2026](#ref-smhs2026)).
+recording ([Marín-Galindo et al. 2026](#ref-smhs2026)).
 `MFO_protocol("single_day", cut_time = )` gives the time at which the
 MFO test ends; the records after it are used as the graded test. Joining
 the two example tables reproduces the separate analysis:
@@ -855,13 +856,20 @@ Males.” *PLoS ONE* 9: e97930.
 Frayn, K. N. 1983. “Calculation of Substrate Oxidation Rates in Vivo
 from Gaseous Exchange.” *Journal of Applied Physiology* 55: 628–34.
 
-“Indexes of Fat Oxidation from Ramp Vs. Graded Incremental Protocols in
-Postmenopausal Women.” 2025. *Physiologia* 5 (1): 3.
-<https://doi.org/10.3390/physiologia5010003>.
+Howley, E. T., D. R. Bassett, and H. G. Welch. 1995. “Criteria for
+Maximal Oxygen Uptake: Review and Commentary.” *Medicine and Science in
+Sports and Exercise* 27 (9): 1292–301.
+<https://doi.org/10.1249/00005768-199509000-00009>.
 
 Jeukendrup, A. E., and G. A. Wallis. 2005. “Measurement of Substrate
 Oxidation During Exercise by Means of Gas Exchange Measurements.”
 *International Journal of Sports Medicine* 26 (Suppl 1): S28–37.
+
+Marín-Galindo, A., E. Opazo-Díaz, M. Ramírez-Jiménez, et al. 2026.
+“Validity and Reliability of VO2max Determination Immediately After a
+Maximal Fat Oxidation Assessment in Pre-Diabetes/Type 2 Diabetes.”
+*Sports Medicine and Health Science* 8 (3): 327–34.
+<https://doi.org/10.1016/j.smhs.2025.02.004>.
 
 Maunder, E., D. J. Plews, and A. E. Kilding. 2018. “Contextualising
 Maximal Fat Oxidation During Exercise: Determinants and Normative
@@ -874,7 +882,11 @@ People.” *Diabetes and Metabolism* 27: 466–74.
 Péronnet, F., and D. Massicotte. 1991. “Table of Nonprotein Respiratory
 Quotient: An Update.” *Canadian Journal of Sport Sciences* 16: 23–29.
 
-“Validity and Reliability of VO2max Determination Immediately After a
-Maximal Fat Oxidation Assessment in Pre-Diabetes/Type 2 Diabetes.” 2026.
-*Sports Medicine and Health Science* 8 (3): 327–34.
-<https://doi.org/10.1016/j.smhs.2025.02.004>.
+Tanaka, H., K. D. Monahan, and D. R. Seals. 2001. “Age-Predicted Maximal
+Heart Rate Revisited.” *Journal of the American College of Cardiology*
+37 (1): 153–56. <https://doi.org/10.1016/s0735-1097(00)01054-8>.
+
+Teso, M., L. Ferrari, A. L. Colosio, and S. Pogliaghi. 2025. “Indexes of
+Fat Oxidation from Ramp Vs. Graded Incremental Protocols in
+Postmenopausal Women.” *Physiologia* 5 (1): 3.
+<https://doi.org/10.3390/physiologia5010003>.
