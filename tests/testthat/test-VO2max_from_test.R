@@ -86,3 +86,22 @@ test_that("MFO() without age gives a once-per-session message, not a warning", {
   expect_message(.age_default_message(), "age not given")
   expect_no_message(.age_default_message())
 })
+
+test_that("the plateau ignores rest pauses and the recovery after the final stage", {
+  # Stages of 3 records at 100, 150 and 200 W, separated by 1-record pauses at
+  # 0 W, then 3 records of recovery at 50 W. VO2 is constant within a stage:
+  # 2000, 2500 and 2600 ml/min, so the plateau is 2600 - 2500 = 100 ml/min
+  # (met); the recovery (1500) and the pauses (800) must not enter.
+  g <- data.frame(
+    Load = c(100, 100, 100, 0, 150, 150, 150, 0, 200, 200, 200, 50, 50, 50),
+    VO2 = c(2000, 2000, 2000, 800, 2500, 2500, 2500, 800, 2600, 2600, 2600,
+            1500, 1500, 1500),
+    RER = 1, HR = 180)
+  v <- suppressWarnings(VO2max_from_test(g, step_time = 20, window = 40))
+  expect_equal(v$criteria$value[v$criteria$criterion == "plateau"], 100)
+  expect_equal(v$type, "VO2max")
+  # a single loaded stage has no previous stage to compare with
+  g1 <- g[g$Load %in% c(0, 200), ]
+  v1 <- suppressWarnings(VO2max_from_test(g1, step_time = 20, window = 40))
+  expect_true(is.na(v1$criteria$value[v1$criteria$criterion == "plateau"]))
+})

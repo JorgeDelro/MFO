@@ -467,6 +467,7 @@ El objetivo es que el usuario de la app suba el fichero tal y como sale del anal
 | Cosmed (Omnia, Quark CPET, K5) | xlsx/csv con cabecera de metadatos y fila de unidades | Columnas en varios idiomas; tiempo en hh:mm:ss; marcadores de fase |
 | Cortex (MetaSoft Studio) | xlsx/csv | Separador decimal por configuración regional; promediado ya aplicado |
 | Vyaire Vyntus CPX (SentrySuite) | csv/xlsx | Columnas duplicadas (BTPS/STPD); carga en W |
+| ZAN (ZAN 600 y otros, vía spiro) | Export de ZAN leído por `spiro` | Soportado desde la 0.3.0 porque `spiro` lo lee (decisión de Jorge, 17 nov 2026). **Sin fichero real de validación**: solo probado con los ficheros de ejemplo de `spiro` (`zan_gxt`, `zan_ramp`); unidad de la carga sin confirmar |
 | Parvo Medics TrueOne | txt/xlsx | Intervalos fijos; cabecera larga |
 | Genérico | csv/xlsx con mapeo manual de columnas (como en v0.2.0) | Interfaz de mapeo en la app |
 

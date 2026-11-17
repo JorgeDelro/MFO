@@ -58,11 +58,13 @@ the heart-rate criteria are met; otherwise it is labelled `"VO2peak"`
 \details{
 Criteria (thresholds are arguments):
 \itemize{
-\item plateau: the mean VO2 of the last stage is less than
+\item plateau: the mean VO2 of the final stage is less than
   `plateau_threshold` ml/min above that of the previous stage (150 ml/min,
   from Taylor et al. 1955 as reported by Howley et al. 1995). Stages are
-  runs of equal `Load`, each averaged over its last `window` s; without a
-  `Load` column the criterion is not evaluated.
+  runs of equal `Load` above 0, each averaged over its last `window` s; the
+  final stage is the last one at the highest load, so rest pauses (load 0)
+  and a recovery after it are ignored. Without a `Load` column the
+  criterion is not evaluated.
 \item RER: the highest `window`-s mean RER is above `RER_threshold`.
 \item HR: the highest `window`-s mean HR is at least `HR_threshold` of the
   predicted HRmax. Needs `age`; without it the criterion is not evaluated

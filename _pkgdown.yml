@@ -20,6 +20,12 @@ articles:
   - mfo-workflow
 
 reference:
+- title: Import data
+  desc: >
+    Read a metabolic cart export into the tables that `MFO()` expects
+    (internal data contract, 10-s averages).
+  contents:
+  - read_cart
 - title: Describe the test
   desc: >
     Protocol of the MFO test (step durations, averaged segment, load and
