@@ -1,18 +1,22 @@
-# TODO: source for the plateau (150 ml/min), RER (1.10) and HR (90 %)
-# thresholds and for the Tanaka and Fox HRmax equations (Jorge, SPEC 19).
+# TODO: source for the RER (1.10) and HR (90 %) thresholds (Howley et al.
+# 1995, pending the full text) and for the Fox HRmax equation (Jorge, SPEC 19).
 
 #' VO2max of a graded test, with maximality criteria
 #'
 #' Computes VO2max as the highest mean VO2 over `window` seconds of
 #' consecutive records (as `MFO()` does from `db_graded`) and checks whether
-#' the test was maximal. The value is labelled `"VO2max"` when VO2 reached a
-#' plateau, or, without a plateau, when both the RER and the heart-rate
-#' criteria are met; otherwise it is labelled `"VO2peak"` (SPEC 14).
+#' the test was maximal, following the criteria reviewed by Howley, Bassett
+#' and Welch (1995, Med Sci Sports Exerc 27(9): 1292-1301,
+#' \doi{10.1249/00005768-199509000-00009}). The value is labelled `"VO2max"`
+#' when VO2 reached a plateau, or, without a plateau, when both the RER and
+#' the heart-rate criteria are met; otherwise it is labelled `"VO2peak"`
+#' (SPEC 14).
 #'
 #' Criteria (thresholds are arguments):
 #' \itemize{
 #' \item plateau: the mean VO2 of the last stage is less than
-#'   `plateau_threshold` ml/min above that of the previous stage. Stages are
+#'   `plateau_threshold` ml/min above that of the previous stage (150 ml/min,
+#'   from Taylor et al. 1955 as reported by Howley et al. 1995). Stages are
 #'   runs of equal `Load`, each averaged over its last `window` s; without a
 #'   `Load` column the criterion is not evaluated.
 #' \item RER: the highest `window`-s mean RER is above `RER_threshold`.
@@ -20,9 +24,11 @@
 #'   predicted HRmax. Needs `age`; without it the criterion is not evaluated
 #'   and a warning says so.
 #' }
-#' Predicted HRmax: `"tanaka"` 208 - 0.7 x age (default) or `"fox"`
-#' 220 - age. The default thresholds and both HRmax equations are pending
-#' source verification (SPEC 19).
+#' Predicted HRmax: `"tanaka"` 208 - 0.7 x age (default; Tanaka, Monahan and
+#' Seals 2001, J Am Coll Cardiol 37(1): 153-156,
+#' \doi{10.1016/s0735-1097(00)01054-8}) or `"fox"` 220 - age. The RER (1.10)
+#' and HR (90 \%) thresholds and the Fox equation are pending source
+#' verification (SPEC 19).
 #'
 #' @param db_graded data frame of the graded test with `VO2` (ml/min) and,
 #'   for the criteria, `RER`, `HR` (bpm) and `Load`.

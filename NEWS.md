@@ -42,8 +42,11 @@
   two stages), peak RER > 1.10 and peak HR >= 90 % of the predicted HRmax
   (Tanaka 208 - 0.7 age by default, or Fox 220 - age; needs the new `age`
   argument). It is labelled `"VO2max"` with a plateau, or without one when
-  RER and HR are both met, and `"VO2peak"` otherwise. Thresholds are
-  arguments; their sources are pending verification (SPEC 14, 19). `MFO()`
+  RER and HR are both met, and `"VO2peak"` otherwise. Criteria after
+  Howley, Bassett & Welch (1995), with the plateau threshold of Taylor et al.
+  (1955) they report; HRmax equation of Tanaka, Monahan & Seals (2001). The
+  RER and HR thresholds and the Fox equation are pending source
+  verification. Thresholds are arguments (SPEC 14, 19). `MFO()`
   and `MFOs()` gain `age` and return `VO2max_type` (and `MFO()`
   `VO2max_criteria`); `VO2max` also accepts a `VO2max_from_test()` result.
   Without `age`, `MFO()` says once per session that the HR criterion was not
@@ -58,9 +61,9 @@
   counts non-overlapping windows, `method = "MV"` stops with an error
   suggesting P3, and a load schedule is `load_start` plus `load_increment`
   per minute at each window midpoint (ramp vs. graded protocols, Physiologia
-  2025). A single-day test has `cut_time`: records after it are the graded
-  test, used for VO2max when `db_graded` and `VO2max` are not given (Sports
-  Med Health Sci 2026). Automatic detection of the phases is left to the
+  2025, Teso et al.). A single-day test has `cut_time`: records after it are
+  the graded test, used for VO2max when `db_graded` and `VO2max` are not
+  given (Sports Med Health Sci 2026, Marín-Galindo et al.). Automatic detection of the phases is left to the
   importers (SPEC 16).
 
 ## Bug fixes
