@@ -14,11 +14,13 @@
 #'
 #' Criteria (thresholds are arguments):
 #' \itemize{
-#' \item plateau: the mean VO2 of the last stage is less than
+#' \item plateau: the mean VO2 of the final stage is less than
 #'   `plateau_threshold` ml/min above that of the previous stage (150 ml/min,
 #'   from Taylor et al. 1955 as reported by Howley et al. 1995). Stages are
-#'   runs of equal `Load`, each averaged over its last `window` s; without a
-#'   `Load` column the criterion is not evaluated.
+#'   runs of equal `Load` above 0, each averaged over its last `window` s; the
+#'   final stage is the last one at the highest load, so rest pauses (load 0)
+#'   and a recovery after it are ignored. Without a `Load` column the
+#'   criterion is not evaluated.
 #' \item RER: the highest `window`-s mean RER is above `RER_threshold`.
 #' \item HR: the highest `window`-s mean HR is at least `HR_threshold` of the
 #'   predicted HRmax. Needs `age`; without it the criterion is not evaluated
@@ -94,14 +96,19 @@ print.MFO_VO2max <- function(x, ...) {
   est <- .vo2max_rolling(db_graded[["VO2"]], step_time = step_time, window = window)
   n <- est$n_records
 
-  # Plateau: last two stages of equal Load, each averaged over its last n records
+  # Plateau: the final stage (last run at the highest load) against the
+  # previous stage with load > 0, each averaged over its last n records.
+  # Recovery after the final stage and rest pauses (load 0) are skipped.
   plateau <- NA_real_
   load <- suppressWarnings(as.numeric(db_graded[["Load"]]))
   if (length(load) > 0 && sum(!is.na(load)) > 0) {
     stage <- cumsum(c(TRUE, diff(ifelse(is.na(load), -Inf, load)) != 0))
-    stages <- unique(stage[!is.na(load)])
-    if (length(stages) >= 2) {
-      stage_mean <- vapply(utils::tail(stages, 2), function(k) {
+    stage_load <- tapply(load, stage, function(x) x[1])
+    ok <- !is.na(stage_load) & stage_load > 0
+    final <- max(which(ok & stage_load == max(stage_load[ok])))
+    previous <- which(ok & seq_along(stage_load) < final)
+    if (length(previous) > 0) {
+      stage_mean <- vapply(c(max(previous), final), function(k) {
         v <- db_graded$VO2[stage == k]
         mean(utils::tail(v, n), na.rm = TRUE)
       }, numeric(1))

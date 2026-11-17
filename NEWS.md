@@ -68,6 +68,14 @@
 
 ## Bug fixes
 
+* `VO2max_from_test()` (new in 0.3.0-alpha.1) compared the last two runs of
+  equal `Load`, so a recovery or a rest pause at the end of the graded test
+  was taken as the final stage and a falling VO2 counted as a plateau. The
+  final stage is now the last one at the highest load and the previous stage
+  is the one before it with load > 0. With the ZAN example of spiro the
+  plateau goes from -1831 ml/min (met) to +1655 ml/min (not met); the
+  example data of MFO are unchanged (+247 ml/min) (SPEC 14).
+
 * `use_incomplete_step = TRUE` averaged only the last record of the
   incomplete step instead of its last `steady_state_duration` s, as
   documented (the start was counted from the nominal end of the step). In
