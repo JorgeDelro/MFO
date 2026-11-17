@@ -474,13 +474,16 @@ With `MFO_protocol("relative")` a `Load` column in W is divided by
 ### 7.3 VO2max or VO2peak
 
 `VO2max_from_test()` takes the same rolling-mean VO2max as `MFO()` and
-checks whether the graded test was maximal: a plateau of VO2 between the
-last two stages, the peak RER and the peak heart rate relative to the
-predicted HRmax (Tanaka by default, Fox optional). The value is labelled
-"VO2max" with a plateau, or without one when both RER and heart rate meet
-their thresholds, and "VO2peak" otherwise. The heart-rate criterion needs
-`age`; the example participant is taken as 30 years old here.
-<!-- TODO: source for the plateau, RER and HR thresholds and the HRmax equations (Jorge) -->
+checks whether the graded test was maximal with the criteria reviewed by
+@howley1995: a plateau of VO2 between the last two stages (an increase below
+150 mL/min, the threshold of Taylor et al. 1955 as reported by
+@howley1995), the peak RER and the peak heart rate relative to the
+predicted HRmax (208 − 0.7 × age by default, @tanaka2001; 220 − age
+optional). The value is labelled "VO2max" with a plateau, or without one
+when both RER and heart rate meet their thresholds, and "VO2peak" otherwise.
+The heart-rate criterion needs `age`; the example participant is taken as 30
+years old here.
+<!-- TODO: source for the RER (1.10) and HR (90 %) thresholds (Howley et al. 1995, full text pending) and for 220 - age (Jorge) -->
 
 ```{r vo2max-type}
 VO2max_from_test(VO2max_df, step_time = 20, age = 30)
