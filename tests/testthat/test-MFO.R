@@ -707,3 +707,31 @@ test_that("bootstrap arguments are checked; MV has none; MRER has one", {
   r <- .mfo_load(method = "MRER", ci = "bootstrap", B = 100, seed = 1)
   expect_true(r$ci["FAT_MAX", "lower"] < r$FAT_MAX && r$FAT_MAX < r$ci["FAT_MAX", "upper"])
 })
+
+test_that("ci = TRUE is the parametric interval", {
+  r <- .mfo_load(ci = TRUE, B = 50, seed = 4)
+  expect_equal(r$bootstrap$type, "parametric")
+  expect_identical(r$ci, .mfo_load(ci = "parametric", B = 50, seed = 4)$ci)
+  expect_null(.mfo_load(ci = FALSE)$ci)
+})
+
+test_that("a P2 vertex outside the measured range warns and flags the interval", {
+  # True Fatmax at the last step (75 %VO2max): the P2 vertex is extrapolated
+  s <- simulate_MFO_sessions(n_participants = 1, n_sessions = 1,
+                             population = list(VO2max = c(3000, 0), MFO = c(0.4, 0),
+                                               Fatmax = c(75, 0)),
+                             cv_MFO = 0, cv_Fatmax = 0)
+  tb <- s$data$P01$S1
+  w <- character(0)
+  r <- withCallingHandlers(
+    suppressMessages(MFO(step_time = 20, db_MFO = tb$db_MFO, db_basal = tb$db_basal,
+                         db_graded = tb$db_graded, cv_var = "RER", author = "Frayn",
+                         energy_equivalents = "classic", age = 30, method = "P2",
+                         ci = TRUE, B = 50, seed = 1)),
+    warning = function(x) { w <<- c(w, conditionMessage(x)); invokeRestart("muffleWarning") })
+  expect_true(any(grepl("P2: the vertex .* outside the measured range \\(20.0-75.0\\)", w)))
+  expect_gt(r$FAT_MAX, 75)
+  expect_true(all(r$ci$flag == "P2 vertex outside the measured range"))
+  # inside the range: no flag
+  expect_true(all(is.na(.mfo_load(method = "P2", ci = TRUE, B = 50, seed = 1)$ci$flag)))
+})

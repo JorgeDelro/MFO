@@ -2,8 +2,11 @@
 # values plus new errors. "bootstrap": the residuals resampled with
 # replacement, modified, r / sqrt(1 - h), and centred, so that their spread
 # matches that of the errors (Davison & Hinkley 1997, ch. 6); for a linear fit
-# h is the diagonal of the hat matrix X (X'X)^-1 X'. "parametric": normal
-# errors with the residual SD of the fit, sqrt(RSS / (n - p)).
+# h is the diagonal of the hat matrix X (X'X)^-1 X'. "parametric": for each
+# replicate sigma^2 is drawn from Inv-chi^2(n - p, s^2), s^2 = RSS / (n - p),
+# and then normal errors with that sigma: the posterior of normal regression
+# with a flat prior (Gelman et al. 2013, BDA 3rd ed., ch. 14, 14.2), i.e. a
+# parametric bootstrap that carries the uncertainty of sigma.
 
 # Modified, centred residuals of a linear model
 .modified_residuals <- function(mod) {
@@ -74,8 +77,10 @@
       stop("The parametric bootstrap needs more steps than model parameters.",
            call. = FALSE)
     }
-    sigma <- sqrt(sum(stats::residuals(mod)^2) / stats::df.residual(mod))
-    return(function() stats::rnorm(n, 0, sigma))
+    df <- stats::df.residual(mod)
+    s2 <- sum(stats::residuals(mod)^2) / df
+    # sigma^2 ~ Inv-chi^2(df, s2), i.e. df s2 / chi^2_df
+    return(function() stats::rnorm(n, 0, sqrt(df * s2 / stats::rchisq(1, df))))
   }
   m <- .modified_residuals(mod)
   function() sample(m, replace = TRUE)

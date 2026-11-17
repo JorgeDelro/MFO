@@ -2,7 +2,7 @@
 #
 # Not run by R CMD check or the tests: it takes about an hour. From the
 # package source folder:
-#   Rscript inst/validation/bootstrap_coverage.R [bootstrap|parametric] [out.csv]
+#   Rscript inst/validation/bootstrap_coverage.R [parametric|bootstrap] [out.csv] [P3,P2,MRER]
 # with the package installed, or after devtools::load_all().
 #
 # Resumable: each cell is appended to the output file as soon as it is done,
@@ -21,7 +21,7 @@
 # whatever the interval.
 
 args <- setdiff(commandArgs(trailingOnly = TRUE), "--args")
-ci_type <- if (length(args) >= 1) args[1] else "bootstrap"
+ci_type <- if (length(args) >= 1) args[1] else "parametric"
 out_file <- if (length(args) >= 2) args[2] else
   paste0("bootstrap_coverage_", ci_type, ".csv")
 
@@ -30,7 +30,7 @@ if (!exists("simulate_MFO_sessions")) library(MFO)
 R <- 200            # simulated tests per cell
 B <- 400            # bootstrap replicates per test
 conf <- 0.95
-methods <- c("P3", "P2", "MRER")
+methods <- if (length(args) >= 3) strsplit(args[3], ",")[[1]] else c("P3", "P2", "MRER")
 steps <- c(6, 8, 10)
 fat_noise_cv <- c(0.05, 0.10, 0.20)
 seed <- 2026

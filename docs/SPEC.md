@@ -479,7 +479,19 @@ Cada importador se desarrollará a partir de un fichero real anonimizado incluid
 
 ## 17. Plan de validación, tests y declaración de uso de IA
 
-**Validación numérica.** (1) Ecuaciones: tests unitarios con los ejemplos numéricos de Frayn (1983), Péronnet y Massicotte (1991) y Jeukendrup y Wallis (2005). (2) Métodos: reproducir con los datos de ejemplo del paquete los valores de Montes de Oca et al. (2021) y comprobar que P3, MV y SIN dan MFO equivalentes a nivel de grupo, como reportan Chenevière et al. (2009) y Amaro-Gahete et al. (2019). (3) Bootstrap y bayesiano: estudio de simulación con curvas sintéticas de parámetros conocidos para verificar cobertura de los intervalos (≈ 95 %) con 6, 8 y 10 escalones y CV de ruido del 5–20 %. **Definición (Jorge, 17 nov 2026):** el CV de ruido es el de la FAT de cada escalón respecto a la curva verdadera, DE residual / MFO (`fat_noise_cv` de `simulate_MFO_sessions()`); el ruido de los gases (`noise_cv`, `noise_cor`) queda como opción, con `noise_cor = 0` por defecto y sin valor "real" asignado a la correlación, porque no hay fuente. Script: `inst/validation/bootstrap_coverage.R`. (4) Fiabilidad: comparar `MFO_reliability()` con `psych::ICC` e `irr` en datos simulados y con los estadísticos publicados por Chrzanowski-Smith et al. (2020) sobre su dataset abierto. (5) Importadores: igualdad exacta con cálculos manuales sobre los ficheros de `inst/extdata`.
+**Validación numérica.** (1) Ecuaciones: tests unitarios con los ejemplos numéricos de Frayn (1983), Péronnet y Massicotte (1991) y Jeukendrup y Wallis (2005). (2) Métodos: reproducir con los datos de ejemplo del paquete los valores de Montes de Oca et al. (2021) y comprobar que P3, MV y SIN dan MFO equivalentes a nivel de grupo, como reportan Chenevière et al. (2009) y Amaro-Gahete et al. (2019). (3) Bootstrap y bayesiano: estudio de simulación con curvas sintéticas de parámetros conocidos para verificar cobertura de los intervalos (≈ 95 %) con 6, 8 y 10 escalones y CV de ruido del 5–20 %. **Definición (Jorge, 17 nov 2026):** el CV de ruido es el de la FAT de cada escalón respecto a la curva verdadera, DE residual / MFO (`fat_noise_cv` de `simulate_MFO_sessions()`); el ruido de los gases (`noise_cv`, `noise_cor`) queda como opción, con `noise_cor = 0` por defecto y sin valor "real" asignado a la correlación, porque no hay fuente. Script: `inst/validation/bootstrap_coverage.R`.
+
+**Resultados del estudio de cobertura (17 nov 2026; detalle en `vignette("validation")`).** Verdad = curva SIN; 200 tests por celda; IC del 95 %; cobertura de Fatmax (mín.–máx. sobre 6/8/10 escalones):
+
+| Método | Intervalo | CV 5 % | CV 10 % | CV 20 % | Sesgo de Fatmax (% VO2max) |
+| --- | --- | --- | --- | --- | --- |
+| P3 | paramétrico (σ sorteada) | 0,91–0,95 | 0,92–0,94 | 0,88–0,96 | −0,4 a +1,6 |
+| P3 | bootstrap de residuos | 0,77–0,91 | 0,84–0,88 | 0,75–0,87 | −0,2 a +1,9 |
+| P2 | paramétrico (σ sorteada) | 0,90–0,95 | 0,96–0,98 | 0,97–0,99 | −0,8 a +6,8 (inestable con CV 20 %) |
+| P2 | bootstrap de residuos | 0,80–0,85 | 0,83–0,93 | 0,87–0,94 | −7,4 a +0,2 |
+| MRER | bootstrap de residuos | 0,48–0,61 | 0,61–0,67 | 0,68–0,74 | +2,8 a +4,2 |
+
+Caso ideal (P2 sobre una parábola, 8 escalones, errores normales; 500 tests): cobertura de Fatmax 0,944 con el paramétrico de σ sorteada frente a 0,882 con el bootstrap de residuos (≈ P(|t₅| < 1,96) = 0,893). Decisiones (Jorge, 17 nov 2026): `ci = "parametric"` es el intervalo recomendado (`ci = TRUE`); MRER se mantiene por comparabilidad, no recomendado como principal; P2 avisa cuando el vértice cae fuera del rango medido. La verdad SIN favorece a los modelos más parecidos a un SIN (P3). (4) Fiabilidad: comparar `MFO_reliability()` con `psych::ICC` e `irr` en datos simulados y con los estadísticos publicados por Chrzanowski-Smith et al. (2020) sobre su dataset abierto. (5) Importadores: igualdad exacta con cálculos manuales sobre los ficheros de `inst/extdata`.
 
 **Infraestructura.** GitHub Actions (R CMD check en tres sistemas, cobertura ≥ 85 % con `covr`), pkgdown con vignettes "De los gases al Fatmax", "Fiabilidad de tu laboratorio" y "Incertidumbre bayesiana", NEWS por versión, issues públicas para cada punto de esta Parte II, y releases etiquetadas. Esto construye el historial público que JOSS exige.
 
@@ -546,6 +558,7 @@ Cada coeficiente y regla que usará el paquete se ha contrastado con la fuente p
 | Tamaño de muestra: al menos 30 participantes heterogéneos y, si es posible, 3 evaluadores | Aviso con n < 30 | Koo y Li (2016), *J Chiropr Med* 15:155–163, doi:10.1016/j.jcm.2016.02.012: "researchers should try to obtain at least 30 heterogeneous samples and involve at least 3 raters whenever possible" | Verificado (Claude en el texto de PMC4913118, a petición de Jorge, 17 nov 2026) | Aviso en `MFO_reliability()` |
 | Residuos modificados r/√(1 − h), centrados, para el bootstrap de residuos; regresión no lineal | `MFO(ci = "bootstrap")` | Davison AC, Hinkley DV (1997). *Bootstrap Methods and their Application*. Cambridge University Press, cap. 6 y §7.4 | Verificado por el índice (Jorge, 17 nov 2026); **ecuación pendiente** de comprobar en el texto | Citado en `?MFO` (*Fit uncertainty*) |
 | *Wild bootstrap* (no ofrecido; limitación) | Con n escalones y pesos de dos puntos, 2^n muestras distintas | Wu CFJ (1986). *Ann Stat* 14(4):1261–1295, doi:10.1214/aos/1176350142 | Verificado (Jorge, 17 nov 2026) | Citado en `?MFO` |
+| Bootstrap paramétrico con σ incierta: σ² ~ Inv-χ²(n − p, s²) y después residuos normales | `MFO(ci = "parametric")`, defecto con `ci = TRUE` | Gelman A, et al. (2013). *Bayesian Data Analysis*, 3.ª ed. Chapman & Hall/CRC, cap. 14, §14.2 (regresión normal con prior plano) | Verificada por Jorge (17 nov 2026); **apartado pendiente de confirmar** | Citado en `?MFO` (*Fit uncertainty*) |
 | brms | Modelos no lineales bayesianos sobre Stan | Bürkner PC (2017). *J Stat Softw* 80(1):1–28, doi:10.18637/jss.v080.i01 | Verificado (Jorge, 17 nov 2026) | `MFO_bayes()` (fase 3 de #13) |
 | Stan | Lenguaje de programación probabilística | Carpenter B, et al. (2017). *J Stat Softw* 76(1):1–32, doi:10.18637/jss.v076.i01 | Verificado (Jorge, 17 nov 2026) | `MFO_bayes()` (fase 3 de #13) |
 | Fatmax típico 45–65 % VO2max; Achten 2002: 64 % VO2max, 74 % HRmax | Igual | Achten 2002; Maunder 2018 | Verificado | Ninguna |
@@ -615,6 +628,7 @@ Fiabilidad, error de medida y estadística (Parte II)
 - Bürkner PC (2017). brms: an R package for Bayesian multilevel models using Stan. *J Stat Softw* 80(1):1–28. [doi](https://doi.org/10.18637/jss.v080.i01)
 - Carpenter B, Gelman A, Hoffman MD, et al. (2017). Stan: a probabilistic programming language. *J Stat Softw* 76(1):1–32. [doi](https://doi.org/10.18637/jss.v076.i01)
 - Davison AC, Hinkley DV (1997). *Bootstrap Methods and their Application*. Cambridge University Press.
+- Gelman A, et al. (2013). *Bayesian Data Analysis*, 3.ª ed. Chapman & Hall/CRC.
 - Wu CFJ (1986). Jackknife, bootstrap and other resampling methods in regression analysis. *Ann Stat* 14(4):1261–1295. [doi](https://doi.org/10.1214/aos/1176350142)
 
 Herramientas relacionadas y verificación (secciones 18–19)
