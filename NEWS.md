@@ -45,8 +45,8 @@
   RER and HR are both met, and `"VO2peak"` otherwise. Criteria after
   Howley, Bassett & Welch (1995), with the plateau threshold of Taylor et al.
   (1955) they report; HRmax equation of Tanaka, Monahan & Seals (2001). The
-  RER and HR thresholds and the Fox equation are pending source
-  verification. Thresholds are arguments (SPEC 14, 19). `MFO()`
+  Fox equation (220 - age) as the one in common use described by Tanaka et
+  al. The RER and HR thresholds are pending source verification. Thresholds are arguments (SPEC 14, 19). `MFO()`
   and `MFOs()` gain `age` and return `VO2max_type` (and `MFO()`
   `VO2max_criteria`); `VO2max` also accepts a `VO2max_from_test()` result.
   Without `age`, `MFO()` says once per session that the HR criterion was not

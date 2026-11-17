@@ -1,5 +1,5 @@
 # TODO: source for the RER (1.10) and HR (90 %) thresholds (Howley et al.
-# 1995, pending the full text) and for the Fox HRmax equation (Jorge, SPEC 19).
+# 1995, pending the full text; Jorge, SPEC 19).
 
 #' VO2max of a graded test, with maximality criteria
 #'
@@ -26,9 +26,9 @@
 #' }
 #' Predicted HRmax: `"tanaka"` 208 - 0.7 x age (default; Tanaka, Monahan and
 #' Seals 2001, J Am Coll Cardiol 37(1): 153-156,
-#' \doi{10.1016/s0735-1097(00)01054-8}) or `"fox"` 220 - age. The RER (1.10)
-#' and HR (90 \%) thresholds and the Fox equation are pending source
-#' verification (SPEC 19).
+#' \doi{10.1016/s0735-1097(00)01054-8}) or `"fox"` 220 - age, the equation
+#' in common use that Tanaka et al. (2001) revisit. The RER (1.10) and HR
+#' (90 \%) thresholds are pending source verification (SPEC 19).
 #'
 #' @param db_graded data frame of the graded test with `VO2` (ml/min) and,
 #'   for the criteria, `RER`, `HR` (bpm) and `Load`.

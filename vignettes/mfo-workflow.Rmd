@@ -478,12 +478,12 @@ checks whether the graded test was maximal with the criteria reviewed by
 @howley1995: a plateau of VO2 between the last two stages (an increase below
 150 mL/min, the threshold of Taylor et al. 1955 as reported by
 @howley1995), the peak RER and the peak heart rate relative to the
-predicted HRmax (208 − 0.7 × age by default, @tanaka2001; 220 − age
-optional). The value is labelled "VO2max" with a plateau, or without one
+predicted HRmax (208 − 0.7 × age by default, @tanaka2001; optionally
+220 − age, the equation in common use that @tanaka2001 revisit). The value is labelled "VO2max" with a plateau, or without one
 when both RER and heart rate meet their thresholds, and "VO2peak" otherwise.
 The heart-rate criterion needs `age`; the example participant is taken as 30
 years old here.
-<!-- TODO: source for the RER (1.10) and HR (90 %) thresholds (Howley et al. 1995, full text pending) and for 220 - age (Jorge) -->
+<!-- TODO: source for the RER (1.10) and HR (90 %) thresholds (Howley et al. 1995, full text pending; Jorge) -->
 
 ```{r vo2max-type}
 VO2max_from_test(VO2max_df, step_time = 20, age = 30)
