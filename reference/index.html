@@ -21,6 +21,9 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/mfo-workflow.html">From gas exchange to Fatmax</a></li>
     <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Bayesian fit</h6></li>
+    <li><a class="dropdown-item" href="../articles/bayes.html">Bayesian fit of the fat oxidation curve</a></li>
+    <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Validation</h6></li>
     <li><a class="dropdown-item" href="../articles/validation.html">Validation of the confidence intervals</a></li>
   </ul></li>
@@ -126,6 +129,29 @@
 
         </dt>
         <dd>Maximal Fat Oxidation calculation of multiple databases</dd>
+      </dl></div><div class="section level2">
+      <h2 id="bayesian-fit">Bayesian fit<a class="anchor" aria-label="anchor" href="#bayesian-fit"></a></h2>
+
+      <div class="section-desc"><p>Bayesian SIN (or P3) with brms on Stan, parametrised by MFO, Fatmax, Fatmin and s; prior predictive check.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="MFO_bayes.html">MFO_bayes()</a></code>
+
+        </dt>
+        <dd>Bayesian fit of the fat oxidation curve</dd>
+
+        <dt>
+
+          <code><a href="MFO_prior_check.html">MFO_prior_check()</a></code>
+
+        </dt>
+        <dd>Prior predictive check of MFO_bayes()</dd>
       </dl></div><div class="section level2">
       <h2 id="reliability">Reliability<a class="anchor" aria-label="anchor" href="#reliability"></a></h2>
 

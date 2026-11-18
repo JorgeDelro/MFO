@@ -41,6 +41,16 @@ Many participants from a folder of xlsx files.
 - [`MFOs()`](https://jorgedelro.github.io/MFO/reference/MFOs.md) :
   Maximal Fat Oxidation calculation of multiple databases
 
+## Bayesian fit
+
+Bayesian SIN (or P3) with brms on Stan, parametrised by MFO, Fatmax,
+Fatmin and s; prior predictive check.
+
+- [`MFO_bayes()`](https://jorgedelro.github.io/MFO/reference/MFO_bayes.md)
+  : Bayesian fit of the fat oxidation curve
+- [`MFO_prior_check()`](https://jorgedelro.github.io/MFO/reference/MFO_prior_check.md)
+  : Prior predictive check of MFO_bayes()
+
 ## Reliability
 
 Test-retest reliability of a lab: ICC(2,1), SEM, MDC, CV, bias and
