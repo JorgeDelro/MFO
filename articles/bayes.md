@@ -202,10 +202,23 @@ explains part of it: with s ~ LogNormal(0, 0.5) or (0, 0.6) the median
 error fell from -1.15 to -0.74 and -0.45 %VO2max (sedentary, 5 %) and
 from -1.58 to -0.87 and -0.72 (trained, 10 %), and coverage rose to
 0.93-0.94 and 0.91, but the misses were still nearly all underestimates
-and divergences increased (`inst/validation/bayes_s_prior.R`). In the
-trained population 1-8 of 100 tests had an R-hat above 1.01 with every
-option; with `iter = 4000` none did, so use `iter = 4000` when Fatmax is
-high.
+and divergences increased. With s ~ LogNormal(0, 0.5) and 4000
+iterations, 9 % (sedentary) and 14 % (trained) of the fits still had
+divergent transitions, so the default prior stays LogNormal(0, 0.3)
+(`inst/validation/bayes_s_prior.R`).
+
+**Limitation.** With the default priors, Fatmax is slightly
+underestimated: by a median of 1.1-1.6 %VO2max in these simulations. For
+scale, the typical error of Fatmax with the classical fits of the same
+kind of tests (8 steps) was 1.6 (5 % noise) and 2.6 %VO2max (10 %) for
+the absolute SIN of
+[`MFO_kinetics()`](https://jorgedelro.github.io/MFO/reference/MFO_kinetics.md)
+(median absolute error) and 2.5-3.1 and 4.1-5.0 %VO2max for P3 (RMSE;
+[`vignette("validation")`](https://jorgedelro.github.io/MFO/articles/validation.md)):
+the bias is smaller than the error of a single test, but it is
+systematic. In the trained population 1-8 of 100 tests had an R-hat
+above 1.01 with every option; with `iter = 4000` none did, so use
+`iter = 4000` when Fatmax is high.
 
 ## Reproducing
 

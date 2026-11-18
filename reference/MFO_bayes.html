@@ -198,6 +198,18 @@ Exponential(10) (constant) or, with `sigma = "proportional"`,
 sigma_i = sigma_100 x_i / 100 with log(sigma_100) ~ Normal(log(0.1), 1).
 Replace them with `priors` (a `brmsprior` object, e.g. from
 [brms::prior()]); check them with [MFO_prior_check()].</p>
+<p>**Limitation: Fatmax is slightly underestimated.** In simulated tests
+with s = 1.52 (8 steps, FAT error 5-10 % of MFO) the posterior median of
+Fatmax was below the truth by a median of 1.1-1.6 % VO2max, and the 95
+% interval missed it in 8-12 of 100 tests, nearly always by
+underestimation. Part of it comes from the prior of s, centred on a
+symmetric curve: with s ~ LogNormal(0, 0.5) the bias fell to 0.7-0.9
+% VO2max, but 9-14 % of the fits had divergent transitions, so the
+default stays LogNormal(0, 0.3). For scale, the typical error of Fatmax
+with the classical fits in the same tests was 1.6 (5 % noise) and 2.6
+(10 %) % VO2max for the absolute SIN of [MFO_kinetics()] (median
+absolute error) and 2.5-3.1 and 4.1-5.0 % VO2max for P3 (RMSE); see
+`vignette("bayes")` and `vignette("validation")`.</p>
 <p>**What to interpret.** `contraction` = 1 - Var(posterior) / Var(prior)
 tells how much the data narrowed each quantity; below 0.5 it is labelled
 `prior-dominated` in `print()`. The shape parameters d, s and t are poorly

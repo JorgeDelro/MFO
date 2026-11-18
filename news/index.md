@@ -85,7 +85,10 @@
   0.25) above 0. The priors first proposed in SPEC 13.2, on d, s and t,
   covered the true s in 7-10 % of simulated tests where t is far from 0.
   `sigma = "proportional"` lets the error grow with intensity;
-  `adapt_delta = 0.99` by default.
+  `adapt_delta = 0.99` by default. Known limitation: Fatmax is
+  underestimated by a median of 1.1-1.6 %VO2max in simulated tests
+  (smaller than the 1.6-5.0 %VO2max typical error of the classical
+  fits); a wider prior of s reduces it but causes divergent transitions.
   [`MFO_prior_check()`](https://jorgedelro.github.io/MFO/reference/MFO_prior_check.md)
   draws the curves implied by the priors. It does not replace
   [`MFO()`](https://jorgedelro.github.io/MFO/reference/MFO.md) and is
