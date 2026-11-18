@@ -195,7 +195,7 @@ Un mismo test produce varias cifras y cada una responde a una pregunta distinta.
 | Fatmax | %HRmax | HR a Fatmax / HRmax × 100 | Prescripción sin analizador; referencia recomendada en obesidad |
 | Zona Fatmax | %VO2max (inferior, superior) | Intensidades con FAT ≥ 90 % del MFO | Margen de prescripción |
 | Punto de cruce | %VO2max | Donde CHO supera a FAT | Marcador de dependencia de hidratos |
-| Fatmin | %VO2max | Primera intensidad por encima de Fatmax con %MFO < 5 % (SIN) | Límite superior de uso relevante de grasa |
+| Fatmin | %VO2max | Segundo cero del SIN, (π + d − t)/K (desde la 0.2.1); `fatmin_threshold` opcional para un umbral en fracción del MFO | Límite superior de uso relevante de grasa |
 | d, s, t | adimensional | Parámetros del SIN | Forma de la curva; comparación pre-post |
 | Basal: VO2, RER, CHO, FAT, kcal | mL/min, –, g/min, kcal/min | Ventana estable de reposo (Frayn) | Control de calidad del ayuno; punto 0 de la curva |
 
