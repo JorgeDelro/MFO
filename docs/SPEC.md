@@ -367,7 +367,7 @@ La v0.3.0 convierte el paquete de una calculadora de MFO/Fatmax en una herramien
 | Función nueva o ampliada | Entrada | Salida principal | Sección |
 | --- | --- | --- | --- |
 | `MFO(..., ci = c("none","bootstrap","parametric"), B = 2000)`; `"parametric"` es el recomendado (§13.1, §17) | Como v0.2.0 + columna `Load` opcional | MFO y Fatmax con IC 95 %; Fatmax en W/km/h | 13, 14, 15 |
-| `MFO_kinetics(..., ci = "bootstrap")` | `MFO_db` | d, s, t, Fatmax\_SIN, Fatmin con IC | 13 |
+| `MFO_kinetics(..., ci = c("none","bootstrap","parametric"), B = 2000)`; `"parametric"` es el recomendado (§13.1, §17) | `MFO_db` | d, s, t, Fatmax\_SIN, Fatmin con IC | 13 |
 | `MFO_bayes(MFO_db, model = c("P3","SIN"), priors)` | `MFO_db` | Posteriores de MFO, Fatmax, d, s, t; intervalos creíbles; diagnósticos | 13 |
 | `MFO_reliability(results, id, session)` | Tabla de `MFOs()` con ≥ 2 sesiones por persona | ICC(2,1) + IC, SEM, MDC95, CV, sesgo, Bland-Altman | 12 |
 | `MFO_protocol(type, step_duration, increments, ...)` | Descripción del protocolo | Objeto de protocolo que guía el promediado (escalón, rampa, relativo) | 14 |
