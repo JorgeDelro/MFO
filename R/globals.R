@@ -16,6 +16,8 @@ utils::globalVariables(c(
   "bias",
   "LoA_lower",
   "LoA_upper",
+  # MFO_bayes.R (posterior and prior curves)
+  "draw",
   # MFO_kinetics.R variables
   "porc_VO2_kinetics",
   "porc_MFO_kinetics",

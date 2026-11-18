@@ -9,6 +9,7 @@ MFO_prior_check(
   model = c("SIN", "P3"),
   priors = NULL,
   sigma = c("constant", "proportional"),
+  fatmin_prior = c(90, 14),
   ndraws = 200,
   seed = NULL,
   backend = "rstan",
@@ -24,6 +25,9 @@ MFO_prior_check(
 \item{priors}{optional `brmsprior` object replacing all default priors.}
 
 \item{sigma}{`"constant"` (default) or `"proportional"` to intensity.}
+
+\item{fatmin_prior}{mean and SD of the normal prior of Fatmin, truncated
+to (Fatmax, 100) (default `c(90, 14)`, SIN only).}
 
 \item{ndraws}{number of prior curves drawn (default 200).}
 

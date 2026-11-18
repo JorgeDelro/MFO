@@ -9,12 +9,13 @@ MFO_bayes(
   model = c("SIN", "P3"),
   priors = NULL,
   sigma = c("constant", "proportional"),
+  fatmin_prior = c(90, 14),
   chains = 4,
   iter = 2000,
   conf = 0.95,
   seed = NULL,
   backend = "rstan",
-  adapt_delta = 0.95,
+  adapt_delta = 0.99,
   ...
 )
 }
@@ -28,6 +29,9 @@ MFO_bayes(
 
 \item{sigma}{`"constant"` (default) or `"proportional"` to intensity.}
 
+\item{fatmin_prior}{mean and SD of the normal prior of Fatmin, truncated
+to (Fatmax, 100) (default `c(90, 14)`, SIN only).}
+
 \item{chains, iter}{number of chains and iterations per chain (defaults 4
 and 2000, half of them warm-up).}
 
@@ -37,17 +41,19 @@ and 2000, half of them warm-up).}
 
 \item{backend}{passed to [brms::brm()] (default `"rstan"`).}
 
-\item{adapt_delta}{target acceptance rate of the sampler (default 0.95;
-the SIN likelihood has kinks at the zeros of the curve).}
+\item{adapt_delta}{target acceptance rate of the sampler (default 0.99;
+the SIN likelihood has kinks at the zeros of the curve). Divergent
+transitions are always reported.}
 
 \item{...}{further arguments to [brms::brm()].}
 }
 \value{
 An object of class `MFO_bayes`: a list with `summary` (one row per
-  quantity: `median`, `lower`, `upper`, `contraction` for parameters),
+  quantity: `median`, `lower`, `upper`, `contraction`),
   `draws` (posterior draws of the parameters and derived quantities),
   `diagnostics` (maximum R-hat, minimum bulk and tail ESS, divergent
-  transitions), `model`, `sigma`, `conf` and `fit` (the `brmsfit`, e.g. for
+  transitions, largest posterior correlation among d, s and t), `model`,
+  `sigma`, `conf` and `fit` (the `brmsfit`, e.g. for
   [brms::loo()]). `plot()` draws posterior curves.
 }
 \description{
@@ -65,32 +71,52 @@ u = pi^(1/s) / (pi + 2d) (K x + d + t), K = pi / 100 and x in \% VO2max.
 MFO (M) is a parameter, so there is no normalisation by the highest step.
 Outside the two zeros of the curve u^s is set to 0 or pi, so fat
 oxidation is 0 there (as in [simulate_MFO_sessions()]); this also keeps
-non-integer powers of negative numbers out of Stan (SPEC 13.2). Fatmax,
-Fatmin and the Fatmax zone (FAT >= 90 \% of M) come from closed forms of
-each posterior draw.
+non-integer powers of negative numbers out of Stan (SPEC 13.2).
+
+The model is parametrised by MFO, Fatmax, Fatmin and s, the quantities the
+data inform; d and t follow from the closed forms of Fatmax and Fatmin
+(SPEC 6.5) in each draw, with a = 2^(-1/s):
+t = pi + d - K Fatmin and d = \[pi (1 - a) + K (Fatmax - Fatmin)\] / \[2 (a - 1)\].
+The usual parametrisation (d, s, t) has a ridge in the posterior (s and t
+correlated above 0.9) whose position is set by the priors: with the
+priors first proposed in SPEC 13.2 (d ~ N(0, 0.3), s ~ LogNormal(0, 0.3),
+t ~ N(0, 0.2)) the 95 \% intervals of s covered the true value in 7-10 \%
+of simulated tests where t is far from 0 (see `vignette("bayes")`). Fatmin is constrained to lie
+between Fatmax and 100 \% VO2max. The Fatmax zone (FAT >= 90 \% of M)
+also comes from closed forms of each draw.
 
 **P3 model.** FAT ~ b0 + b1 z + b2 z^2 + b3 z^3 with z = (x - 50) / 25;
 Fatmax, MFO and the zone are found on a grid of the measured intensities
 for each draw.
 
 **Priors.** The defaults are the authors' weakly informative choices, not
-estimates from the literature. SIN: M ~ Normal(0.45, 0.25) truncated at
-0, centred above the normative mean of sedentary adults (0.34 +/- 0.10
-g/min; Amaro-Gahete, Sanchez-Delgado & Ruiz 2018, Front Physiol 9: 1460,
-Table 1, \doi{10.3389/fphys.2018.01460}) with an inflated SD to cover
-trained people; d ~ Normal(0, 0.3); s ~ LogNormal(0, 0.3); t ~ Normal(0,
-0.2). P3: b0 ~ Normal(0.3, 0.3), b1-b3 ~ Normal(0, 0.3). sigma ~
+estimates from the literature. SIN:
+\itemize{
+\item M ~ Normal(0.45, 0.25) truncated at 0, centred above the normative
+  mean of sedentary adults (0.34 +/- 0.10 g/min; Amaro-Gahete,
+  Sanchez-Delgado & Ruiz 2018, Front Physiol 9: 1460, Table 1,
+  \doi{10.3389/fphys.2018.01460}) with an inflated SD to cover trained
+  people;
+\item Fatmax ~ Normal(50, 15) truncated to (10, 90) \% VO2max, centred
+  between the normative value of sedentary adults (44.2 +/- 12.4; same
+  table) and that of trained men (64 \%; Achten, Gleeson & Jeukendrup 2002,
+  \doi{10.1097/00005768-200201000-00015}) with an inflated SD;
+\item Fatmin ~ Normal(90, 14) truncated to (Fatmax, 100) \% VO2max
+  (90.1 +/- 14.1 in Cheneviere et al. 2009), set with `fatmin_prior`;
+\item s ~ LogNormal(0, 0.3).
+}
+P3: b0 ~ Normal(0.3, 0.3), b1-b3 ~ Normal(0, 0.3). sigma ~
 Exponential(10) (constant) or, with `sigma = "proportional"`,
 sigma_i = sigma_100 x_i / 100 with log(sigma_100) ~ Normal(log(0.1), 1).
 Replace them with `priors` (a `brmsprior` object, e.g. from
 [brms::prior()]); check them with [MFO_prior_check()].
 
-**Which parameters the data inform.** With 6-10 noisy steps the data say
-little about d (and often s and t): their posteriors stay close to the
-priors. `contraction` = 1 - Var(posterior) / Var(prior) measures it for
-each parameter; below 0.5 the parameter is labelled `prior-dominated` in
-`print()` and should not be interpreted (see [MFO_kinetics()], *What to
-interpret*). MFO, Fatmax and Fatmin are what the curve determines.
+**What to interpret.** `contraction` = 1 - Var(posterior) / Var(prior)
+tells how much the data narrowed each quantity; below 0.5 it is labelled
+`prior-dominated` in `print()`. The shape parameters d, s and t are poorly
+identified among themselves (`print()` gives their largest posterior
+correlation): interpret MFO, Fatmax and Fatmin, not d, s and t (see
+[MFO_kinetics()], *What to interpret*).
 }
 \examples{
 \donttest{
