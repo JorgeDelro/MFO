@@ -397,7 +397,7 @@ La v0.3.0 convierte el paquete de una calculadora de MFO/Fatmax en una herramien
 
 **Salida.** Tabla con una fila por variable (MFO, MFO/FFM, Fatmax %VO2max, Fatmax %HRmax, Fatmax W, zona inferior/superior, d, s, t) y columnas ICC \[IC\], SEM, MDC95, CV, sesgo \[IC\], LoA; gráficos de Bland-Altman; y un objeto `reliability` que `MFO_report()` usa para marcar si un cambio pre-post individual supera el MDC del laboratorio.
 
-**Uso con datos simulados.** Mientras no haya test-retest reales, el paquete incluirá `simulate_MFO_sessions()` que genera pares de curvas con error biológico (CV 10–20 %) y error del analizador (±1–2 % en VO2 y VCO2, correlacionado) a partir de los parámetros publicados; sirve para los tests unitarios y para que la app muestre el módulo con datos de ejemplo.
+**Uso con datos simulados.** Mientras no haya test-retest reales, el paquete incluirá `simulate_MFO_sessions()` que genera pares de curvas con error biológico (CV 10–20 %) y error de medida dentro de la sesión definido como en §17: ruido en la FAT de cada escalón respecto a la curva verdadera (`fat_noise_cv`); el ruido de los gases por registro (`noise_cv`, `noise_cor`) queda como opción, con `noise_cor = 0` por defecto y sin valor real asignado; sirve para los tests unitarios y para que la app muestre el módulo con datos de ejemplo.
 
 ## 13. Incertidumbre del ajuste: bootstrap y modelo bayesiano
 
