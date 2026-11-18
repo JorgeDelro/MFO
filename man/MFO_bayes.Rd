@@ -122,7 +122,9 @@ correlation): interpret MFO, Fatmax and Fatmin, not d, s and t (see
 [MFO_kinetics()], *What to interpret*).
 }
 \examples{
-\donttest{
+# Not run: brms compiles a Stan model first (about a minute) and needs a
+# C++ toolchain and the headers of rstan (BH, StanHeaders, RcppEigen)
+\dontrun{
 if (requireNamespace("brms", quietly = TRUE)) {
   data(list = c("basal_df", "MFO_df", "VO2max_df"), package = "MFO")
   r <- MFO(step_time = 20, db_MFO = MFO_df, db_basal = basal_df,
