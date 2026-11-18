@@ -428,9 +428,33 @@ Con ruido (`inst/validation/sin_noise.R`; 200 tests por CV, 8 escalones, forma e
 
 Tests con |error de d| > 1: 37 y 46 (CV 5 %), 50 y 67 (CV 10 %), normalizado y absoluto.
 
-**Soporte del SIN en Stan (decisión de Jorge, 17 nov 2026).** Fuera de sus dos ceros la base u = π^(1/s)/(π + 2d)·(Kx + d + t) es negativa y u^s da NaN con s no entero: el modelo usa FAT = MFO·sin(max(u, 0)^s), recortado a 0 tras Fatmin, igual que `simulate_MFO_sessions()`.
+**Soporte del SIN en Stan (decisión de Jorge, 17 nov 2026).** Fuera de sus dos ceros la base u = π^(1/s)/(π + 2d)·(Kx + d + t) es negativa y u^s da NaN con s no entero: el modelo usa FAT = MFO·sin(min(max(u, 0)^s, π)), que vale 0 antes del primer cero y después de Fatmin, igual que `simulate_MFO_sessions()`. Los recortes se escriben con `abs()` y π como número, (v + |v|)/2 y (v + π − |v − π|)/2, para que la fórmula sea válida también en R (`loo()` la evalúa allí). Los recortes tienen un vértice en los ceros; se sospecha que causan parte de las divergencias (issue #44).
 
-A diferencia de la implementación clásica, el SIN bayesiano se ajusta en g/min directamente (MFO como parámetro de escala), sin la normalización previa por el máximo observado ni el suavizado con P3, lo que elimina dos pasos que introducen sesgo (§9.5). Priors por defecto, débilmente informativos y justificados por la literatura: MFO \~ Normal(0,45, 0,25) truncada en 0 (rango de Maunder 2018 y Amaro-Gahete 2018); d \~ Normal(0, 0,3); s \~ LogNormal(0, 0,3) (s > 0, centrado en 1); t \~ Normal(0, 0,2); σ \~ Exponential(10). El usuario puede sustituirlos (p. ej., priors de deportistas de resistencia). Salida: posteriores y intervalos creíbles del 95 % para MFO, Fatmax (derivado numéricamente de cada muestra posterior), zona Fatmax, Fatmin, d, s, t; diagnósticos (R-hat, ESS, divergencias) y gráfico de curvas posteriores. Ventajas concretas: converge donde `nlsLM` cae en la solución trivial (pocos escalones, curvas planas), permite comparar pre-post como distribución de la diferencia, y escala a un modelo jerárquico multi-participante (priors de grupo) en una versión posterior.
+**Parametrización (decisión de Jorge, 18 nov 2026).** A diferencia de la implementación clásica, el SIN bayesiano se ajusta en g/min directamente (MFO como parámetro de escala), sin la normalización previa por el máximo observado ni el suavizado con P3, lo que elimina dos pasos que introducen sesgo (§9.5). Los parámetros muestreados son **(MFO, Fatmax, Fatmin, s)**, las magnitudes que los datos informan; d y t se obtienen en cada muestra invirtiendo las formas cerradas de §6.5, con K = π/100 y a = 2^(−1/s):
+
+```latex
+t = \pi + d - K\,\text{Fatmin}, \qquad d = \frac{\pi(1-a) + K(\text{Fatmax} - \text{Fatmin})}{2(a-1)}
+```
+
+(álgebra comprobada con un test frente a las formas cerradas, diferencias < 1e-12). Fatmin se muestrea como Fatmax + (100 − Fatmax)·logit⁻¹(g), de modo que siempre queda entre Fatmax y 100 % VO2max; su prior normal truncado entra como término propio del modelo con el jacobiano de esa transformación. La zona Fatmax (FAT ≥ 0,90·MFO) también sale de formas cerradas en cada muestra, con asin(0,9).
+
+Por qué no (d, s, t): con la parametrización original la posterior tiene una cresta (correlación de s y t ≈ 0,96) cuya posición fijan los priors. Con los priors propuestos al principio en esta sección (d \~ Normal(0, 0,3); s \~ LogNormal(0, 0,3); t \~ Normal(0, 0,2), centrados en el SIN básico) los intervalos del 95 % de s cubrían el valor verdadero en solo el 7–10 % de los tests simulados en que t está lejos de 0, y la mediana a priori de Fatmin era 99,9 % VO2max. Se conservan en la viñeta `bayes` como motivación.
+
+**Priors por defecto** (elección débilmente informativa de los autores, no estimaciones de la literatura; el usuario puede sustituirlos con `priors` y revisarlos con `MFO_prior_check()`):
+
+| Parámetro | Prior | Justificación |
+| --- | --- | --- |
+| MFO (g/min) | Normal(0,45, 0,25) truncada en 0 | Por encima de la media normativa de adultos sedentarios (0,34 ± 0,10; Amaro-Gahete, Sánchez-Delgado y Ruiz, 2018, Tabla 1), con DE inflada para cubrir entrenados |
+| Fatmax (% VO2max) | Normal(50, 15) truncada en (10, 90) | Entre el valor normativo de sedentarios (44,2 ± 12,4; misma tabla) y el de hombres entrenados (64 %; Achten, Gleeson y Jeukendrup, 2002), con DE inflada |
+| Fatmin (% VO2max) | Normal(90, 14) truncada en (Fatmax, 100); argumento `fatmin_prior` | 90,1 ± 14,1 en Chenevière et al. (2009) |
+| s | LogNormal(0, 0,3) | Elección débil centrada en la curva simétrica (s = 1); no hay fuente poblacional de s |
+| σ | Exponential(10) (`sigma = "constant"`, defecto) | Opción `"proportional"`: σᵢ = σ₁₀₀·xᵢ/100 con log σ₁₀₀ \~ Normal(log 0,1, 1); la comparación con `loo()` de la viñeta es ilustrativa |
+
+Muestreo: 4 cadenas × 2000 iteraciones, `adapt_delta = 0,99`; se recomienda `iter = 4000` para Fatmax alto (R-hat > 1,01 en 5 → 0 de 100 tests de la celda entrenada). Salida: mediana e intervalo creíble del 95 % de MFO, Fatmax, Fatmin, zona Fatmax, d, s y t; contracción 1 − Var(posterior)/Var(prior) con la etiqueta "prior-dominated" por debajo de 0,5; diagnósticos (R-hat, ESS, divergencias, |r| máxima entre d, s y t, con la nota fija de que d, s y t están mal identificados entre sí y lo interpretable es MFO, Fatmax y Fatmin). Validación en §17 y `inst/validation/bayes_*.R`.
+
+**Limitación: sesgo residual de Fatmax.** Con los priors por defecto, Fatmax se infraestima: mediana del error −1,15 % VO2max (sedentarios, CV 5 %) y −1,58 (entrenados por Fatmax y Fatmin, CV 10 %); cobertura 0,88 en ambas celdas, con los fallos casi todos por infraestimación. Parte se debe al prior de s, centrado en 1 cuando la verdad simulada es s = 1,52: con LogNormal(0, 0,5) el sesgo baja a −0,70 y −0,87, pero con 4000 iteraciones el 9 % y el 14 % de los ajustes tienen transiciones divergentes, por encima del 0–2 % exigido, así que el defecto sigue siendo LogNormal(0, 0,3) (decisión de Jorge, 18 nov 2026; issue #44). Escala: el error típico de Fatmax de los ajustes clásicos en los mismos tests es 1,6 (CV 5 %) y 2,6 % VO2max (CV 10 %) con el SIN absoluto (mediana del error absoluto) y 2,5–3,1 y 4,1–5,0 con P3 (RMSE): el sesgo es menor que el error de un test, pero sistemático. Documentado en `?MFO_bayes` y en la viñeta `bayes`.
+
+Ventajas concretas: converge donde `nlsLM` cae en la solución trivial (pocos escalones, curvas planas), permite comparar pre-post como distribución de la diferencia (issue #34) y escala a un modelo jerárquico multi-participante (priors de grupo) en una versión posterior.
 
 **13.3 Cómo se presenta al usuario.** Siempre tres números por magnitud: estimación, IC/intervalo creíble del ajuste y, si existe `reliability`, MDC del laboratorio. Regla de interpretación en el informe: un cambio pre-post se califica de "probable" si los intervalos del ajuste no se solapan y de "detectable" si además supera el MDC95.
 
