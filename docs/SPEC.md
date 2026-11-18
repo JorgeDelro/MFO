@@ -411,7 +411,22 @@ La fiabilidad (§12) cuantifica el error entre días; esta sección cuantifica e
 \text{FAT}_i \sim \mathcal{N}\!\left(f(x_i;\theta),\ \sigma\right), \qquad f_{\text{SIN}}(x;\theta) = \text{MFO}\cdot\sin\!\left\{\left[\frac{\pi^{1/s}}{\pi+2d}\left(\tfrac{\pi}{100}x+d+t\right)\right]^{s}\right\}
 ```
 
-**Ajuste SIN en g/min también en la vía clásica (0.3.0).** `MFO_kinetics(fit = "absolute")` ajusta FAT = M·SIN por mínimos cuadrados con M como cuarto parámetro (arranque desde el ajuste normalizado). Sin ruido recupera d, s, t, Fatmax, Fatmin y MFO a 1e-6 aunque ningún escalón caiga en Fatmax; con ruido (CV de FAT 5 %, 200 tests) elimina el sesgo mediano de d (−0,15 → +0,005) y de Fatmin (−0,29 → −0,02 % VO2max) pero no su dispersión; d queda mal identificado con datos ruidosos en ambos ajustes. Defecto `"normalised"` hasta la beta.1 (decisión de Jorge).
+**Ajuste SIN en g/min también en la vía clásica (0.3.0).** `MFO_kinetics(fit = "absolute")` ajusta FAT = M·SIN por mínimos cuadrados con M como cuarto parámetro (arranque desde el ajuste normalizado). Sin ruido recupera d, s, t, Fatmax, Fatmin y MFO a 1e-6 aunque ningún escalón caiga en Fatmax; con ruido elimina buena parte del sesgo pero no la dispersión de d, Fatmax y Fatmin, y mejora MFO en sesgo y precisión; d queda mal identificado con datos ruidosos en ambos ajustes, así que d, s y t no se interpretan sueltos (lo interpretable es Fatmax, Fatmin y MFO). Defecto `"normalised"` hasta la beta.1 (decisión de Jorge).
+
+Con ruido (`inst/validation/sin_noise.R`; 200 tests por CV, 8 escalones, forma entrenada, MFO 0,4 g/min, Fatmax 45 ± 8 % VO2max; sesgo = mediana del error, error típico = mediana del error absoluto; en el normalizado el MFO es el escalón más alto):
+
+| CV | Magnitud | Normalizado: sesgo | Normalizado: error típico | Absoluto: sesgo | Absoluto: error típico |
+| --- | --- | --- | --- | --- | --- |
+| 5 % | d | −0,120 | 0,399 | −0,022 | 0,371 |
+| 5 % | Fatmax (% VO2max) | −0,05 | 1,56 | −0,01 | 1,55 |
+| 5 % | Fatmin (% VO2max) | −0,39 | 2,72 | +0,01 | 2,87 |
+| 5 % | MFO (g/min) | +0,010 | 0,013 | +0,002 | 0,008 |
+| 10 % | d | −0,135 | 0,527 | +0,000 | 0,506 |
+| 10 % | Fatmax (% VO2max) | +0,36 | 2,82 | +0,44 | 2,61 |
+| 10 % | Fatmin (% VO2max) | −1,18 | 4,09 | −0,19 | 3,27 |
+| 10 % | MFO (g/min) | +0,026 | 0,027 | +0,007 | 0,016 |
+
+Tests con |error de d| > 1: 37 y 46 (CV 5 %), 50 y 67 (CV 10 %), normalizado y absoluto.
 
 **Soporte del SIN en Stan (decisión de Jorge, 17 nov 2026).** Fuera de sus dos ceros la base u = π^(1/s)/(π + 2d)·(Kx + d + t) es negativa y u^s da NaN con s no entero: el modelo usa FAT = MFO·sin(max(u, 0)^s), recortado a 0 tras Fatmin, igual que `simulate_MFO_sessions()`.
 
@@ -492,6 +507,19 @@ Cada importador se desarrollará a partir de un fichero real anonimizado incluid
 | P2 | paramétrico (σ sorteada) | 0,91–0,95 | 0,94 | 0,95–0,98 | −7,0 a +0,9 (inestable con CV 20 %) |
 | P2 | bootstrap de residuos | 0,82–0,91 | 0,84–0,90 | 0,83–0,94 | −6,2 a +1,5 |
 | MRER | bootstrap de residuos | 0,48–0,61 | 0,61–0,67 | 0,68–0,74 | +2,8 a +4,2 |
+
+**SIN (`MFO_kinetics(ci = "parametric")`, `inst/validation/sin_coverage.R`):** 8 escalones, B = 1000, 200 tests por celda, mismos participantes simulados que la tabla de 13.2; cobertura del IC 95 % (anchura mediana):
+
+| Ajuste | CV | Fatmax | Fatmin | MFO_SIN |
+| --- | --- | --- | --- | --- |
+| absoluto | 5 % | 0,96 (10,6) | 0,93 (14,0) | 0,94 (0,061) |
+| absoluto | 10 % | 0,94 (19,6) | 0,94 (28,8) | 0,97 (0,121) |
+| absoluto | 20 % | 0,93 (35,9) | 0,94 (58,5) | 0,92 (0,266) |
+| normalizado | 5 % | 0,93 (9,0) | 0,87 (13,1) | — |
+| normalizado | 10 % | 0,87 (17,5) | 0,86 (27,4) | — |
+| normalizado | 20 % | 0,74 (26,5) | 0,88 (62,9) | — |
+
+Anchuras de Fatmax y Fatmin en % VO2max y de MFO_SIN en g/min. Con CV 20 %, 13 de 200 tests sin ajuste en cada caso. El absoluto cubre cerca del 95 %; el normalizado se queda corto y empeora con el ruido (su sesgo de normalización).
 
 Caso ideal (P2 sobre una parábola, 8 escalones, errores normales; 500 tests): cobertura de Fatmax 0,944 con el paramétrico de σ sorteada frente a 0,882 con el bootstrap de residuos (≈ P(|t₅| < 1,96) = 0,893). Decisiones (Jorge, 17 nov 2026): `ci = "parametric"` es el intervalo recomendado (`ci = TRUE`); MRER se mantiene por comparabilidad, no recomendado como principal; P2 avisa cuando el vértice cae fuera del rango medido. La verdad SIN favorece a los modelos más parecidos a un SIN (P3). Filas de P2 repetidas tras el arreglo de #38 (parábola sin máximo → MV): tests con c ≥ 0, 0/200 con CV 5 %, 0–1 con 10 %, 5–12 con 20 %; no explican las anchuras enormes de P2, que vienen de réplicas con curvatura negativa casi nula (vértice extrapolado lejos del rango medido). (4) Fiabilidad: comparar `MFO_reliability()` con `psych::ICC` e `irr` en datos simulados y con los estadísticos publicados por Chrzanowski-Smith et al. (2020) sobre su dataset abierto. (5) Importadores: igualdad exacta con cálculos manuales sobre los ficheros de `inst/extdata`.
 
