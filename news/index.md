@@ -79,16 +79,21 @@
   observed step: in noiseless simulated tests it recovered d, s, t,
   Fatmax, Fatmin and MFO to 1e-6 with Fatmax between steps, where the
   normalised fit gave d = 0.234 instead of 0.18. With noise it removes
-  the bias of d and Fatmin but not their spread; d is poorly identified
-  with noisy data. The default stays `"normalised"` (Chenevière et
-  al. 2009) and is to be reviewed at 0.3.0-beta.1.
+  most of the bias of d and Fatmin but not their spread, and it improves
+  MFO in bias and precision; d is poorly identified with noisy data
+  (`inst/validation/sin_noise.R`). The default stays `"normalised"`
+  (Chenevière et al. 2009) and is to be reviewed at 0.3.0-beta.1.
   [`MFO_kinetics()`](https://jorgedelro.github.io/MFO/reference/MFO_kinetics.md)
   also gains `ci`, `B`, `conf` and `seed` (intervals for d, s, t,
   Fatmax, Fatmin and MFO_SIN; leverage from the gradient of the fit for
   the bootstrap).
   [`MFOs()`](https://jorgedelro.github.io/MFO/reference/MFOs.md) gains
-  `sin_fit` and reports `MFO_SIN`, `FatMax_SIN_lower/upper` and
-  `Fatmin_lower/upper`.
+  `sin_fit` and `sin_ci` (default `FALSE`: the SIN interval is opt-in,
+  as it doubles the run time) and reports `MFO_SIN`,
+  `FatMax_SIN_lower/upper` and `Fatmin_lower/upper`.
+  [`?MFO_kinetics`](https://jorgedelro.github.io/MFO/reference/MFO_kinetics.md)
+  now says that d, s and t are not interpreted one by one with real
+  data; Fatmax, Fatmin and MFO are.
 
 - [`MFO()`](https://jorgedelro.github.io/MFO/reference/MFO.md) and
   [`MFOs()`](https://jorgedelro.github.io/MFO/reference/MFOs.md) gain

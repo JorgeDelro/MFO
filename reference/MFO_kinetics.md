@@ -162,6 +162,15 @@ VO2max, RER 1.03) has negative fat oxidation.
 
 Report which option was used when publishing SIN parameters.
 
+## What to interpret
+
+With real (noisy) data, d, s and t are not to be interpreted one by one:
+they trade off against each other and d in particular is poorly
+identified (in simulated tests with a FAT error of 5 % of MFO its
+typical error was about twice its true value). What the curve determines
+well are \`FatMax_SIN\`, \`Fatmin\` and, with \`fit = "absolute"\`,
+\`MFO_SIN\`; report and compare those. See \`vignette("validation")\`.
+
 ## Normalised or absolute fit
 
 With \`fit = "normalised"\` (default, Cheneviere et al. 2009) fat
@@ -173,13 +182,15 @@ tests with Fatmax between two steps, d was 0.234 instead of 0.18 (SPEC
 = M x SIN, with M (the MFO of the curve, returned as \`MFO_SIN\`) as a
 fourth parameter, and has no such bias: in noiseless tests it recovered
 d, s, t, Fatmax, Fatmin and MFO to 1e-6 whether or not a step fell on
-Fatmax. It needs at least 5 steps. With noise it removes the bias but
-not the error: with a FAT error of 5 % of MFO (200 simulated tests,
-trained shape), the median error of d went from -0.15 (normalised) to
-+0.005 (absolute) and that of Fatmin from -0.29 to -0.02 % VO2max, with
-similar spread (median absolute error of d 0.35 and 0.36). d is poorly
-identified with noisy data in either fit. It is started from the
-normalised estimates. The default is to be reviewed at 0.3.0-beta.1.
+Fatmax. It needs at least 5 steps. With noise it removes most of the
+bias but not the spread of d, Fatmax and Fatmin; MFO improves in both.
+With a FAT error of 5 % of MFO (200 simulated tests, trained shape) the
+median error of d went from -0.12 (normalised) to -0.02 (absolute) and
+that of Fatmin from -0.39 to +0.01 % VO2max, with similar median
+absolute errors (d 0.40 and 0.37); MFO (highest observed step vs
+\`MFO_SIN\`) from +0.010 to +0.002 g/min, median absolute error 0.013
+and 0.008. Full table in \`vignette("validation")\`. It is started from
+the normalised estimates. The default is to be reviewed at 0.3.0-beta.1.
 
 ## Fit uncertainty
 

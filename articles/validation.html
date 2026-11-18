@@ -835,6 +835,170 @@ MFO).</p>
 <p><img src="validation_files/figure-html/fig-bias-1.png" class="r-plt" alt="Model bias of Fatmax (mean estimate minus truth, %VO2max) by method, number of steps and noise CV; MRER is about 3 to 4 %VO2max above the truth." width="100%"></p>
 </div>
 <div class="section level2">
+<h2 id="the-sin-model">The SIN model<a class="anchor" aria-label="anchor" href="#the-sin-model"></a>
+</h2>
+<p><code><a href="../reference/MFO_kinetics.html">MFO_kinetics()</a></code> fits the SIN either normalised to the
+highest observed step (Chenevière et al. 2009) or in g/min with MFO as a
+fourth parameter (<code>fit = "absolute"</code>). Same simulated
+participants for both tables: 8 steps, trained shape (d 0.18, s 1.52),
+MFO 0.4 g/min, Fatmax 45 ± 8 %VO2max.</p>
+<p><strong>Bias and typical error</strong>
+(<code>inst/validation/sin_noise.R</code>; 200 tests per noise level;
+bias = median error, typical error = median absolute error; for the
+normalised fit MFO is the highest observed step):</p>
+<table style="width:100%;" class="table">
+<colgroup>
+<col width="16%">
+<col width="16%">
+<col width="16%">
+<col width="16%">
+<col width="16%">
+<col width="16%">
+</colgroup>
+<thead><tr class="header">
+<th>Noise CV</th>
+<th>Quantity</th>
+<th>Normalised bias</th>
+<th>Normalised typical error</th>
+<th>Absolute bias</th>
+<th>Absolute typical error</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>5 %</td>
+<td>d</td>
+<td>−0.120</td>
+<td>0.399</td>
+<td>−0.022</td>
+<td>0.371</td>
+</tr>
+<tr class="even">
+<td>5 %</td>
+<td>Fatmax (%VO2max)</td>
+<td>−0.05</td>
+<td>1.56</td>
+<td>−0.01</td>
+<td>1.55</td>
+</tr>
+<tr class="odd">
+<td>5 %</td>
+<td>Fatmin (%VO2max)</td>
+<td>−0.39</td>
+<td>2.72</td>
+<td>+0.01</td>
+<td>2.87</td>
+</tr>
+<tr class="even">
+<td>5 %</td>
+<td>MFO (g/min)</td>
+<td>+0.010</td>
+<td>0.013</td>
+<td>+0.002</td>
+<td>0.008</td>
+</tr>
+<tr class="odd">
+<td>10 %</td>
+<td>d</td>
+<td>−0.135</td>
+<td>0.527</td>
+<td>+0.000</td>
+<td>0.506</td>
+</tr>
+<tr class="even">
+<td>10 %</td>
+<td>Fatmax (%VO2max)</td>
+<td>+0.36</td>
+<td>2.82</td>
+<td>+0.44</td>
+<td>2.61</td>
+</tr>
+<tr class="odd">
+<td>10 %</td>
+<td>Fatmin (%VO2max)</td>
+<td>−1.18</td>
+<td>4.09</td>
+<td>−0.19</td>
+<td>3.27</td>
+</tr>
+<tr class="even">
+<td>10 %</td>
+<td>MFO (g/min)</td>
+<td>+0.026</td>
+<td>0.027</td>
+<td>+0.007</td>
+<td>0.016</td>
+</tr>
+</tbody>
+</table>
+<p>The absolute fit removes most of the bias of d and Fatmin and
+improves MFO in bias and precision; it does not reduce the spread of d,
+whose typical error is two to three times its true value. <strong>d, s
+and t are not interpreted one by one with real data; Fatmax, Fatmin and
+MFO are.</strong></p>
+<p><strong>Coverage of the parametric intervals</strong>
+(<code>inst/validation/sin_coverage.R</code>; B = 1000; 200 tests per
+cell; median width in brackets, %VO2max for Fatmax and Fatmin, g/min for
+MFO_SIN):</p>
+<table class="table">
+<thead><tr class="header">
+<th>Fit</th>
+<th>Noise CV</th>
+<th>Fatmax</th>
+<th>Fatmin</th>
+<th>MFO_SIN</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>absolute</td>
+<td>5 %</td>
+<td>0.96 (10.6)</td>
+<td>0.93 (14.0)</td>
+<td>0.94 (0.061)</td>
+</tr>
+<tr class="even">
+<td>absolute</td>
+<td>10 %</td>
+<td>0.94 (19.6)</td>
+<td>0.94 (28.8)</td>
+<td>0.97 (0.121)</td>
+</tr>
+<tr class="odd">
+<td>absolute</td>
+<td>20 %</td>
+<td>0.93 (35.9)</td>
+<td>0.94 (58.5)</td>
+<td>0.92 (0.266)</td>
+</tr>
+<tr class="even">
+<td>normalised</td>
+<td>5 %</td>
+<td>0.93 (9.0)</td>
+<td>0.87 (13.1)</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td>normalised</td>
+<td>10 %</td>
+<td>0.87 (17.5)</td>
+<td>0.86 (27.4)</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td>normalised</td>
+<td>20 %</td>
+<td>0.74 (26.5)</td>
+<td>0.88 (62.9)</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p>At 20 % noise 13 of 200 tests could not be fitted. The absolute fit
+covers close to 95 %; the normalised one falls short and gets worse with
+noise, because its intervals are centred on the bias of the
+normalisation. The intervals are wide: even at 5 % noise the SIN locates
+Fatmax within about ± 5 %VO2max.</p>
+</div>
+<div class="section level2">
 <h2 id="what-to-use">What to use<a class="anchor" aria-label="anchor" href="#what-to-use"></a>
 </h2>
 <ul>
@@ -855,6 +1019,9 @@ is kept for comparability with published studies, not as the main
 method.</li>
 <li>With 6 steps every interval is less reliable; 8 or more are
 preferable.</li>
+<li>For the SIN,
+<code>MFO_kinetics(fit = "absolute", ci = "parametric")</code>; report
+Fatmax, Fatmin and MFO, not d, s and t.</li>
 </ul>
 </div>
 <div class="section level2">

@@ -229,6 +229,54 @@ ggplot(cov[cov$ci == "bootstrap", ], aes(steps, bias_fatmax, colour = method)) +
 number of steps and noise CV; MRER is about 3 to 4 %VO2max above the
 truth.](validation_files/figure-html/fig-bias-1.png)
 
+## The SIN model
+
+[`MFO_kinetics()`](https://jorgedelro.github.io/MFO/reference/MFO_kinetics.md)
+fits the SIN either normalised to the highest observed step (Chenevière
+et al. 2009) or in g/min with MFO as a fourth parameter
+(`fit = "absolute"`). Same simulated participants for both tables: 8
+steps, trained shape (d 0.18, s 1.52), MFO 0.4 g/min, Fatmax 45 ± 8
+%VO2max.
+
+**Bias and typical error** (`inst/validation/sin_noise.R`; 200 tests per
+noise level; bias = median error, typical error = median absolute error;
+for the normalised fit MFO is the highest observed step):
+
+| Noise CV | Quantity | Normalised bias | Normalised typical error | Absolute bias | Absolute typical error |
+|----|----|----|----|----|----|
+| 5 % | d | −0.120 | 0.399 | −0.022 | 0.371 |
+| 5 % | Fatmax (%VO2max) | −0.05 | 1.56 | −0.01 | 1.55 |
+| 5 % | Fatmin (%VO2max) | −0.39 | 2.72 | +0.01 | 2.87 |
+| 5 % | MFO (g/min) | +0.010 | 0.013 | +0.002 | 0.008 |
+| 10 % | d | −0.135 | 0.527 | +0.000 | 0.506 |
+| 10 % | Fatmax (%VO2max) | +0.36 | 2.82 | +0.44 | 2.61 |
+| 10 % | Fatmin (%VO2max) | −1.18 | 4.09 | −0.19 | 3.27 |
+| 10 % | MFO (g/min) | +0.026 | 0.027 | +0.007 | 0.016 |
+
+The absolute fit removes most of the bias of d and Fatmin and improves
+MFO in bias and precision; it does not reduce the spread of d, whose
+typical error is two to three times its true value. **d, s and t are not
+interpreted one by one with real data; Fatmax, Fatmin and MFO are.**
+
+**Coverage of the parametric intervals**
+(`inst/validation/sin_coverage.R`; B = 1000; 200 tests per cell; median
+width in brackets, %VO2max for Fatmax and Fatmin, g/min for MFO_SIN):
+
+| Fit        | Noise CV | Fatmax      | Fatmin      | MFO_SIN      |
+|------------|----------|-------------|-------------|--------------|
+| absolute   | 5 %      | 0.96 (10.6) | 0.93 (14.0) | 0.94 (0.061) |
+| absolute   | 10 %     | 0.94 (19.6) | 0.94 (28.8) | 0.97 (0.121) |
+| absolute   | 20 %     | 0.93 (35.9) | 0.94 (58.5) | 0.92 (0.266) |
+| normalised | 5 %      | 0.93 (9.0)  | 0.87 (13.1) | —            |
+| normalised | 10 %     | 0.87 (17.5) | 0.86 (27.4) | —            |
+| normalised | 20 %     | 0.74 (26.5) | 0.88 (62.9) | —            |
+
+At 20 % noise 13 of 200 tests could not be fitted. The absolute fit
+covers close to 95 %; the normalised one falls short and gets worse with
+noise, because its intervals are centred on the bias of the
+normalisation. The intervals are wide: even at 5 % noise the SIN locates
+Fatmax within about ± 5 %VO2max.
+
 ## What to use
 
 - **`ci = "parametric"`** (or `ci = TRUE`) with **P3**: the closest to
@@ -244,6 +292,8 @@ truth.](validation_files/figure-html/fig-bias-1.png)
   comparability with published studies, not as the main method.
 - With 6 steps every interval is less reliable; 8 or more are
   preferable.
+- For the SIN, `MFO_kinetics(fit = "absolute", ci = "parametric")`;
+  report Fatmax, Fatmin and MFO, not d, s and t.
 
 ## Reproducing
 

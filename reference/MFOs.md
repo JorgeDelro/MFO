@@ -46,7 +46,8 @@ MFOs(
   B = 2000,
   conf = 0.95,
   seed = NULL,
-  sin_fit = c("normalised", "absolute")
+  sin_fit = c("normalised", "absolute"),
+  sin_ci = FALSE
 )
 ```
 
@@ -209,15 +210,20 @@ MFOs(
 
 - ci, B, conf, seed:
 
-  confidence intervals of the fit, passed to \[MFO_kinetics()\] and
-  \[MFO()\]: \`ci\` is \`"none"\` (default), \`"parametric"\` (also
-  \`TRUE\`) or \`"bootstrap"\`. The same \`seed\` is used for every
-  participant.
+  confidence intervals of the fit, passed to \[MFO_kinetics()\] (only
+  with \`sin_ci = TRUE\`) and \[MFO()\]: \`ci\` is \`"none"\` (default),
+  \`"parametric"\` (also \`TRUE\`) or \`"bootstrap"\`. The same \`seed\`
+  is used for every participant.
 
 - sin_fit:
 
   \`"normalised"\` (default) or \`"absolute"\` fit of the SIN model. See
   \[MFO_kinetics()\].
+
+- sin_ci:
+
+  logical; if \`TRUE\`, \`ci\` is also computed for the SIN model
+  (default \`FALSE\`, as it doubles the run time).
 
 ## Value
 
