@@ -18,6 +18,10 @@ articles:
   navbar: ~
   contents:
   - mfo-workflow
+- title: Bayesian fit
+  navbar: Bayesian fit
+  contents:
+  - bayes
 - title: Validation
   navbar: Validation
   contents:
@@ -51,6 +55,13 @@ reference:
   desc: Many participants from a folder of xlsx files.
   contents:
   - MFOs
+- title: Bayesian fit
+  desc: >
+    Bayesian SIN (or P3) with brms on Stan, parametrised by MFO, Fatmax,
+    Fatmin and s; prior predictive check.
+  contents:
+  - MFO_bayes
+  - MFO_prior_check
 - title: Reliability
   desc: >
     Test-retest reliability of a lab: ICC(2,1), SEM, MDC, CV, bias and
