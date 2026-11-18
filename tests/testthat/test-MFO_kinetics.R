@@ -204,3 +204,85 @@ test_that("SIN results on the example data (regression, SPEC 19)", {
   expect_equal(nrow(k_b$MFO_kinetics_data), nrow(k$MFO_kinetics_data) + 1)
   expect_equal(k_b$FatMax_SIN, 35.8506, tolerance = 1e-4)
 })
+
+# --- Absolute fit and intervals of the SIN (SPEC 13) ---
+# Noiseless simulated tests (8 steps, 20-75 %VO2max, MFO 0.4 g/min). With
+# Fatmax between steps (47.5 %VO2max) the normalised fit is biased because
+# the highest step is below MFO; the absolute fit recovers the truth.
+.sin_case <- function(fatmax, shape = "basic", author = "Frayn") {
+  sim <- simulate_MFO_sessions(n_participants = 1, n_sessions = 1,
+                               population = list(VO2max = c(3000, 0), MFO = c(0.4, 0),
+                                                 Fatmax = c(fatmax, 0)),
+                               cv_MFO = 0, cv_Fatmax = 0, shape = shape, author = author)
+  tb <- sim$data$P01$S1
+  r <- suppressWarnings(suppressMessages(
+    MFO(step_time = 20, db_MFO = tb$db_MFO, db_basal = tb$db_basal,
+        db_graded = tb$db_graded, cv_var = "RER", author = author,
+        energy_equivalents = "classic", age = 30, method = "MV")))
+  list(db = r$MFO_db, truth = sim$truth)
+}
+
+test_that("the absolute SIN fit recovers the truth with Fatmax between steps", {
+  for (shape in c("basic", "trained")) {
+    for (author in c("Frayn", "Peronnet")) {
+      x <- .sin_case(47.5, shape, author)
+      tr <- x$truth
+      k <- MFO_kinetics(x$db, fit = "absolute")
+      # optimiser tolerance 1e-6
+      expect_equal(c(k$d, k$s, k$t, k$FatMax_SIN, k$Fatmin, k$MFO_SIN),
+                   c(tr$d, tr$s, tr$t, tr$Fatmax, tr$Fatmin, tr$MFO), tolerance = 1e-6)
+      expect_equal(k$fit, "absolute")
+    }
+  }
+  # the normalised fit of the trained shape: d = 0.234 instead of 0.18
+  x <- .sin_case(47.5, "trained")
+  kn <- MFO_kinetics(x$db)
+  expect_gt(abs(kn$d - 0.18), 0.04)
+  expect_true(is.na(kn$MFO_SIN))
+  expect_equal(kn$fit, "normalised")
+})
+
+test_that("the absolute fit needs 5 steps and stores %MFO of the fitted MFO", {
+  x <- .sin_case(47.5)
+  k <- MFO_kinetics(x$db, fit = "absolute")
+  expect_equal(k$MFO_kinetics_data$porc_MFO, x$db$FAT * 100 / k$MFO_SIN)
+  expect_warning(k4 <- MFO_kinetics(x$db[1:4, ], fit = "absolute"),
+                 "at least 5 steps to fit 4 parameters")
+  expect_false(k4$convergence)
+})
+
+test_that("SIN intervals: degenerate without noise, reproducible, both types", {
+  x <- .sin_case(47.5, "trained")
+  k0 <- suppressWarnings(MFO_kinetics(x$db, fit = "absolute", ci = TRUE, B = 30, seed = 1))
+  # zero residuals: every replicate equals the estimate (tolerance of nlsLM)
+  expect_equal(k0$ci$lower, k0$ci$estimate, tolerance = 1e-5)
+  expect_equal(k0$ci$upper, k0$ci$estimate, tolerance = 1e-5)
+  expect_equal(rownames(k0$ci), c("d", "s", "t", "FatMax_SIN", "Fatmin", "MFO_SIN"))
+  sim <- simulate_MFO_sessions(n_participants = 1, n_sessions = 1,
+                               population = list(VO2max = c(3000, 0), MFO = c(0.4, 0),
+                                                 Fatmax = c(45, 0)),
+                               cv_MFO = 0, cv_Fatmax = 0, fat_noise_cv = 0.05, seed = 3)
+  tb <- sim$data$P01$S1
+  db <- suppressWarnings(suppressMessages(
+    MFO(step_time = 20, db_MFO = tb$db_MFO, db_basal = tb$db_basal, db_graded = tb$db_graded,
+        cv_var = "RER", author = "Frayn", energy_equivalents = "classic", age = 30,
+        method = "MV", negative_FAT = "keep")))$MFO_db
+  kp <- suppressWarnings(MFO_kinetics(db, fit = "absolute", ci = "parametric", B = 200, seed = 2))
+  expect_true(all(kp$ci$lower < kp$ci$upper))
+  expect_identical(kp$ci, suppressWarnings(
+    MFO_kinetics(db, fit = "absolute", ci = "parametric", B = 200, seed = 2))$ci)
+  kb <- suppressWarnings(MFO_kinetics(db, ci = "bootstrap", B = 100, seed = 2))
+  expect_equal(rownames(kb$ci), c("d", "s", "t", "FatMax_SIN", "Fatmin"))
+  expect_equal(kb$bootstrap$type, "bootstrap")
+  expect_null(MFO_kinetics(db)$ci)
+  expect_error(MFO_kinetics(db, ci = TRUE, B = 1), "B must be")
+  expect_error(MFO_kinetics(db, ci = TRUE, conf = 2), "conf must be")
+})
+
+test_that("ci = FALSE means no interval; all-zero fat oxidation stops", {
+  x <- .sin_case(47.5)
+  expect_null(MFO_kinetics(x$db, ci = FALSE)$ci)
+  db0 <- x$db
+  db0$FAT <- 0
+  expect_error(MFO_kinetics(db0), "Maximum FAT value is <= 0")
+})

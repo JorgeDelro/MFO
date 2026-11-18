@@ -4,7 +4,15 @@
 \alias{MFO_kinetics}
 \title{Maximal Fat Oxidation Kinetics (SIN Model)}
 \usage{
-MFO_kinetics(MFO_data, fatmin_threshold = NULL)
+MFO_kinetics(
+  MFO_data,
+  fatmin_threshold = NULL,
+  fit = c("normalised", "absolute"),
+  ci = c("none", "parametric", "bootstrap"),
+  B = 2000,
+  conf = 0.95,
+  seed = NULL
+)
 }
 \arguments{
 \item{MFO_data}{a data frame obtained from the MFO function (must contain FAT and porc_VO2 columns).}
@@ -14,11 +22,25 @@ curve, or a proportion of MFO in (0, 1), e.g. 0.05, for the intensity
 above Fatmax where fat oxidation falls to that fraction of MFO
 (closed form: \[(pi + 2d) ((pi - asin(threshold)) / pi)^(1/s) - d - t\] / K).
 v0.2.0 used a fixed 5 \% threshold searched on a grid.}
+
+\item{fit}{`"normalised"` (default) or `"absolute"` (see *Normalised or
+absolute fit*).}
+
+\item{ci}{`"none"` (default), `"parametric"` (also `TRUE`) or `"bootstrap"`
+(see *Fit uncertainty*).}
+
+\item{B}{number of replicates (default 2000).}
+
+\item{conf}{confidence level (default 0.95).}
+
+\item{seed}{optional integer for reproducible intervals; the random state
+of the session is restored afterwards.}
 }
 \value{
 {Returns a list which contains:
 \itemize{
-\item MFO_kinetics_data: `MFO_data` plus normalized \%MFO (`porc_MFO`, 100 = highest observed FAT).
+\item MFO_kinetics_data: `MFO_data` plus normalized \%MFO (`porc_MFO`, 100 =
+  highest observed FAT, or the fitted MFO with `fit = "absolute"`).
 \item MFO_kinetics_plot: ggplot object with the observed \%MFO, the basic SIN and the fitted SIN.
 \item d: dilatation parameter (width of the curve).
 \item t: translation parameter (horizontal shift along intensity axis).
@@ -26,12 +48,20 @@ v0.2.0 used a fixed 5 \% threshold searched on a grid.}
 \item Fatmin: exercise intensity (\% VO2max) at the second zero of the curve, or
   at `fatmin_threshold` of MFO if given.
 \item FatMax_SIN: exercise intensity (\% VO2max) at peak fat oxidation from SIN model.
-\item R_squared: R-squared of the SIN model fit (observed proportions of MFO).
-\item RMSE: Root mean squared error of the SIN model fit (proportion of MFO).
+\item R_squared: R-squared of the SIN model fit (on the fitted scale:
+  proportion of MFO, or g/min with `fit = "absolute"`).
+\item RMSE: Root mean squared error of the SIN model fit (same scale).
 \item d_se: standard error of dilatation parameter.
 \item s_se: standard error of symmetry parameter.
 \item t_se: standard error of translation parameter.
 \item convergence: logical, whether the SIN model converged.
+\item fit: `"normalised"` or `"absolute"`.
+\item MFO_SIN, MFO_SIN_se: MFO of the fitted curve (g/min) and its standard
+  error with `fit = "absolute"`; `NA` otherwise.
+\item ci: with `ci` other than `"none"`, a data frame with estimate, lower
+  and upper for each quantity; otherwise `NULL`.
+\item bootstrap: with `ci`, a list with `type`, `B`, `kept`, `conf` and the
+  `replicates`; otherwise `NULL`.
 }}
 }
 \description{
@@ -89,6 +119,39 @@ RER 1.03) has negative fat oxidation.
   s = 0.539, t = 0.023, FatMax_SIN = 33.2, Fatmin = 85.3 \% VO2max.
 }
 Report which option was used when publishing SIN parameters.
+}
+
+\section{Normalised or absolute fit}{
+
+With `fit = "normalised"` (default, Cheneviere et al. 2009) fat oxidation
+is divided by the highest observed step before fitting. Unless a step falls
+exactly on the true Fatmax, that step is below the true MFO and the shape
+is distorted even without noise: in noiseless simulated tests with Fatmax
+between two steps, d was 0.234 instead of 0.18 (SPEC 13.2, issue #13).
+`fit = "absolute"` fits fat oxidation in g/min, FAT = M x SIN, with M (the
+MFO of the curve, returned as `MFO_SIN`) as a fourth parameter, and has no
+such bias: in noiseless tests it recovered d, s, t, Fatmax, Fatmin and MFO
+to 1e-6 whether or not a step fell on Fatmax. It needs at least 5 steps.
+With noise it removes the bias but not the error: with a FAT error of 5 \%
+of MFO (200 simulated tests, trained shape), the median error of d went
+from -0.15 (normalised) to +0.005 (absolute) and that of Fatmin from -0.29
+to -0.02 \% VO2max, with similar spread (median absolute error of d 0.35
+and 0.36). d is poorly identified with noisy data in either fit.
+It is started from the normalised estimates. The default is to be reviewed
+at 0.3.0-beta.1.
+}
+
+\section{Fit uncertainty}{
+
+`ci = "parametric"` (also `TRUE`) or `"bootstrap"` gives percentile
+intervals for d, s, t, `FatMax_SIN`, `Fatmin` and, with the absolute fit,
+`MFO_SIN`, as in [MFO()]: replicates are the fitted values plus new errors,
+refitted from the estimates. `"parametric"` draws sigma^2 ~
+Inv-chi^2(n - p, s^2) and then normal errors (Gelman et al. 2013, ch. 14);
+`"bootstrap"` resamples modified residuals r / sqrt(1 - h), with h the
+leverage from the gradient J of the fit, diag(J (J'J)^-1 J') (Davison &
+Hinkley 1997, 7.4). Replicates that do not converge are dropped and
+counted.
 }
 
 \examples{

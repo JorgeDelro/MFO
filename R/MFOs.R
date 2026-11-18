@@ -32,7 +32,9 @@
 #' @param steady_state_duration duration of steady-state period within each step in seconds (default 60).
 #' @param age age in years (optional), the same for every participant, for the
 #'        heart-rate criterion of VO2max. See [MFO()] and [VO2max_from_test()].
-#' @param ci,B,conf,seed bootstrap confidence intervals of the fit, passed to
+#' @param sin_fit `"normalised"` (default) or `"absolute"` fit of the SIN
+#'        model. See [MFO_kinetics()].
+#' @param ci,B,conf,seed confidence intervals of the fit, passed to [MFO_kinetics()] and
 #'        [MFO()]: `ci` is `"none"` (default), `"parametric"` (also `TRUE`) or
 #'        `"bootstrap"`. The same `seed` is used for every
 #'        participant.
@@ -98,6 +100,10 @@
 #' \item s: SIN symmetry parameter.
 #' \item Fatmin: Fatmin from SIN model (\% VO2max).
 #' \item FatMax_SIN: FatMax from SIN model (\% VO2max).
+#' \item FatMax_SIN_lower, FatMax_SIN_upper, Fatmin_lower, Fatmin_upper:
+#'   confidence limits of the SIN fit with `ci`, otherwise `NA`.
+#' \item MFO_SIN: MFO of the SIN curve with `sin_fit = "absolute"`, otherwise `NA`.
+#' \item sin_fit: SIN fit used.
 #' \item SIN_R_squared: R-squared of SIN model.
 #' \item SIN_convergence: whether the SIN model was fitted.
 #' \item CHO_g_basal: Basal CHO oxidation (g/min).
@@ -159,10 +165,12 @@ MFOs <- function(from = c("folder", "files"),
                  ci = c("none", "parametric", "bootstrap"),
                  B = 2000,
                  conf = 0.95,
-                 seed = NULL) {
+                 seed = NULL,
+                 sin_fit = c("normalised", "absolute")) {
 
   from <- match.arg(from)
   output_format <- match.arg(output_format, c("xlsx", "csv", "rds"))
+  sin_fit <- match.arg(sin_fit)
   if (missing(energy_equivalents)) .energy_default_message()
   energy_equivalents <- match.arg(energy_equivalents)
   # Resolved once, so a conflict warns once and not per participant
@@ -249,7 +257,9 @@ MFOs <- function(from = c("folder", "files"),
 
       # Calculate kinetics
       participant_result_kinetics <- MFO_kinetics(participant_result_MFO$MFO_db,
-                                                  fatmin_threshold = fatmin_threshold)
+                                                  fatmin_threshold = fatmin_threshold,
+                                                  fit = sin_fit, ci = ci, B = B,
+                                                  conf = conf, seed = seed)
 
       # Save kinetics plot
       if (save_plot) {
@@ -304,6 +314,12 @@ MFOs <- function(from = c("folder", "files"),
                               participant_result_kinetics$Fatmin), 2),
         FatMax_SIN = round(ifelse(is.na(participant_result_kinetics$FatMax_SIN), NA,
                                    participant_result_kinetics$FatMax_SIN), 2),
+        FatMax_SIN_lower = round(.ci_bound(participant_result_kinetics, "FatMax_SIN", "lower"), 2),
+        FatMax_SIN_upper = round(.ci_bound(participant_result_kinetics, "FatMax_SIN", "upper"), 2),
+        Fatmin_lower = round(.ci_bound(participant_result_kinetics, "Fatmin", "lower"), 2),
+        Fatmin_upper = round(.ci_bound(participant_result_kinetics, "Fatmin", "upper"), 2),
+        MFO_SIN = round(participant_result_kinetics$MFO_SIN, 4),
+        sin_fit = participant_result_kinetics$fit,
         SIN_R_squared = round(ifelse(is.na(participant_result_kinetics$R_squared), NA,
                                      participant_result_kinetics$R_squared), 4),
         SIN_convergence = participant_result_kinetics$convergence,
@@ -333,6 +349,8 @@ MFOs <- function(from = c("folder", "files"),
         energy_equivalents = energy_equivalents,
         protocol = protocol$type, mode = protocol$mode,
         d = NA, t = NA, s = NA, Fatmin = NA, FatMax_SIN = NA,
+        FatMax_SIN_lower = NA, FatMax_SIN_upper = NA, Fatmin_lower = NA,
+        Fatmin_upper = NA, MFO_SIN = NA, sin_fit = sin_fit,
         SIN_R_squared = NA, SIN_convergence = FALSE,
         CHO_g_basal = NA, FAT_g_basal = NA, Kcal_g_basal = NA,
         stringsAsFactors = FALSE
