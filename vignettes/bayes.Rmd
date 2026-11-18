@@ -153,17 +153,19 @@ cross-validation (`brms::loo()`) on the example data:
 | proportional | 10.6 | 4.5 | 0 |
 | constant | 7.4 | 3.9 | -3.2 (1.0) |
 
-The proportional error fits better here, but with 8 steps one or two
-observations had a Pareto k above 0.7, so the comparison is approximate.
-The default stays `"constant"`; compare both with `loo()` on your own data.
+This comparison is an illustration of how to choose between them, not a
+conclusion: it is one participant with 8 steps, and one or two observations
+had a Pareto k above 0.7, so `loo()` is approximate here. The default stays
+`"constant"`; compare both with `loo()` on your own data.
 
 ## Validation
 
 Reduced study (Jorge, 2026-11-18): 100 simulated tests per cell, 8 steps,
 noise on fat oxidation of 5 or 10 % of MFO (SD), MFO 0.4 g/min, in two
-populations: "sedentary" (Fatmax 45 ± 8 %VO2max, trained-like shape d =
-0.18, s = 1.52, so Fatmin about 86) and "trained" (Fatmax 64 ± 8 %VO2max,
-Achten et al. 2002; s = 1.52 and Fatmin about Fatmax + 25, i.e. about 89).
+populations: "sedentary" (Fatmax 45 ± 8 %VO2max, with the shape d = 0.18,
+s = 1.52, so Fatmin about 86) and "trained", defined by its Fatmax and
+Fatmin: Fatmax 64 ± 8 %VO2max (Achten et al. 2002) and Fatmin 25 points
+above it, about 89 (s = 1.52, d set to give that width).
 Three options: the priors first proposed in SPEC 13.2 on d, s, t; t replaced
 by Fatmax (prior N(44.2, 12.4)); and the current Fatmax + Fatmin. Coverage of
 the 95 % credible intervals; median contraction of d and largest posterior
@@ -192,10 +194,15 @@ populations. Fatmax is short of 95 % in some cells (0.88), and its misses
 have a direction: in the sedentary population every miss, in all three
 options, was an underestimate (median error of the posterior median -1.1 to
 -1.8 %VO2max), and so were the 12 misses of Fatmax + Fatmin in the trained
-population at 10 % noise. The cause is not verified; a candidate is the
-prior of s, centred on a symmetric curve (s = 1) while the simulated curves
-have s = 1.52. In the trained population 1-8 of 100 tests had an R-hat above
-1.01 with every option.
+population at 10 % noise. The prior of s, centred on a symmetric curve (s = 1) while the
+simulated curves have s = 1.52, explains part of it: with s ~ LogNormal(0,
+0.5) or (0, 0.6) the median error fell from -1.15 to -0.74 and -0.45
+%VO2max (sedentary, 5 %) and from -1.58 to -0.87 and -0.72 (trained, 10 %),
+and coverage rose to 0.93-0.94 and 0.91, but the misses were still nearly
+all underestimates and divergences increased
+(`inst/validation/bayes_s_prior.R`). In the trained population 1-8 of 100
+tests had an R-hat above 1.01 with every option; with `iter = 4000` none
+did, so use `iter = 4000` when Fatmax is high.
 
 ## Reproducing
 
