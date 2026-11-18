@@ -36,7 +36,9 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::brms, any::rstan, any::devtools
+          # BH, StanHeaders, RcppEigen and RcppParallel: headers rstan needs to
+          # compile Stan models (LinkingTo, not installed with the rstan binary)
+          extra-packages: any::brms, any::rstan, any::devtools, any::BH, any::StanHeaders, any::RcppEigen, any::RcppParallel
           needs: check
 
       - name: Run the Bayesian tests
