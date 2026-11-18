@@ -223,7 +223,7 @@ El ICC indica cuánto de la variabilidad total es diferencia real entre personas
 
 **Incertidumbre del propio ajuste.** Independientemente del error biológico y del analizador, el P3 y el SIN se ajustan a 6–10 puntos ruidosos, y la posición del máximo tiene incertidumbre estadística propia. Hay dos formas de cuantificarla: (a) bootstrap de residuos (reajustar la curva cientos de veces con residuos remuestreados y tomar los percentiles 2,5 y 97,5 de MFO y Fatmax); (b) un ajuste bayesiano del SIN o del P3 (p. ej., con `brms`), que devuelve distribuciones posteriores de MFO, Fatmax, d, s y t y permite incorporar priors informativos sobre la forma de la curva, muy útil cuando hay pocos escalones y el ajuste clásico no converge. Un intervalo creíble ancho para Fatmax es, en sí mismo, un resultado: dice que la curva es plana y que la prescripción tiene margen.
 
-**Lo que hará el paquete.** (1) `MFO_reliability()`: a partir de dos o más tests por persona, ICC(2,1) con IC 95 %, SEM, MDC95, CV y gráfico de Bland-Altman. (2) `MFO(..., ci = "bootstrap")`: IC 95 % para MFO, Fatmax y la zona Fatmax. (3) `MFO_bayes()`: versión bayesiana del P3/SIN con intervalos creíbles. (4) En la app, el informe individual mostrará siempre el intervalo junto al valor puntual y, si hay un test previo, comparará el cambio con el MDC del laboratorio.
+**Lo que hará el paquete.** (1) `MFO_reliability()`: a partir de dos o más tests por persona, ICC(2,1) con IC 95 %, SEM, MDC95, CV y gráfico de Bland-Altman. (2) `MFO(..., ci = "parametric")` (recomendado; también `"bootstrap"`, por defecto `"none"`): IC 95 % para MFO, Fatmax y la zona Fatmax. (3) `MFO_bayes()`: versión bayesiana del P3/SIN con intervalos creíbles. (4) En la app, el informe individual mostrará siempre el intervalo junto al valor puntual y, si hay un test previo, comparará el cambio con el MDC del laboratorio.
 
 ## 9. El paquete MFO (v0.2.0): arquitectura, flujo y correspondencia función-ecuación
 
@@ -366,7 +366,7 @@ La v0.3.0 convierte el paquete de una calculadora de MFO/Fatmax en una herramien
 
 | Función nueva o ampliada | Entrada | Salida principal | Sección |
 | --- | --- | --- | --- |
-| `MFO(..., ci = c("none","bootstrap"), n_boot = 2000)` | Como v0.2.0 + columna `Load` opcional | MFO y Fatmax con IC 95 %; Fatmax en W/km/h | 13, 14, 15 |
+| `MFO(..., ci = c("none","bootstrap","parametric"), B = 2000)`; `"parametric"` es el recomendado (§13.1, §17) | Como v0.2.0 + columna `Load` opcional | MFO y Fatmax con IC 95 %; Fatmax en W/km/h | 13, 14, 15 |
 | `MFO_kinetics(..., ci = "bootstrap")` | `MFO_db` | d, s, t, Fatmax\_SIN, Fatmin con IC | 13 |
 | `MFO_bayes(MFO_db, model = c("P3","SIN"), priors)` | `MFO_db` | Posteriores de MFO, Fatmax, d, s, t; intervalos creíbles; diagnósticos | 13 |
 | `MFO_reliability(results, id, session)` | Tabla de `MFOs()` con ≥ 2 sesiones por persona | ICC(2,1) + IC, SEM, MDC95, CV, sesgo, Bland-Altman | 12 |
