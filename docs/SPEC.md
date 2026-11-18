@@ -622,7 +622,7 @@ Cada coeficiente y regla que usará el paquete se ha contrastado con la fuente p
 
 **Regla de procedencia (Jorge, 10 nov 2026): coeficiente impreso en la fuente > coeficiente derivado; derivado solo donde la fuente no imprime ecuación.** Si la fuente imprime la ecuación, se usa tal cual y se cita por tabla o ecuación; la derivación desde sus constantes (sistema 2×2) queda como test cruzado con tolerancia absoluta acorde al redondeo (0,006 en Jeukendrup y Wallis). Si no la imprime (Péronnet y Massicotte; reposo con Jeukendrup y Wallis), se deriva en código y la derivación se explica en roxygen.
 
-**Regla para el desarrollo:** ningún coeficiente entra en el código sin (a) la cita en el bloque roxygen, (b) un test unitario con un ejemplo numérico de la fuente y (c) una fila en esta tabla. Esta tabla se exporta al repo como `docs/VERIFICATION.md` y se actualiza en cada PR que toque una fórmula.
+**Regla para el desarrollo:** ningún coeficiente entra en el código sin (a) la cita en el bloque roxygen, (b) un test unitario con un ejemplo numérico de la fuente y (c) una fila en esta tabla. Esta tabla vive en esta sección de `docs/SPEC.md` y se actualiza en cada PR que toque una fórmula.
 
 ## Referencias
 
