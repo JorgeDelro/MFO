@@ -14,6 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      # include the Stan tests of MFO_bayes(), so its code counts as covered
+      MFO_STAN_TESTS: 'true'
 
     steps:
       - uses: actions/checkout@v6
@@ -22,7 +24,9 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::covr, any::xml2
+          # headers rstan needs to compile Stan models (LinkingTo, not installed with
+          # the rstan binary)
+          extra-packages: any::covr, any::xml2, any::BH, any::StanHeaders, any::RcppEigen, any::RcppParallel
           needs: coverage
 
       - name: Test coverage

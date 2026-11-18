@@ -52,6 +52,21 @@
   Without `age`, `MFO()` says once per session that the HR criterion was not
   evaluated.
 
+* `MFO_bayes()` fits the SIN model in g/min (or a P3) as a Bayesian model
+  with brms on Stan (SPEC 13.2; brms and rstan in Suggests) and returns
+  posterior medians and credible intervals of MFO, Fatmax, Fatmin, the
+  Fatmax zone, d, s and t, the contraction of each quantity (labelled
+  `prior-dominated` below 0.5), the largest posterior correlation among
+  d, s and t, and the sampler diagnostics. The SIN is parametrised by MFO,
+  Fatmax, Fatmin and s, with d and t from the closed forms of Fatmax and
+  Fatmin; priors Fatmax ~ N(50, 15) on (10, 90), Fatmin ~ N(90, 14) on
+  (Fatmax, 100), s ~ LogNormal(0, 0.3) and MFO ~ N(0.45, 0.25) above 0. The
+  priors first proposed in SPEC 13.2, on d, s and t, covered the true s in
+  7-10 % of simulated tests where t is far from 0. `sigma = "proportional"` lets the error grow
+  with intensity; `adapt_delta = 0.99` by default. `MFO_prior_check()`
+  draws the curves implied by the priors. It does not replace `MFO()` and
+  is not part of `MFOs()`. New vignette `vignette("bayes")`.
+
 * `MFO_kinetics()` gains `fit = c("normalised", "absolute")` (SPEC 13.2).
   `"absolute"` fits fat oxidation in g/min with MFO as a fourth parameter
   (`MFO_SIN`), so it has no bias from normalising by the highest observed
