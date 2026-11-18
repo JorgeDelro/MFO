@@ -4,7 +4,9 @@
 #   Rscript -e "devtools::load_all(); source('inst/validation/bayes_s_prior.R')" --args <part> <out.csv>
 # part "sprior": s ~ LogNormal(0, 0.5) and (0, 0.6) in the sedentary cell at
 # 5 % noise and the trained cell at 10 %; part "iter": iter = 4000 with the
-# default s prior in both trained cells. Resumable.
+# default s prior in both trained cells; part "sprior4000": s ~ LogNormal(0,
+# 0.5) with iter = 4000 in the sedentary 5 % and trained 10 % cells (the
+# condition for adopting it, Jorge 2026-11-18). Resumable.
 source(file.path("inst", "validation", "bayes_options.R"))
 args <- setdiff(commandArgs(trailingOnly = TRUE), "--args")
 part <- args[1]
@@ -32,6 +34,9 @@ prior_s <- function(sd) {
 cells <- if (part == "sprior") {
   expand.grid(s_sd = c(0.5, 0.6), cell = c("sedentary_0.05", "trained_0.10"),
               iter = 2000, stringsAsFactors = FALSE)
+} else if (part == "sprior4000") {
+  expand.grid(s_sd = 0.5, cell = c("sedentary_0.05", "trained_0.10"), iter = 4000,
+              stringsAsFactors = FALSE)
 } else {
   expand.grid(s_sd = 0.3, cell = c("trained_0.05", "trained_0.10"), iter = 4000,
               stringsAsFactors = FALSE)
