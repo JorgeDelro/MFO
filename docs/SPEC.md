@@ -195,7 +195,7 @@ Un mismo test produce varias cifras y cada una responde a una pregunta distinta.
 | Fatmax | %HRmax | HR a Fatmax / HRmax × 100 | Prescripción sin analizador; referencia recomendada en obesidad |
 | Zona Fatmax | %VO2max (inferior, superior) | Intensidades con FAT ≥ 90 % del MFO | Margen de prescripción |
 | Punto de cruce | %VO2max | Donde CHO supera a FAT | Marcador de dependencia de hidratos |
-| Fatmin | %VO2max | Primera intensidad por encima de Fatmax con %MFO < 5 % (SIN) | Límite superior de uso relevante de grasa |
+| Fatmin | %VO2max | Segundo cero del SIN, (π + d − t)/K (desde la 0.2.1); `fatmin_threshold` opcional para un umbral en fracción del MFO | Límite superior de uso relevante de grasa |
 | d, s, t | adimensional | Parámetros del SIN | Forma de la curva; comparación pre-post |
 | Basal: VO2, RER, CHO, FAT, kcal | mL/min, –, g/min, kcal/min | Ventana estable de reposo (Frayn) | Control de calidad del ayuno; punto 0 de la curva |
 
@@ -223,7 +223,7 @@ El ICC indica cuánto de la variabilidad total es diferencia real entre personas
 
 **Incertidumbre del propio ajuste.** Independientemente del error biológico y del analizador, el P3 y el SIN se ajustan a 6–10 puntos ruidosos, y la posición del máximo tiene incertidumbre estadística propia. Hay dos formas de cuantificarla: (a) bootstrap de residuos (reajustar la curva cientos de veces con residuos remuestreados y tomar los percentiles 2,5 y 97,5 de MFO y Fatmax); (b) un ajuste bayesiano del SIN o del P3 (p. ej., con `brms`), que devuelve distribuciones posteriores de MFO, Fatmax, d, s y t y permite incorporar priors informativos sobre la forma de la curva, muy útil cuando hay pocos escalones y el ajuste clásico no converge. Un intervalo creíble ancho para Fatmax es, en sí mismo, un resultado: dice que la curva es plana y que la prescripción tiene margen.
 
-**Lo que hará el paquete.** (1) `MFO_reliability()`: a partir de dos o más tests por persona, ICC(2,1) con IC 95 %, SEM, MDC95, CV y gráfico de Bland-Altman. (2) `MFO(..., ci = "bootstrap")`: IC 95 % para MFO, Fatmax y la zona Fatmax. (3) `MFO_bayes()`: versión bayesiana del P3/SIN con intervalos creíbles. (4) En la app, el informe individual mostrará siempre el intervalo junto al valor puntual y, si hay un test previo, comparará el cambio con el MDC del laboratorio.
+**Lo que hará el paquete.** (1) `MFO_reliability()`: a partir de dos o más tests por persona, ICC(2,1) con IC 95 %, SEM, MDC95, CV y gráfico de Bland-Altman. (2) `MFO(..., ci = "parametric")` (recomendado; también `"bootstrap"`, por defecto `"none"`): IC 95 % para MFO, Fatmax y la zona Fatmax. (3) `MFO_bayes()`: versión bayesiana del P3/SIN con intervalos creíbles. (4) En la app, el informe individual mostrará siempre el intervalo junto al valor puntual y, si hay un test previo, comparará el cambio con el MDC del laboratorio.
 
 ## 9. El paquete MFO (v0.2.0): arquitectura, flujo y correspondencia función-ecuación
 
@@ -366,8 +366,8 @@ La v0.3.0 convierte el paquete de una calculadora de MFO/Fatmax en una herramien
 
 | Función nueva o ampliada | Entrada | Salida principal | Sección |
 | --- | --- | --- | --- |
-| `MFO(..., ci = c("none","bootstrap"), n_boot = 2000)` | Como v0.2.0 + columna `Load` opcional | MFO y Fatmax con IC 95 %; Fatmax en W/km/h | 13, 14, 15 |
-| `MFO_kinetics(..., ci = "bootstrap")` | `MFO_db` | d, s, t, Fatmax\_SIN, Fatmin con IC | 13 |
+| `MFO(..., ci = c("none","bootstrap","parametric"), B = 2000)`; `"parametric"` es el recomendado (§13.1, §17) | Como v0.2.0 + columna `Load` opcional | MFO y Fatmax con IC 95 %; Fatmax en W/km/h | 13, 14, 15 |
+| `MFO_kinetics(..., ci = c("none","bootstrap","parametric"), B = 2000)`; `"parametric"` es el recomendado (§13.1, §17) | `MFO_db` | d, s, t, Fatmax\_SIN, Fatmin con IC | 13 |
 | `MFO_bayes(MFO_db, model = c("P3","SIN"), priors)` | `MFO_db` | Posteriores de MFO, Fatmax, d, s, t; intervalos creíbles; diagnósticos | 13 |
 | `MFO_reliability(results, id, session)` | Tabla de `MFOs()` con ≥ 2 sesiones por persona | ICC(2,1) + IC, SEM, MDC95, CV, sesgo, Bland-Altman | 12 |
 | `MFO_protocol(type, step_duration, increments, ...)` | Descripción del protocolo | Objeto de protocolo que guía el promediado (escalón, rampa, relativo) | 14 |
@@ -397,7 +397,7 @@ La v0.3.0 convierte el paquete de una calculadora de MFO/Fatmax en una herramien
 
 **Salida.** Tabla con una fila por variable (MFO, MFO/FFM, Fatmax %VO2max, Fatmax %HRmax, Fatmax W, zona inferior/superior, d, s, t) y columnas ICC \[IC\], SEM, MDC95, CV, sesgo \[IC\], LoA; gráficos de Bland-Altman; y un objeto `reliability` que `MFO_report()` usa para marcar si un cambio pre-post individual supera el MDC del laboratorio.
 
-**Uso con datos simulados.** Mientras no haya test-retest reales, el paquete incluirá `simulate_MFO_sessions()` que genera pares de curvas con error biológico (CV 10–20 %) y error del analizador (±1–2 % en VO2 y VCO2, correlacionado) a partir de los parámetros publicados; sirve para los tests unitarios y para que la app muestre el módulo con datos de ejemplo.
+**Uso con datos simulados.** Mientras no haya test-retest reales, el paquete incluirá `simulate_MFO_sessions()` que genera pares de curvas con error biológico (CV 10–20 %) y error de medida dentro de la sesión definido como en §17: ruido en la FAT de cada escalón respecto a la curva verdadera (`fat_noise_cv`); el ruido de los gases por registro (`noise_cv`, `noise_cor`) queda como opción, con `noise_cor = 0` por defecto y sin valor real asignado; sirve para los tests unitarios y para que la app muestre el módulo con datos de ejemplo.
 
 ## 13. Incertidumbre del ajuste: bootstrap y modelo bayesiano
 
@@ -428,9 +428,33 @@ Con ruido (`inst/validation/sin_noise.R`; 200 tests por CV, 8 escalones, forma e
 
 Tests con |error de d| > 1: 37 y 46 (CV 5 %), 50 y 67 (CV 10 %), normalizado y absoluto.
 
-**Soporte del SIN en Stan (decisión de Jorge, 17 nov 2026).** Fuera de sus dos ceros la base u = π^(1/s)/(π + 2d)·(Kx + d + t) es negativa y u^s da NaN con s no entero: el modelo usa FAT = MFO·sin(max(u, 0)^s), recortado a 0 tras Fatmin, igual que `simulate_MFO_sessions()`.
+**Soporte del SIN en Stan (decisión de Jorge, 17 nov 2026).** Fuera de sus dos ceros la base u = π^(1/s)/(π + 2d)·(Kx + d + t) es negativa y u^s da NaN con s no entero: el modelo usa FAT = MFO·sin(min(max(u, 0)^s, π)), que vale 0 antes del primer cero y después de Fatmin, igual que `simulate_MFO_sessions()`. Los recortes se escriben con `abs()` y π como número, (v + |v|)/2 y (v + π − |v − π|)/2, para que la fórmula sea válida también en R (`loo()` la evalúa allí). Los recortes tienen un vértice en los ceros; se sospecha que causan parte de las divergencias (issue #44).
 
-A diferencia de la implementación clásica, el SIN bayesiano se ajusta en g/min directamente (MFO como parámetro de escala), sin la normalización previa por el máximo observado ni el suavizado con P3, lo que elimina dos pasos que introducen sesgo (§9.5). Priors por defecto, débilmente informativos y justificados por la literatura: MFO \~ Normal(0,45, 0,25) truncada en 0 (rango de Maunder 2018 y Amaro-Gahete 2018); d \~ Normal(0, 0,3); s \~ LogNormal(0, 0,3) (s > 0, centrado en 1); t \~ Normal(0, 0,2); σ \~ Exponential(10). El usuario puede sustituirlos (p. ej., priors de deportistas de resistencia). Salida: posteriores y intervalos creíbles del 95 % para MFO, Fatmax (derivado numéricamente de cada muestra posterior), zona Fatmax, Fatmin, d, s, t; diagnósticos (R-hat, ESS, divergencias) y gráfico de curvas posteriores. Ventajas concretas: converge donde `nlsLM` cae en la solución trivial (pocos escalones, curvas planas), permite comparar pre-post como distribución de la diferencia, y escala a un modelo jerárquico multi-participante (priors de grupo) en una versión posterior.
+**Parametrización (decisión de Jorge, 18 nov 2026).** A diferencia de la implementación clásica, el SIN bayesiano se ajusta en g/min directamente (MFO como parámetro de escala), sin la normalización previa por el máximo observado ni el suavizado con P3, lo que elimina dos pasos que introducen sesgo (§9.5). Los parámetros muestreados son **(MFO, Fatmax, Fatmin, s)**, las magnitudes que los datos informan; d y t se obtienen en cada muestra invirtiendo las formas cerradas de §6.5, con K = π/100 y a = 2^(−1/s):
+
+```latex
+t = \pi + d - K\,\text{Fatmin}, \qquad d = \frac{\pi(1-a) + K(\text{Fatmax} - \text{Fatmin})}{2(a-1)}
+```
+
+(álgebra comprobada con un test frente a las formas cerradas, diferencias < 1e-12). Fatmin se muestrea como Fatmax + (100 − Fatmax)·logit⁻¹(g), de modo que siempre queda entre Fatmax y 100 % VO2max; su prior normal truncado entra como término propio del modelo con el jacobiano de esa transformación. La zona Fatmax (FAT ≥ 0,90·MFO) también sale de formas cerradas en cada muestra, con asin(0,9).
+
+Por qué no (d, s, t): con la parametrización original la posterior tiene una cresta (correlación de s y t ≈ 0,96) cuya posición fijan los priors. Con los priors propuestos al principio en esta sección (d \~ Normal(0, 0,3); s \~ LogNormal(0, 0,3); t \~ Normal(0, 0,2), centrados en el SIN básico) los intervalos del 95 % de s cubrían el valor verdadero en solo el 7–10 % de los tests simulados en que t está lejos de 0, y la mediana a priori de Fatmin era 99,9 % VO2max. Se conservan en la viñeta `bayes` como motivación.
+
+**Priors por defecto** (elección débilmente informativa de los autores, no estimaciones de la literatura; el usuario puede sustituirlos con `priors` y revisarlos con `MFO_prior_check()`):
+
+| Parámetro | Prior | Justificación |
+| --- | --- | --- |
+| MFO (g/min) | Normal(0,45, 0,25) truncada en 0 | Por encima de la media normativa de adultos sedentarios (0,34 ± 0,10; Amaro-Gahete, Sánchez-Delgado y Ruiz, 2018, Tabla 1), con DE inflada para cubrir entrenados |
+| Fatmax (% VO2max) | Normal(50, 15) truncada en (10, 90) | Entre el valor normativo de sedentarios (44,2 ± 12,4; misma tabla) y el de hombres entrenados (64 %; Achten, Gleeson y Jeukendrup, 2002), con DE inflada |
+| Fatmin (% VO2max) | Normal(90, 14) truncada en (Fatmax, 100); argumento `fatmin_prior` | 90,1 ± 14,1 en Chenevière et al. (2009) |
+| s | LogNormal(0, 0,3) | Elección débil centrada en la curva simétrica (s = 1); no hay fuente poblacional de s |
+| σ | Exponential(10) (`sigma = "constant"`, defecto) | Opción `"proportional"`: σᵢ = σ₁₀₀·xᵢ/100 con log σ₁₀₀ \~ Normal(log 0,1, 1); la comparación con `loo()` de la viñeta es ilustrativa |
+
+Muestreo: 4 cadenas × 2000 iteraciones, `adapt_delta = 0,99`; se recomienda `iter = 4000` para Fatmax alto (R-hat > 1,01 en 5 → 0 de 100 tests de la celda entrenada). Salida: mediana e intervalo creíble del 95 % de MFO, Fatmax, Fatmin, zona Fatmax, d, s y t; contracción 1 − Var(posterior)/Var(prior) con la etiqueta "prior-dominated" por debajo de 0,5; diagnósticos (R-hat, ESS, divergencias, |r| máxima entre d, s y t, con la nota fija de que d, s y t están mal identificados entre sí y lo interpretable es MFO, Fatmax y Fatmin). Validación en §17 y `inst/validation/bayes_*.R`.
+
+**Limitación: sesgo residual de Fatmax.** Con los priors por defecto, Fatmax se infraestima: mediana del error −1,15 % VO2max (sedentarios, CV 5 %) y −1,58 (entrenados por Fatmax y Fatmin, CV 10 %); cobertura 0,88 en ambas celdas, con los fallos casi todos por infraestimación. Parte se debe al prior de s, centrado en 1 cuando la verdad simulada es s = 1,52: con LogNormal(0, 0,5) el sesgo baja a −0,70 y −0,87, pero con 4000 iteraciones el 9 % y el 14 % de los ajustes tienen transiciones divergentes, por encima del 0–2 % exigido, así que el defecto sigue siendo LogNormal(0, 0,3) (decisión de Jorge, 18 nov 2026; issue #44). Escala: el error típico de Fatmax de los ajustes clásicos en los mismos tests es 1,6 (CV 5 %) y 2,6 % VO2max (CV 10 %) con el SIN absoluto (mediana del error absoluto) y 2,5–3,1 y 4,1–5,0 con P3 (RMSE): el sesgo es menor que el error de un test, pero sistemático. Documentado en `?MFO_bayes` y en la viñeta `bayes`.
+
+Ventajas concretas: converge donde `nlsLM` cae en la solución trivial (pocos escalones, curvas planas), permite comparar pre-post como distribución de la diferencia (issue #34) y escala a un modelo jerárquico multi-participante (priors de grupo) en una versión posterior.
 
 **13.3 Cómo se presenta al usuario.** Siempre tres números por magnitud: estimación, IC/intervalo creíble del ajuste y, si existe `reliability`, MDC del laboratorio. Regla de interpretación en el informe: un cambio pre-post se califica de "probable" si los intervalos del ajuste no se solapan y de "detectable" si además supera el MDC95.
 
@@ -521,7 +545,7 @@ Cada importador se desarrollará a partir de un fichero real anonimizado incluid
 
 Anchuras de Fatmax y Fatmin en % VO2max y de MFO_SIN en g/min. Con CV 20 %, 13 de 200 tests sin ajuste en cada caso. El absoluto cubre cerca del 95 %; el normalizado se queda corto y empeora con el ruido (su sesgo de normalización).
 
-Caso ideal (P2 sobre una parábola, 8 escalones, errores normales; 500 tests): cobertura de Fatmax 0,944 con el paramétrico de σ sorteada frente a 0,882 con el bootstrap de residuos (≈ P(|t₅| < 1,96) = 0,893). Decisiones (Jorge, 17 nov 2026): `ci = "parametric"` es el intervalo recomendado (`ci = TRUE`); MRER se mantiene por comparabilidad, no recomendado como principal; P2 avisa cuando el vértice cae fuera del rango medido. La verdad SIN favorece a los modelos más parecidos a un SIN (P3). Filas de P2 repetidas tras el arreglo de #38 (parábola sin máximo → MV): tests con c ≥ 0, 0/200 con CV 5 %, 0–1 con 10 %, 5–12 con 20 %; no explican las anchuras enormes de P2, que vienen de réplicas con curvatura negativa casi nula (vértice extrapolado lejos del rango medido). (4) Fiabilidad: comparar `MFO_reliability()` con `psych::ICC` e `irr` en datos simulados y con los estadísticos publicados por Chrzanowski-Smith et al. (2020) sobre su dataset abierto. (5) Importadores: igualdad exacta con cálculos manuales sobre los ficheros de `inst/extdata`.
+Caso ideal (P2 sobre una parábola, 8 escalones, errores normales; 500 tests): cobertura de Fatmax 0,944 con el paramétrico de σ sorteada frente a 0,882 con el bootstrap de residuos (≈ P(|t₅| < 1,96) = 0,893). Decisiones (Jorge, 17 nov 2026): `ci = "parametric"` es el intervalo recomendado (`ci = TRUE`); MRER se mantiene por comparabilidad, no recomendado como principal; P2 avisa cuando el vértice cae fuera del rango medido. La verdad SIN favorece a los modelos más parecidos a un SIN (P3). Filas de P2 repetidas tras el arreglo de #38 (parábola sin máximo → MV): tests con c ≥ 0, 0/200 con CV 5 %, 0–1 con 10 %, 5–12 con 20 %; no explican las anchuras enormes de P2, que vienen de réplicas con curvatura negativa casi nula (vértice extrapolado lejos del rango medido). (4) Fiabilidad: comparar `MFO_reliability()` con `psych::ICC` en datos simulados (`simulate_MFO_sessions()`); no disponemos del dataset de Chrzanowski-Smith et al. (2020). (5) Importadores: igualdad exacta con cálculos manuales sobre los ficheros de `inst/extdata`.
 
 **Infraestructura.** GitHub Actions (R CMD check en tres sistemas, cobertura ≥ 85 % con `covr`), pkgdown con vignettes "De los gases al Fatmax", "Fiabilidad de tu laboratorio" y "Incertidumbre bayesiana", NEWS por versión, issues públicas para cada punto de esta Parte II, y releases etiquetadas. Esto construye el historial público que JOSS exige.
 
@@ -598,7 +622,7 @@ Cada coeficiente y regla que usará el paquete se ha contrastado con la fuente p
 
 **Regla de procedencia (Jorge, 10 nov 2026): coeficiente impreso en la fuente > coeficiente derivado; derivado solo donde la fuente no imprime ecuación.** Si la fuente imprime la ecuación, se usa tal cual y se cita por tabla o ecuación; la derivación desde sus constantes (sistema 2×2) queda como test cruzado con tolerancia absoluta acorde al redondeo (0,006 en Jeukendrup y Wallis). Si no la imprime (Péronnet y Massicotte; reposo con Jeukendrup y Wallis), se deriva en código y la derivación se explica en roxygen.
 
-**Regla para el desarrollo:** ningún coeficiente entra en el código sin (a) la cita en el bloque roxygen, (b) un test unitario con un ejemplo numérico de la fuente y (c) una fila en esta tabla. Esta tabla se exporta al repo como `docs/VERIFICATION.md` y se actualiza en cada PR que toque una fórmula.
+**Regla para el desarrollo:** ningún coeficiente entra en el código sin (a) la cita en el bloque roxygen, (b) un test unitario con un ejemplo numérico de la fuente y (c) una fila en esta tabla. Esta tabla vive en esta sección de `docs/SPEC.md` y se actualiza en cada PR que toque una fórmula.
 
 ## Referencias
 
@@ -672,4 +696,4 @@ Herramientas relacionadas y verificación (secciones 18–19)
 - Brun JF, Varlet-Marie E, Romain AJ, Mercier J (2012). Measurement and physiological relevance of the maximal lipid oxidation rate during exercise (LIPOXmax). IntechOpen. [enlace](https://core.ac.uk/download/322406893.pdf)
 - Protocolos registrados que transcriben las ecuaciones de Jeukendrup-Wallis y Péronnet-Massicotte: NCT03574987, NCT03851744, NCT06164665, NCT05078138 (ClinicalTrials.gov).
 
-*Nota: las referencias de 2025–2026 se han verificado en línea el 6 de noviembre de 2026; las de 2014–2020 sobre fiabilidad y los valores normativos de 2018 se han verificado en PMC el mismo día; las clásicas (1983–2017) y las de estadística se citan de memoria bibliográfica y deben cotejarse al preparar el `paper.md`.*
+*Nota: las referencias de 2025–2026 se han verificado en línea el 6 de noviembre de 2026; las de 2014–2020 sobre fiabilidad y los valores normativos de 2018 se han verificado en PMC el mismo día; las demás se han cotejado en los puntos que recoge §19. **Siguen sin cotejar con la fuente** y deben revisarse al preparar el `paper.md`: Efron y Tibshirani (1993); Weir (2005); De Souza Silveira et al. (2016); Randell et al. (2017); Pérez-Martín et al. (2001); Achten et al. (2002), texto completo (solo se ha leído el resumen). Cotejadas en parte (§19): Davison y Hinkley (1997), ecuación pendiente; Gelman et al. (2013), apartado pendiente; Howley et al. (1995), umbrales de RER y FC pendientes del texto completo. Montes de Oca et al. (2021), Chenevière et al. (2010) y Brun et al. (2012) no tienen fila en §19.*
