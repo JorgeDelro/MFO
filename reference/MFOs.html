@@ -88,7 +88,8 @@ Supports all parameters from the MFO() and MFO_kinetics() functions.</p>
 <span>  ci <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"parametric"</span>, <span class="st">"bootstrap"</span><span class="op">)</span>,</span>
 <span>  B <span class="op">=</span> <span class="fl">2000</span>,</span>
 <span>  conf <span class="op">=</span> <span class="fl">0.95</span>,</span>
-<span>  seed <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  seed <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  sin_fit <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"normalised"</span>, <span class="st">"absolute"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -245,10 +246,15 @@ databases. Default "Load"; the column is optional. See [MFO()].</p></dd>
 
 
 <dt id="arg-ci-b-conf-seed">ci, B, conf, seed<a class="anchor" aria-label="anchor" href="#arg-ci-b-conf-seed"></a></dt>
-<dd><p>bootstrap confidence intervals of the fit, passed to
+<dd><p>confidence intervals of the fit, passed to [MFO_kinetics()] and
 [MFO()]: `ci` is `"none"` (default), `"parametric"` (also `TRUE`) or
 `"bootstrap"`. The same `seed` is used for every
 participant.</p></dd>
+
+
+<dt id="arg-sin-fit">sin_fit<a class="anchor" aria-label="anchor" href="#arg-sin-fit"></a></dt>
+<dd><p>`"normalised"` (default) or `"absolute"` fit of the SIN
+model. See [MFO_kinetics()].</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -283,6 +289,10 @@ participant.</p></dd>
 <li><p>s: SIN symmetry parameter.</p></li>
 <li><p>Fatmin: Fatmin from SIN model (% VO2max).</p></li>
 <li><p>FatMax_SIN: FatMax from SIN model (% VO2max).</p></li>
+<li><p>FatMax_SIN_lower, FatMax_SIN_upper, Fatmin_lower, Fatmin_upper:
+  confidence limits of the SIN fit with `ci`, otherwise `NA`.</p></li>
+<li><p>MFO_SIN: MFO of the SIN curve with `sin_fit = "absolute"`, otherwise `NA`.</p></li>
+<li><p>sin_fit: SIN fit used.</p></li>
 <li><p>SIN_R_squared: R-squared of SIN model.</p></li>
 <li><p>SIN_convergence: whether the SIN model was fitted.</p></li>
 <li><p>CHO_g_basal: Basal CHO oxidation (g/min).</p></li>

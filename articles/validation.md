@@ -233,9 +233,11 @@ truth.](validation_files/figure-html/fig-bias-1.png)
 
 - **`ci = "parametric"`** (or `ci = TRUE`) with **P3**: the closest to
   the nominal 95 %, with intervals that narrow as steps are added.
-- **P2** is nearly unbiased at low noise, but at 10-20 % noise its
-  vertex can fall far outside the measured intensities;
-  [`MFO()`](https://jorgedelro.github.io/MFO/reference/MFO.md) warns and
+- **P2** is nearly unbiased at low noise, but it is not recommended with
+  high noise: its vertex, -b / (2c), is unstable when the curvature is
+  close to 0 and can fall far outside the measured intensities. The
+  warning of a vertex outside the measured range is the signal;
+  [`MFO()`](https://jorgedelro.github.io/MFO/reference/MFO.md) also
   flags the interval then.
 - **MRER** overestimates Fatmax by 3-4 %VO2max and MFO by 3-7 % against
   SIN curves, and its interval is centred on that bias. It is kept for

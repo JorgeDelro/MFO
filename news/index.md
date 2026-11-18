@@ -72,6 +72,24 @@
         [`MFO()`](https://jorgedelro.github.io/MFO/reference/MFO.md)
         says once per session that the HR criterion was not evaluated.
 
+- [`MFO_kinetics()`](https://jorgedelro.github.io/MFO/reference/MFO_kinetics.md)
+  gains `fit = c("normalised", "absolute")` (SPEC 13.2). `"absolute"`
+  fits fat oxidation in g/min with MFO as a fourth parameter
+  (`MFO_SIN`), so it has no bias from normalising by the highest
+  observed step: in noiseless simulated tests it recovered d, s, t,
+  Fatmax, Fatmin and MFO to 1e-6 with Fatmax between steps, where the
+  normalised fit gave d = 0.234 instead of 0.18. With noise it removes
+  the bias of d and Fatmin but not their spread; d is poorly identified
+  with noisy data. The default stays `"normalised"` (Chenevière et
+  al. 2009) and is to be reviewed at 0.3.0-beta.1.
+  [`MFO_kinetics()`](https://jorgedelro.github.io/MFO/reference/MFO_kinetics.md)
+  also gains `ci`, `B`, `conf` and `seed` (intervals for d, s, t,
+  Fatmax, Fatmin and MFO_SIN; leverage from the gradient of the fit for
+  the bootstrap).
+  [`MFOs()`](https://jorgedelro.github.io/MFO/reference/MFOs.md) gains
+  `sin_fit` and reports `MFO_SIN`, `FatMax_SIN_lower/upper` and
+  `Fatmin_lower/upper`.
+
 - [`MFO()`](https://jorgedelro.github.io/MFO/reference/MFO.md) and
   [`MFOs()`](https://jorgedelro.github.io/MFO/reference/MFOs.md) gain
   `ci = c("none", "bootstrap")`, `B` (2000), `conf` (0.95) and `seed`

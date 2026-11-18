@@ -45,7 +45,8 @@ MFOs(
   ci = c("none", "parametric", "bootstrap"),
   B = 2000,
   conf = 0.95,
-  seed = NULL
+  seed = NULL,
+  sin_fit = c("normalised", "absolute")
 )
 ```
 
@@ -208,9 +209,15 @@ MFOs(
 
 - ci, B, conf, seed:
 
-  bootstrap confidence intervals of the fit, passed to \[MFO()\]: \`ci\`
-  is \`"none"\` (default), \`"parametric"\` (also \`TRUE\`) or
-  \`"bootstrap"\`. The same \`seed\` is used for every participant.
+  confidence intervals of the fit, passed to \[MFO_kinetics()\] and
+  \[MFO()\]: \`ci\` is \`"none"\` (default), \`"parametric"\` (also
+  \`TRUE\`) or \`"bootstrap"\`. The same \`seed\` is used for every
+  participant.
+
+- sin_fit:
+
+  \`"normalised"\` (default) or \`"absolute"\` fit of the SIN model. See
+  \[MFO_kinetics()\].
 
 ## Value
 
@@ -277,6 +284,14 @@ Data frame with one row per participant containing:
 - Fatmin: Fatmin from SIN model (% VO2max).
 
 - FatMax_SIN: FatMax from SIN model (% VO2max).
+
+- FatMax_SIN_lower, FatMax_SIN_upper, Fatmin_lower, Fatmin_upper:
+  confidence limits of the SIN fit with \`ci\`, otherwise \`NA\`.
+
+- MFO_SIN: MFO of the SIN curve with \`sin_fit = "absolute"\`, otherwise
+  \`NA\`.
+
+- sin_fit: SIN fit used.
 
 - SIN_R_squared: R-squared of SIN model.
 
