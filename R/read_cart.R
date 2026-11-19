@@ -61,7 +61,8 @@
 #'   breath-by-breath files.
 #' \item `sheets` reads the phases from the sheets of an xlsx file,
 #'   `c(basal = , MFO = , graded = )` (any of them), as an alternative to
-#'   `cuts`; one unnamed sheet is the phase named in `phase`.
+#'   `cuts`; one unnamed sheet is the recording, the phase named in `phase`
+#'   or split by `cuts`.
 #' }
 #'
 #' No personal data from the file are kept: the result holds only the
@@ -224,13 +225,14 @@ print.MFO_cart <- function(x, ...) {
     stop("sheets must be sheet names, e.g. c(basal = \"Rest\", MFO = \"MFO\").",
          call. = FALSE)
   }
-  if (!is.null(cuts)) stop("Use cuts or sheets, not both.", call. = FALSE)
   if (is.null(names(sheets))) {
     if (length(sheets) != 1) {
       stop("Name the sheets by phase: c(basal = , MFO = , graded = ).", call. = FALSE)
     }
-    return(read_one(sheets, phase, NULL))
+    # one sheet is the recording: the phase named in `phase`, or split by cuts
+    return(read_one(sheets, phase, cuts))
   }
+  if (!is.null(cuts)) stop("Use cuts or sheets named by phase, not both.", call. = FALSE)
   if (!all(names(sheets) %in% c("basal", "MFO", "graded")) || anyDuplicated(names(sheets))) {
     stop("sheets must be named basal, MFO and/or graded.", call. = FALSE)
   }

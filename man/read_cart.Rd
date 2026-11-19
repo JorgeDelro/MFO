@@ -122,7 +122,8 @@ columns are mapped with `columns`, as `col_name_*` in [MFO()] (SPEC 16):
   breath-by-breath files.
 \item `sheets` reads the phases from the sheets of an xlsx file,
   `c(basal = , MFO = , graded = )` (any of them), as an alternative to
-  `cuts`; one unnamed sheet is the phase named in `phase`.
+  `cuts`; one unnamed sheet is the recording, the phase named in `phase`
+  or split by `cuts`.
 }
 
 No personal data from the file are kept: the result holds only the

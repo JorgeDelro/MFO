@@ -166,7 +166,8 @@
   elapsed Time starting above 1 h stops with an error suggesting it),
   records already averaged by the analyser
   (`interval = "none"`, step read from `Time`, which must be regular) and one
-  xlsx sheet per phase (`sheets`, an alternative to `cuts`). Not yet
+  xlsx sheet per phase (`sheets`, an alternative to `cuts`; one unnamed
+  sheet is the recording and can be split by `cuts`). Not yet
   validated with a real export. Cuts now fall on the nearest record boundary
   of `Time`, which gives the same split as before for averaged breaths.
 
