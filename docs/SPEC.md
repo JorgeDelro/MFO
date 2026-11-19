@@ -537,9 +537,19 @@ El objetivo es que el usuario de la app suba el fichero tal y como sale del anal
 | Vyaire Vyntus CPX (SentrySuite) | csv/xlsx | Columnas duplicadas (BTPS/STPD); carga en W |
 | ZAN (ZAN 600 y otros, vía spiro) | Export de ZAN leído por `spiro` | Soportado desde la 0.3.0 porque `spiro` lo lee (decisión de Jorge, 17 nov 2026). **Sin fichero real de validación**: solo probado con los ficheros de ejemplo de `spiro` (`zan_gxt`, `zan_ramp`); unidad de la carga sin confirmar |
 | Parvo Medics TrueOne | txt/xlsx | Intervalos fijos; cabecera larga |
-| Genérico | csv/xlsx con mapeo manual de columnas (como en v0.2.0) | Interfaz de mapeo en la app |
+| Genérico (`device = "generic"`, #22) | csv/xlsx con mapeo manual de columnas (como en v0.2.0) | Hecho en la 0.3.0, sin `spiro`; ver «Lector genérico». **Sin fichero real de validación** (pedido al laboratorio el 19 nov 2026): probado con los datos de ejemplo escritos como csv/xlsx. Interfaz de mapeo en la app (#24) |
 
 Cada importador se desarrollará a partir de un fichero real anonimizado incluido en `inst/extdata`, que sirve de test (el importador debe reproducir exactamente los valores de escalón calculados a mano) y de ejemplo en la documentación. La app detectará el dispositivo por la cabecera y pedirá confirmación.
+
+**Lector genérico (`read_cart(device = "generic")`, #22; decisiones de Jorge, 19 nov 2026).** Lee csv (o txt/tsv) y xlsx y pasa por el mismo procesamiento que los demás importadores (unidades, promedio, RER y fases).
+
+- *Mapeo de columnas:* `columns = c(Time = , VO2 = , VCO2 = , RER = , HR = , Load = , VE = )`, con los nombres del contrato por defecto, como los `col_name_*` de la v0.2.0. Nombre exacto: si falta una columna, el error lista las del fichero. Solo se conservan las columnas mapeadas; la cabecera de metadatos (donde suele estar el nombre) no sale de la lectura.
+- *Cabecera:* `skip` líneas antes de la cabecera; con `units_row = TRUE`, la línea siguiente lleva las unidades. Una unidad de VO2 reconocida ("mL/min", "L/min", "mL/kg/min") es una declaración del fichero y se usa con un mensaje; `vo2_unit` explícito tiene prioridad. Sin unidad reconocida rige la regla automática de #16.
+- *Números:* `decimal = "."` por defecto; si los valores no se leen y llevan coma decimal, el error propone `decimal = ","`. Con `decimal = ","` un punto no se interpreta como separador de miles: el valor da error. El separador de campos del csv (tabulador, ";" o ",") se detecta en la línea de cabecera.
+- *Tiempo:* detección automática de segundos, mm:ss, hh:mm:ss y horas de Excel (fracciones de día, redondeadas al milisegundo); si no se reconoce, error con un valor de ejemplo. `time_origin = "elapsed"` (defecto): tiempo transcurrido desde el inicio del registro; si el primer valor supera 1 h, error que sugiere `"clock"`. `time_origin = "clock"` (hora del día): se resta el primer valor, de modo que `Time` cuenta desde el primer registro, y el valor restado se guarda en `info$time_offset` (decisión de Jorge, 19 nov 2026).
+- *Ficheros ya promediados:* `interval = "none"` conserva los registros tal como se exportan; `step_time` es el paso de `Time`, que debe ser regular (error si no). Un `interval` numérico es solo para breath-by-breath.
+- *Fases:* solo por `cuts` (no se lee una columna de fase), o por hojas de un xlsx, `sheets = c(basal = , MFO = , graded = )`, alternativa a `cuts`; las hojas deben tener el mismo paso.
+- `MFOs()` con ficheros de analizador queda para un issue aparte (#47).
 
 **Separación de fases.** Si el fichero contiene las tres fases en una sola serie temporal (frecuente en `single_day`), `read_cart()` las separa por marcadores del analizador o por tiempos que el usuario introduce; si hay dudas, la app muestra la serie y deja marcar los cortes.
 
