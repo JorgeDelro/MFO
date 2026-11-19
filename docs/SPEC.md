@@ -323,13 +323,23 @@ Cada punto de la hoja de ruta responde a una limitación identificada en §4–�
 - La capa bayesiana es opcional (`Suggests`), para no obligar a instalar Stan a quien solo quiera P3.
 - Los importadores de analizadores se basan en ficheros de ejemplo anonimizados incluidos en el paquete (`inst/extdata`), que sirven a la vez de tests y de tutorial.
 
-**Qué verá el usuario de la app** (decisiones de producto pendientes de confirmar):
+**Qué verá el usuario de la app** (decisiones de Jorge, 19 nov 2026; #24):
 
-1. Subir uno o varios ficheros (o una carpeta) y elegir el analizador de origen.
-2. Configurar protocolo: duración de escalón, tramo estable, ecuación, método, cutoff RER, política de negativos, VO2max.
-3. Ver la curva interactiva con MFO, Fatmax, zona, cruce y su IC; la cinética SIN; y las alertas de calidad (R² bajo, RER basal alto, escalones insuficientes).
-4. Descargar informe individual (PDF/HTML) con párrafo de métodos listo para un artículo, y tabla de grupo (xlsx/csv).
-5. Módulo de fiabilidad: subir dos sesiones por persona y obtener ICC/SEM/MDC del laboratorio.
+1. **Datos.** Subir varios ficheros o un zip (el navegador no permite subir carpetas) y elegir la fuente: csv/xlsx genérico con mapeo de columnas (incluye el formato xlsx de `MFOs()`) o export de un analizador leído por `spiro`; también, datos de ejemplo del paquete. Las fases se asignan con un fichero u hoja por fase, o con cortes sobre una única serie: se marcan arrastrando sobre la gráfica de VO2 frente al tiempo y se ajustan con campos numéricos. Los cortes usados se guardan en la descarga.
+2. **Protocolo y análisis.** Duración de escalón, tramo estable, ecuación, método, cutoff RER, política de negativos, VO2max.
+3. **Resultados.** Curva con MFO, Fatmax, zona, cruce y su IC (bootstrap bajo demanda, con barra de progreso); cinética SIN; alertas de calidad (los avisos y mensajes de `MFO()` se muestran en pantalla). El modelo bayesiano queda fuera de la app.
+4. **Informe y tabla de grupo.** Un participante cada vez; la tabla de grupo se acumula durante la sesión y se descarga en xlsx/csv. Informe individual en HTML (PDF desde el navegador) con: curva y tabla de resultados, IC si se calcularon, cinética SIN, zonas de FC (`MFO_zones()`), percentil con su cohorte y `reference_differences`, alertas de calidad, párrafo de métodos, versión del paquete y commit, fecha del análisis y cortes de fase usados. La plantilla del párrafo de métodos se aprueba por Jorge antes de programarla.
+5. **Fiabilidad.** `MFO_reliability()` sobre la tabla de grupo con una columna de sesión (como `sessions.csv`), sin volver a subir los ficheros.
+
+**Idioma.** Todas las cadenas de la interfaz están en un único fichero (`inst/app/i18n.csv`) desde el principio; inglés por defecto y español como segunda lengua en la 0.3.0, con selector en la barra.
+
+**Despliegue.** La beta.1 es solo local, con `MFO::run_app()`. Una demo pública, si se hace, solo con datos simulados o de ejemplo y sin subida de ficheros (los datos de participantes no se suben a servidores de terceros). Escritorio y Docker, en la 0.3.x.
+
+**Arquitectura de la app** (decisiones de Claude, una línea cada una):
+
+- Shiny puro con módulos en `R/` (`app_*.R`): golem convierte el paquete en una app con dependencia en ejecución y rhino es para apps independientes; los módulos se prueban con `shiny::testServer()` y entran en `covr`.
+- La app no contiene ciencia: solo llama a las funciones del paquete, así que no puede dar un resultado distinto del paquete.
+- `shiny` y `bslib` en `Suggests` con `requireNamespace()` en `run_app()`; gráficos con ggplot y la interacción de Shiny (hover, brush), sin plotly.
 
 ## 11. Interpretación práctica: deporte, salud y errores frecuentes
 
