@@ -482,20 +482,39 @@ La v0.2.0 asume escalones de igual duración desde el segundo 0. La v0.3.0 intro
 
 **15.1 Zona de prescripción en FC (`MFO_zones()`).** Para cada resultado se devuelve: HR a Fatmax (interpolada), HR en los límites de la zona Fatmax, y su expresión en %HRmax (medida en el test máximo, o teórica si el usuario la pide, indicando la fórmula). Cuando el usuario declara obesidad (porcentaje de grasa), el informe añade la recomendación de la meta-regresión de Chávez-Guevara et al. (2023): 61–66 % HRpeak con > 35 % de grasa corporal y 57–64 % HRpeak con < 35 %, y señala si la zona individual medida cae dentro o fuera de ese rango. La razón para preferir %HRpeak a %VO2max en obesidad es que la relación HR-VO2 es más estable que el VO2max medido, a menudo submáximo en estos pacientes.
 
-**15.2 Valores de referencia (`reference_MFO`).** El paquete incluirá una tabla interna con percentiles publicados, cada fila etiquetada con población, modalidad, protocolo, ecuación y método:
+**15.2 Valores de referencia (`reference_MFO`).** El paquete incluye el dataset exportado `reference_MFO`, generado por `data-raw/reference_MFO.R` a partir de la tabla 1 de Amaro-Gahete et al. (2018) (texto en `data-raw/Amaro_Gahete_2018.md`, verificado por Jorge el 19 nov 2026). Son percentiles empíricos P20/P40/P60/P80, media ± DE y N de 167 adultos sedentarios sanos (107 mujeres), en 12 filas: todos; por sexo; por grupo de edad; por sexo y grupo de edad; por estado ponderal. Cada fila lleva las condiciones del test, tal como las imprime la fuente:
 
-| Cohorte | Población | Modalidad / protocolo | MFO (g/min), media y P25–P75 | Fatmax (%VO2max) |
-| --- | --- | --- | --- | --- |
-| Amaro-Gahete et al. 2018 (FIT-AGEING / ACTIBATE) | 167 adultos sedentarios (107 mujeres), 18–65 años | Cinta, 3,5 km/h + 1 km/h/3 min; último minuto; Frayn | 0,34 ± 0,10; P25 0,30, P50 0,35, P75 0,42 | 44,2 ± 12,4; P25 39,6, P50 44,6, P75 54,1 |
-| — hombres sedentarios | 60 | id. | 0,37 ± 0,11 | 40,8 ± 11,0 |
-| — mujeres sedentarias | 107 | id. | 0,32 ± 0,10 | 46,1 ± 12,8 |
-| — jóvenes (22 años) vs mediana edad (52 años) | 125 / 42 | id. | 0,36 ± 0,11 / 0,29 ± 0,08 | 44,0 / 44,7 |
-| Maunder et al. 2018 | Síntesis de estudios en cicloergómetro, activos y deportistas | Cicloergómetro; varios | Percentiles derivados de media ± SD (no empíricos) | id. |
-| Randell et al. 2017 | 1.121 deportistas | Cinta | Gran variabilidad interindividual | — |
+| Campo | Valor en Amaro-Gahete et al. (2018) |
+| --- | --- |
+| Modalidad | Cinta, marcha (`mode = "walking"`) |
+| Protocolo | 3 min a 3,5 km/h (0 %), +1 km/h cada 3 min hasta la velocidad máxima de marcha; después +2 % de pendiente cada 3 min hasta RER ≥ 1,0 |
+| Promedio | Últimos 60 s de cada escalón |
+| Ecuación | Frayn (1983), sin proteína |
+| Método | Polinomio de tercer grado con intersección en (0;0) (Croci et al. 2014); distinto del `"P3"` libre del paquete |
+| Ayuno | 5–6 h (no nocturno) |
 
-La tabla de Amaro-Gahete et al. (2018) también desglosa por estado ponderal (normopeso 0,34; sobrepeso 0,33; obesidad 0,36 g/min, sin diferencias) y advierte que los percentiles de Maunder proceden de media y SD, no de distribuciones empíricas, y de cicloergómetro, por lo que no son trasladables a cinta. El paquete aplicará exactamente esa lógica: solo compara con una referencia cuya modalidad coincida y, si el protocolo difiere, lo dice en el informe.
+| Fila | N | MFO (g/min), media ± DE; P20/P40/P60/P80 | Fatmax (% VO2max), media ± DE; P20/P40/P60/P80 |
+| --- | --- | --- | --- |
+| Todos | 167 | 0,34 ± 0,10; 0,24/0,30/0,35/0,42 | 44,2 ± 12,4; 33,2/39,6/44,6/54,1 |
+| Hombres | 60 | 0,37 ± 0,11; 0,29/0,34/0,38/0,44 | 40,8 ± 11,0; 32,2/37,2/41,1/48,8 |
+| Mujeres | 107 | 0,32 ± 0,10; 0,24/0,28/0,33/0,40 | 46,1 ± 12,8; 34,8/42,1/47,8/55,9 |
+| Jóvenes | 125 | 0,36 ± 0,11; 0,28/0,32/0,36/0,44 | 44,0 ± 13,3; 32,5/39,0/43,2/54,6 |
+| Mediana edad | 42 | 0,29 ± 0,08; 0,22/0,24/0,28/0,38 | 44,7 ± 9,5; 35,8/41,4/46,0/53,4 |
+| Hombres jóvenes | 41 | 0,38 ± 0,12; 0,28/0,35/0,38/0,48 | 39,8 ± 11,7; 29,4/36,7/40,3/48,6 |
+| Mujeres jóvenes | 84 | 0,35 ± 0,09; 0,28/0,31/0,35/0,42 | 46,1 ± 13,6; 34,4/41,6/46,6/60,4 |
+| Hombres de mediana edad | 19 | 0,35 ± 0,07; 0,29/0,33/0,38/0,42 | 43,0 ± 9,3; 35,5/39,5/44,4/53,1 |
+| Mujeres de mediana edad | 23 | 0,24 ± 0,03; 0,22/0,23/0,24/0,27 | 46,1 ± 9,6; 39,0/42,7/50,1/54,4 |
+| Normopeso | 88 | 0,34 ± 0,11; 0,25/0,30/0,34/0,42 | 45,3 ± 12,7; 35,1/41,1/46,5/55,6 |
+| Sobrepeso | 50 | 0,33 ± 0,09; 0,24/0,30/0,35/0,41 | 42,7 ± 11,2; 32,7/39,1/42,7/53,1 |
+| Obesidad | 29 | 0,36 ± 0,12; 0,26/0,30/0,39/0,45 | 43,3 ± 13,5; 32,3/39,1/42,0/54,8 |
 
-**15.3 Posición relativa.** `MFO_zones()` devuelve el percentil aproximado del participante (interpolación en los percentiles publicados) para MFO absoluto, MFO/FFM cuando la referencia lo tenga, y Fatmax, con la etiqueta de la cohorte usada. Nunca se devuelve un percentil sin su cohorte.
+Subgrupos: la fuente no imprime los cortes de edad ni de IMC. Los grupos de edad son las dos cohortes, jóvenes (22,1 ± 2,2 años, n = 125) y de mediana edad (52,1 ± 4,6 años, n = 42); el estado ponderal (normopeso, sobrepeso, obesidad) no tiene umbrales publicados. Por eso el paquete no deduce el subgrupo de la edad ni del IMC numéricos: el usuario lo elige con argumentos explícitos `age_group` (`"young"`, `"middle-aged"`) y `weight_status` (`"normal"`, `"overweight"`, `"obese"`), documentados así. Donde el texto y la tabla 1 discrepan (Fatmax por estado ponderal: 45,9/42,6 en el texto frente a 45,3/42,7 en la tabla; DE del MFO en mediana edad: 0,78 en el texto frente a 0,08 en la tabla), se usa la tabla.
+
+Fuera de esta versión: MFO/FFM (la fuente da solo media ± DE por sexo, sin percentiles); Maunder et al. (2018), cuyos percentiles derivan de media y DE y proceden de cicloergómetro; y Randell et al. (2017), sin tabla de percentiles verificada. No hay referencias para deportistas.
+
+Amaro-Gahete et al. (2018) advierten que la modalidad (cicloergómetro, carrera, marcha) cambia MFO y Fatmax, y que su ayuno de 5–6 h difiere del nocturno de otras cohortes. El paquete aplicará esa lógica: solo compara con una referencia cuya modalidad coincida y declara en el informe cada diferencia de protocolo, ecuación, método o ayuno; en particular, el `"P3"` libre del paquete frente al P3 por el origen de la referencia, y el ayuno de 5–6 h.
+
+**15.3 Posición relativa.** `MFO_zones()` devuelve el percentil aproximado del participante (interpolación en los percentiles publicados) para MFO absoluto y Fatmax (MFO/FFM queda fuera: la referencia no tiene percentiles), con la etiqueta de la cohorte usada. Nunca se devuelve un percentil sin su cohorte.
 
 ## 16. Importadores de analizadores de gases y contrato de datos
 
@@ -603,7 +622,7 @@ Cada coeficiente y regla que usará el paquete se ha contrastado con la fuente p
 | Fiabilidad: CV Fatmax SIN 16,4 %, P3 18,6 %, MV 20,8 % | Igual | Croci 2014 (n = 15) | Verificado | Ninguna |
 | Fiabilidad histórica: CV Fatmax 9,6 %, Fatmin 9,4 % | Añadido | Achten y Jeukendrup 2003 (n = 10) | Verificado | Incluir en §12 |
 | Zonas %HRpeak en obesidad: 61–66 % (> 35 % grasa), 57–64 % (< 35 %) | Igual | Chávez-Guevara 2023 | Verificado | Ninguna |
-| Valores normativos sedentarios (0,34 ± 0,10 g/min; 44,2 ± 12,4 % VO2max; percentiles) | Igual | Amaro-Gahete FJ, Sanchez-Delgado G, Ruiz JR (2018). *Front Physiol* 9:1460, doi:10.3389/fphys.2018.01460, tabla 1, n = 167 adultos sedentarios: MFO 0,34 ± 0,10 g/min (P20/40/60/80: 0,24/0,30/0,35/0,42); Fatmax 44,2 ± 12,4 % VO2max (33,2/39,6/44,6/54,1); con desgloses por sexo, edad e IMC | Verificado sobre la tabla original (Jorge, 17 nov 2026) | Usos: (1) prior de MFO de `MFO_bayes()`, N(0,45; 0,25) truncada en 0, documentado como centrado por encima de la media normativa de sedentarios con DE inflada para cubrir entrenados; (2) valores de referencia de #15, mostrando siempre el N del subgrupo; (3) defectos "sedentario" de `simulate_MFO_sessions()` (MFO 0,34, Fatmax 44,2) |
+| Valores normativos sedentarios (0,34 ± 0,10 g/min; 44,2 ± 12,4 % VO2max; percentiles) | Igual | Amaro-Gahete FJ, Sanchez-Delgado G, Ruiz JR (2018). *Front Physiol* 9:1460, doi:10.3389/fphys.2018.01460, tabla 1: 12 filas (todos; sexo; grupo de edad; sexo × grupo de edad; estado ponderal) con N, media ± DE y P20/P40/P60/P80 de MFO y Fatmax; todos, n = 167: MFO 0,34 ± 0,10 g/min (0,24/0,30/0,35/0,42), Fatmax 44,2 ± 12,4 % VO2max (33,2/39,6/44,6/54,1). Condiciones: cinta, marcha, 3 min a 3,5 km/h, +1 km/h/3 min hasta velocidad máxima de marcha y después +2 %/3 min hasta RER ≥ 1,0; últimos 60 s; Frayn sin proteína; P3 por (0;0) (Croci 2014, citado a través de Amaro-Gahete 2018, sin cotejar); ayuno 5–6 h. Cortes de edad e IMC no publicados (jóvenes 22,1 ± 2,2 años, n = 125; mediana edad 52,1 ± 4,6, n = 42). MFO/FFM solo media ± DE | Verificado sobre la tabla original (Jorge, 17 nov 2026) y sobre el texto completo, `data-raw/Amaro_Gahete_2018.md` (Jorge, 19 nov 2026) | Usos: (1) prior de MFO de `MFO_bayes()`, N(0,45; 0,25) truncada en 0, documentado como centrado por encima de la media normativa de sedentarios con DE inflada para cubrir entrenados; (2) dataset `reference_MFO` de #15 (§15.2), generado desde la tabla 1 por `data-raw/reference_MFO.R`, con el N del subgrupo en cada fila y `age_group`/`weight_status` explícitos; el P3 por el origen y el ayuno de 5–6 h se declaran como diferencias; MFO/FFM fuera; si texto y tabla discrepan, manda la tabla; (3) defectos "sedentario" de `simulate_MFO_sessions()` (MFO 0,34, Fatmax 44,2) |
 | ICC(2,1), SEM = √MSE, MDC95 = 1,96√2·SEM | Igual | Weir 2005; Koo y Li 2016 | Verificado | Ninguna |
 | ICC(2,1) = ICC(A,1), fuente original | Dos factores aleatorios, acuerdo absoluto, medida única | Shrout PE, Fleiss JL (1979). *Psychol Bull* 86(2):420–428 | Verificado (Jorge, 17 nov 2026) | Citado en `MFO_reliability()` |
 | IC 95 % del ICC(A,1) por F | Aproximación de Satterthwaite (v) con cuantiles F(1 − α/2) | McGraw KO, Wong SP (1996). *Psychol Methods* 1(1):30–46, doi:10.1037/1082-989X.1.1.30, con la errata de la p. 390 | Fuente verificada (Jorge, 17 nov 2026); IC verificado **numéricamente** contra `psych::ICC` 2.6.9 (ICC2), que aplica la errata: coinciden hasta 1e-10 con 2 y 3 sesiones. **El texto de la errata (p. 390) no se ha consultado** | Implementado en `MFO_reliability()` |
