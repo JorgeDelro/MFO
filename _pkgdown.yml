@@ -77,11 +77,12 @@ reference:
   - simulate_MFO_sessions
   - write_MFO_sessions
 - title: Datasets
-  desc: Anonymised example recordings of one participant (20-s averages).
+  desc: Anonymised example recordings of one participant (20-s averages) and published reference values.
   contents:
   - basal_df
   - MFO_df
   - VO2max_df
+  - reference_MFO
 - title: Internal helpers
   desc: >
     Not exported; documented so that every step of `MFO()` can be traced.

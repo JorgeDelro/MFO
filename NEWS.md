@@ -170,6 +170,14 @@
   given (Sports Med Health Sci 2026, Marín-Galindo et al.). Automatic detection of the phases is left to the
   importers (SPEC 16).
 
+* New dataset `reference_MFO`: percentiles (P20, P40, P60, P80), mean, SD
+  and N of MFO and Fatmax in 167 sedentary adults, from Table 1 of
+  Amaro-Gahete, Sanchez-Delgado and Ruiz (2018, Front Physiol 9:1460), by
+  sex, age group, sex and age group, and weight status. Each row records the
+  test conditions (treadmill walking, last 60 s per step, Frayn without
+  protein, P3 through the origin, 5-6 h fasting) so that comparisons can
+  state how they differ (SPEC 15.2).
+
 ## Bug fixes
 
 * `method = "P2"` returned the vertex of the parabola as Fatmax even when
