@@ -602,6 +602,143 @@ knitr::kable(batch[, c("ID", "MFO_g_min", "FAT_MAX_perVO2max", "VO2max",
                        "Fatmin")], digits = 3)
 ```
 
+## 10. Heart-rate zones and reference values
+
+`MFO_zones()` turns a result into a prescription in heart rate and places
+MFO and Fatmax among published reference values. It takes the result of
+`MFO()` or the table of `MFOs()`.
+
+### 10.1 One participant
+
+```{r zones}
+zones <- MFO_zones(res)
+zones
+```
+
+Fatmax and the limits of the Fatmax zone are given in % VO2max, in bpm
+(interpolated linearly between steps, as `FAT_MAX_HR`) and in % HRmax. The
+HRmax is, in this order, the `HRmax` you give (here or in `MFO()`), the peak
+HR measured in the graded test (`HR_peak`: the highest mean HR over the same
+window as VO2max, `r res$VO2max_window` s here) or, only if you ask with
+`predicted_HRmax = TRUE` and `age`, the predicted HRmax of @tanaka2001
+(208 − 0.7 × age; `HRmax_formula = "fox"` for 220 − age). `HRmax_source` says
+which one was used. Here it is the measured peak, `r round(res$HR_peak)` bpm.
+
+### 10.2 No percentile for a cycling test
+
+The reference values are the percentiles of Table 1 of @amarogahete2018
+(dataset `reference_MFO`): 167 sedentary adults tested **walking on a
+treadmill**. The mode of exercise changes MFO and Fatmax, so a result only
+gets a percentile when `MFO_protocol(mode = )` is `"walking"` or
+`"running"`. The example data come from a cycle ergometer (the default
+`mode = "cycling"`), so the message above explains why `MFO_percentile` and
+`Fatmax_percentile` are `NA`. The Fatmax zone in heart rate is still
+returned.
+
+To show a percentile, the next chunk uses a **simulated** test, not the
+example data: one participant walking (`MFO_protocol(mode = "walking")`)
+from `simulate_MFO_sessions()`, whose MFO and Fatmax are drawn from its
+sedentary defaults, the mean and SD of the same Table 1 (0.34 ± 0.10 g/min,
+44.2 ± 12.4 % VO2max). VO2max has no default and must be given; its value
+(2500 ml/min here) is arbitrary and does not change MFO in g/min or Fatmax
+in % VO2max. The protocol is passed on to `MFO()`, which is where the mode
+comes from.
+
+```{r zones-walking}
+sim <- simulate_MFO_sessions(n_participants = 1, n_sessions = 1,
+                             population = list(VO2max = c(2500, 0)),
+                             protocol = MFO_protocol(mode = "walking"),
+                             seed = 4)
+s1 <- sim$data$P01$S1
+res_walk <- MFO(step_time = sim$settings$step_time, db_MFO = s1$db_MFO,
+                db_basal = s1$db_basal, db_graded = s1$db_graded,
+                cv_var = "RER", author = "Frayn",
+                energy_equivalents = "classic", age = 30,
+                protocol = sim$settings$protocol)
+z <- MFO_zones(res_walk, sex = "male", age_group = "young")
+knitr::kable(z[, c("MFO", "MFO_percentile_label", "FAT_MAX",
+                   "Fatmax_percentile_label", "reference", "reference_n")],
+             digits = 2)
+```
+
+The simulated truth was MFO = `r round(sim$truth$MFO, 3)` g/min and
+Fatmax = `r round(sim$truth$Fatmax, 1)` % VO2max.
+The seed was chosen for a clean example. With other seeds (for example
+`seed = 15`) the simulated Fatmax lands on the last step, and `MFO()` warns
+that Fatmax "is at the last exercise step ... the maximum is at the edge of
+the measured range": see the section *Quality warnings* of `?MFO`.
+
+The percentile is interpolated linearly between the published P20, P40, P60
+and P80. Below P20 or above P80 the label is `"< P20"` or `"> P80"`: there is
+no extrapolation. A percentile always comes with its group (`reference`) and
+its N (`reference_n`); with small groups, such as the 19 middle-aged men,
+read it with care. The group is chosen with `sex`, `age_group` (`"young"`,
+22.1 ± 2.2 years; `"middle-aged"`, 52.1 ± 4.6 years) and `weight_status`
+(`"normal"`, `"overweight"`, `"obese"`), only in the combinations Table 1
+prints. The source does not publish its age or BMI cut-offs, so the group is
+never deduced from a numeric age or BMI, and `weight_status` cannot be
+combined with `sex` or `age_group`.
+
+### 10.3 Reading `reference_differences`
+
+A percentile is only meaningful if the test was done in the same way.
+`reference_differences` lists every way in which the result differs from the
+reference test:
+
+```{r zones-differences}
+strsplit(z$reference_differences, "; ")[[1]]
+```
+
+- **mode**: running is compared with walking, and the difference is stated;
+  cycling gets no percentile.
+- **equation**: the reference used @frayn1983 without protein; another
+  `author` is listed.
+- **protocol**: the reference used 3-min steps averaged over the last 60 s;
+  other step lengths, ramps or relative protocols are listed.
+- **method**: always listed. The reference fitted a third-degree polynomial
+  through the origin (0;0) [@croci2014], unlike the unconstrained `"P3"` of
+  `MFO()`.
+- **fasting**: always listed. The reference participants fasted 5–6 h, not
+  overnight; check how long your participants fasted.
+
+### 10.4 Recommendation for obesity
+
+With `population = "obesity"` and `body_fat` (%), the zone in % HRmax is
+compared with the range of the meta-regression of @chavezguevara2023:
+61–66 % HRpeak with more than 35 % body fat and 57–64 % HRpeak with less than
+35 %. The source does not cover exactly 35.0 %, so then there is no range.
+
+```{r zones-obesity, message = FALSE}
+zo <- MFO_zones(res, population = "obesity", body_fat = 38)
+knitr::kable(zo[, c("zone_lower_porcHRmax", "zone_upper_porcHRmax",
+                    "obesity_range_lower", "obesity_range_upper", "obesity_zone")],
+             digits = 1)
+```
+
+`obesity_zone` is `"inside"` when the whole individual zone falls in the
+range, `"partly overlaps"` or `"outside"`; read it with the numbers in
+% HRpeak next to it. The range refers to the **measured** HRpeak: with a
+predicted HRmax it is still shown, with a warning. % HRpeak is preferred to
+% VO2max in obesity because the HR–VO2 relation is more stable than a
+measured VO2max, which is often submaximal in these patients. The
+recommendation is only given when you ask for it with
+`population = "obesity"`; `body_fat` alone does not trigger it.
+
+### 10.5 Many participants
+
+With the table of `MFOs()`, `HRmax`, `age`, `body_fat`, `sex`, `age_group`
+and `weight_status` take one value, or one per participant (here the body
+fat of P01 and P02; the message about cycling is the same as above):
+
+```{r zones-batch, message = FALSE}
+zb <- MFO_zones(batch, sex = "male", population = "obesity",
+                body_fat = c(38, 30))
+knitr::kable(zb[, c("ID", "HRmax", "HRmax_source", "zone_lower_porcHRmax",
+                    "zone_upper_porcHRmax", "obesity_range_lower",
+                    "obesity_range_upper", "obesity_zone", "reference_n")],
+             digits = 1)
+```
+
 ```{r cleanup, include = FALSE}
 unlink(root, recursive = TRUE)
 ```

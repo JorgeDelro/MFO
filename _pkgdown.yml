@@ -47,6 +47,12 @@ reference:
     curve fit (P3, P2, MV, MRER), Fatmax zone and crossover point.
   contents:
   - MFO
+- title: Zones and reference values
+  desc: >
+    Fatmax zone in heart rate, range for obesity (Chávez-Guevara et al., 2023)
+    and percentiles of sedentary adults (Amaro-Gahete et al., 2018).
+  contents:
+  - MFO_zones
 - title: Kinetics
   desc: SIN model of fat oxidation kinetics (Chenevière et al., 2009).
   contents:
@@ -77,11 +83,12 @@ reference:
   - simulate_MFO_sessions
   - write_MFO_sessions
 - title: Datasets
-  desc: Anonymised example recordings of one participant (20-s averages).
+  desc: Anonymised example recordings of one participant (20-s averages) and published reference values.
   contents:
   - basal_df
   - MFO_df
   - VO2max_df
+  - reference_MFO
 - title: Internal helpers
   desc: >
     Not exported; documented so that every step of `MFO()` can be traced.

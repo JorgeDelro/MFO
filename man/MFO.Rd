@@ -158,6 +158,12 @@ plot subtitle and Fatmax's as a grey band (default `TRUE`).}
 \item FatMax_zone_lower: Lower bound of FatMax zone (\% VO2max).
 \item FatMax_zone_upper: Upper bound of FatMax zone (\% VO2max).
 \item FatMax_zone_method: "fitted curve", or "linear interpolation" for `method = "MV"`.
+\item FatMax_zone_lower_HR, FatMax_zone_upper_HR: heart rate at the limits of
+  the Fatmax zone (bpm), interpolated as `FAT_MAX_HR`.
+\item HRmax: `HRmax` as given (`NA` if not given).
+\item HR_peak: highest mean HR in `db_graded` over the VO2max window (bpm;
+  `NA` without `db_graded`, without HR, or with a numeric `VO2max`). Used by
+  [MFO_zones()].
 \item FAT_MAX_load, FatMax_zone_lower_load, FatMax_zone_upper_load: Fatmax and
   the Fatmax zone in `load_unit` (`NA` without load).
 \item load_unit: "W", "km/h" or "W/kg" (`NA` without load).
@@ -169,6 +175,7 @@ plot subtitle and Fatmax's as a grey band (default `TRUE`).}
 \item method_used: Method actually used: it differs from `method` when the
   fit falls back (P3 to P2, P2 or MRER to MV), with a warning.
 \item energy_equivalents: energy equivalents used for `Kcal` ("classic" or "source").
+\item author: stoichiometric equation used.
 \item VO2max: VO2max used to express intensity (ml/min).
 \item VO2max_window: effective averaging window for VO2max (s); NA if VO2max was supplied.
 \item VO2max_window_requested: `vo2max_window` as requested (s); NA if VO2max was supplied.
