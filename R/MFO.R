@@ -203,6 +203,12 @@
 #' \item FatMax_zone_lower: Lower bound of FatMax zone (\% VO2max).
 #' \item FatMax_zone_upper: Upper bound of FatMax zone (\% VO2max).
 #' \item FatMax_zone_method: "fitted curve", or "linear interpolation" for `method = "MV"`.
+#' \item FatMax_zone_lower_HR, FatMax_zone_upper_HR: heart rate at the limits of
+#'   the Fatmax zone (bpm), interpolated as `FAT_MAX_HR`.
+#' \item HRmax: `HRmax` as given (`NA` if not given).
+#' \item HR_peak: highest mean HR in `db_graded` over the VO2max window (bpm;
+#'   `NA` without `db_graded`, without HR, or with a numeric `VO2max`). Used by
+#'   [MFO_zones()].
 #' \item FAT_MAX_load, FatMax_zone_lower_load, FatMax_zone_upper_load: Fatmax and
 #'   the Fatmax zone in `load_unit` (`NA` without load).
 #' \item load_unit: "W", "km/h" or "W/kg" (`NA` without load).
@@ -214,6 +220,7 @@
 #' \item method_used: Method actually used: it differs from `method` when the
 #'   fit falls back (P3 to P2, P2 or MRER to MV), with a warning.
 #' \item energy_equivalents: energy equivalents used for `Kcal` ("classic" or "source").
+#' \item author: stoichiometric equation used.
 #' \item VO2max: VO2max used to express intensity (ml/min).
 #' \item VO2max_window: effective averaging window for VO2max (s); NA if VO2max was supplied.
 #' \item VO2max_window_requested: `vo2max_window` as requested (s); NA if VO2max was supplied.
@@ -351,6 +358,7 @@ MFO <- function(step_time,
   VO2max_window_requested <- NA
   VO2max_type <- NA_character_
   VO2max_criteria <- NULL
+  HR_peak <- NA_real_
   vo2 <- NULL
   if (!is.null(VO2max)) {
     if (!is.null(db_graded)) {
@@ -372,6 +380,7 @@ MFO <- function(step_time,
     VO2max_window_requested <- vo2$window_requested
     VO2max_type <- vo2$type
     VO2max_criteria <- vo2$criteria
+    if (!is.null(vo2$HR_peak)) HR_peak <- vo2$HR_peak
   }
 
   # Get basal data
@@ -491,17 +500,14 @@ MFO <- function(step_time,
   # --- Crossover point (CHO > FAT) ---
   crossover <- .calculate_crossover(MFO_db)
 
-  # --- HR at FatMax (interpolation) ---
-  FAT_MAX_HR <- NA
+  # --- HR at FatMax and at the zone limits (interpolation; SPEC 15.1) ---
+  FAT_MAX_HR <- .hr_at(MFO_db, VO2_MFO)
   FAT_MAX_porcHRmax <- NA
-  hr_data <- MFO_db[!is.na(MFO_db$HR), ]
-  if (nrow(hr_data) >= 2) {
-    hr_interp <- approx(hr_data$porc_VO2, hr_data$HR, xout = VO2_MFO, ties = mean)
-    FAT_MAX_HR <- hr_interp$y
-    if (!is.null(HRmax) && !is.na(FAT_MAX_HR)) {
-      FAT_MAX_porcHRmax <- (FAT_MAX_HR / HRmax) * 100
-    }
+  if (!is.null(HRmax) && !is.na(FAT_MAX_HR)) {
+    FAT_MAX_porcHRmax <- (FAT_MAX_HR / HRmax) * 100
   }
+  FatMax_zone_lower_HR <- .hr_at(MFO_db, fatmax_zone$lower)
+  FatMax_zone_upper_HR <- .hr_at(MFO_db, fatmax_zone$upper)
 
   # --- Relative MFO ---
   MFO_relative <- NA
@@ -556,6 +562,10 @@ MFO <- function(step_time,
               FatMax_zone_lower = fatmax_zone$lower,
               FatMax_zone_upper = fatmax_zone$upper,
               FatMax_zone_method = FatMax_zone_method,
+              FatMax_zone_lower_HR = FatMax_zone_lower_HR,
+              FatMax_zone_upper_HR = FatMax_zone_upper_HR,
+              HRmax = if (is.null(HRmax)) NA_real_ else HRmax,
+              HR_peak = HR_peak,
               FAT_MAX_load = FAT_MAX_load,
               FatMax_zone_lower_load = FatMax_zone_lower_load,
               FatMax_zone_upper_load = FatMax_zone_upper_load,
@@ -567,6 +577,7 @@ MFO <- function(step_time,
               method = method,
               method_used = result$method,
               energy_equivalents = energy_equivalents,
+              author = author,
               VO2max = VO2max,
               VO2max_window = VO2max_window,
               VO2max_window_requested = VO2max_window_requested,
@@ -624,6 +635,15 @@ MFO <- function(step_time,
   ex <- MFO_db[MFO_db$Step != 0 & !is.na(MFO_db$Load), , drop = FALSE]
   if (nrow(ex) < 2 || length(x) != 1 || is.na(x)) return(NA_real_)
   approx(ex$porc_VO2, ex$Load, xout = x, ties = mean)$y
+}
+
+
+# --- Internal helper: HR at an intensity (%VO2max), linear interpolation
+# between the steps with HR; NA with fewer than 2 (SPEC 9.5, 15.1) ---
+.hr_at <- function(MFO_db, x) {
+  hr <- MFO_db[!is.na(MFO_db$HR), , drop = FALSE]
+  if (nrow(hr) < 2 || length(x) != 1 || is.na(x)) return(NA_real_)
+  approx(hr$porc_VO2, hr$HR, xout = x, ties = mean)$y
 }
 
 

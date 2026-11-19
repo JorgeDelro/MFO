@@ -88,6 +88,11 @@
 #' \item FatMax_zone_lower: Lower bound of FatMax zone (\% VO2max).
 #' \item FatMax_zone_upper: Upper bound of FatMax zone (\% VO2max).
 #' \item FatMax_zone_method: "fitted curve", or "linear interpolation" for "MV".
+#' \item FatMax_zone_lower_HR, FatMax_zone_upper_HR: heart rate at the limits of
+#'   the Fatmax zone (bpm).
+#' \item HRmax: `HRmax` as given (`NA` if not given).
+#' \item HR_peak: highest mean HR of the graded test over the VO2max window
+#'   (bpm); `NA` with a numeric `VO2max`. See [MFO_zones()].
 #' \item FAT_MAX_load, FatMax_zone_lower_load, FatMax_zone_upper_load: Fatmax and
 #'   Fatmax zone in load units; load_unit and load_source as in [MFO()].
 #' \item crossover_point: Crossover intensity (\% VO2max).
@@ -95,6 +100,7 @@
 #' \item method: method requested.
 #' \item method_used: method actually used (differs after a fallback).
 #' \item energy_equivalents: "classic" or "source".
+#' \item author: stoichiometric equation used.
 #' \item protocol: protocol type (see [MFO_protocol()]).
 #' \item mode: exercise mode of the protocol.
 #' \item d: SIN dilatation parameter.
@@ -298,6 +304,10 @@ MFOs <- function(from = c("folder", "files"),
         FatMax_zone_upper = round(ifelse(is.na(participant_result_MFO$FatMax_zone_upper), NA,
                                           participant_result_MFO$FatMax_zone_upper), 2),
         FatMax_zone_method = participant_result_MFO$FatMax_zone_method,
+        FatMax_zone_lower_HR = round(participant_result_MFO$FatMax_zone_lower_HR, 1),
+        FatMax_zone_upper_HR = round(participant_result_MFO$FatMax_zone_upper_HR, 1),
+        HRmax = participant_result_MFO$HRmax,
+        HR_peak = round(participant_result_MFO$HR_peak, 1),
         FAT_MAX_load = round(participant_result_MFO$FAT_MAX_load, 1),
         FatMax_zone_lower_load = round(participant_result_MFO$FatMax_zone_lower_load, 1),
         FatMax_zone_upper_load = round(participant_result_MFO$FatMax_zone_upper_load, 1),
@@ -309,6 +319,7 @@ MFOs <- function(from = c("folder", "files"),
         method = participant_result_MFO$method,
         method_used = participant_result_MFO$method_used,
         energy_equivalents = participant_result_MFO$energy_equivalents,
+        author = participant_result_MFO$author,
         protocol = participant_result_MFO$protocol$type,
         mode = participant_result_MFO$mode,
         d = round(participant_result_kinetics$d, 3),
@@ -347,10 +358,11 @@ MFOs <- function(from = c("folder", "files"),
         FAT_MAX_perVO2max = NA, FAT_MAX_lower = NA, FAT_MAX_upper = NA,
         MFO_lower = NA, MFO_upper = NA, FAT_MAX_HR = NA, FAT_MAX_porcHRmax = NA,
         FatMax_zone_lower = NA, FatMax_zone_upper = NA, FatMax_zone_method = NA,
+        FatMax_zone_lower_HR = NA, FatMax_zone_upper_HR = NA, HRmax = NA, HR_peak = NA,
         FAT_MAX_load = NA, FatMax_zone_lower_load = NA, FatMax_zone_upper_load = NA,
         load_unit = NA, load_source = NA,
         crossover_point = NA, R_squared = NA, method = method, method_used = NA,
-        energy_equivalents = energy_equivalents,
+        energy_equivalents = energy_equivalents, author = author,
         protocol = protocol$type, mode = protocol$mode,
         d = NA, t = NA, s = NA, Fatmin = NA, FatMax_SIN = NA,
         FatMax_SIN_lower = NA, FatMax_SIN_upper = NA, Fatmin_lower = NA,

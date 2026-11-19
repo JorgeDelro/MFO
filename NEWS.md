@@ -178,6 +178,11 @@
   protein, P3 through the origin, 5-6 h fasting) so that comparisons can
   state how they differ (SPEC 15.2).
 
+* `MFO()` and `MFOs()` also return `FatMax_zone_lower_HR`,
+  `FatMax_zone_upper_HR`, `HRmax`, `HR_peak` and `author`;
+  `VO2max_from_test()` returns `HR_peak`, the highest mean HR over the
+  VO2max window (SPEC 15.1).
+
 ## Bug fixes
 
 * `method = "P2"` returned the vertex of the parabola as Fatmax even when

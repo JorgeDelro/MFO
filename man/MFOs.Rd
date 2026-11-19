@@ -157,6 +157,11 @@ model. See [MFO_kinetics()].}
 \item FatMax_zone_lower: Lower bound of FatMax zone (\% VO2max).
 \item FatMax_zone_upper: Upper bound of FatMax zone (\% VO2max).
 \item FatMax_zone_method: "fitted curve", or "linear interpolation" for "MV".
+\item FatMax_zone_lower_HR, FatMax_zone_upper_HR: heart rate at the limits of
+  the Fatmax zone (bpm).
+\item HRmax: `HRmax` as given (`NA` if not given).
+\item HR_peak: highest mean HR of the graded test over the VO2max window
+  (bpm); `NA` with a numeric `VO2max`. See [MFO_zones()].
 \item FAT_MAX_load, FatMax_zone_lower_load, FatMax_zone_upper_load: Fatmax and
   Fatmax zone in load units; load_unit and load_source as in [MFO()].
 \item crossover_point: Crossover intensity (\% VO2max).
@@ -164,6 +169,7 @@ model. See [MFO_kinetics()].}
 \item method: method requested.
 \item method_used: method actually used (differs after a fallback).
 \item energy_equivalents: "classic" or "source".
+\item author: stoichiometric equation used.
 \item protocol: protocol type (see [MFO_protocol()]).
 \item mode: exercise mode of the protocol.
 \item d: SIN dilatation parameter.
