@@ -263,6 +263,14 @@ Data frame with one row per participant containing:
 - FatMax_zone_method: "fitted curve", or "linear interpolation" for
   "MV".
 
+- FatMax_zone_lower_HR, FatMax_zone_upper_HR: heart rate at the limits
+  of the Fatmax zone (bpm).
+
+- HRmax: \`HRmax\` as given (\`NA\` if not given).
+
+- HR_peak: highest mean HR of the graded test over the VO2max window
+  (bpm); \`NA\` with a numeric \`VO2max\`. See \[MFO_zones()\].
+
 - FAT_MAX_load, FatMax_zone_lower_load, FatMax_zone_upper_load: Fatmax
   and Fatmax zone in load units; load_unit and load_source as in
   \[MFO()\].
@@ -276,6 +284,8 @@ Data frame with one row per participant containing:
 - method_used: method actually used (differs after a fallback).
 
 - energy_equivalents: "classic" or "source".
+
+- author: stoichiometric equation used.
 
 - protocol: protocol type (see \[MFO_protocol()\]).
 

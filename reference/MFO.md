@@ -248,6 +248,15 @@ Returns a list which contains:
 - FatMax_zone_method: "fitted curve", or "linear interpolation" for
   \`method = "MV"\`.
 
+- FatMax_zone_lower_HR, FatMax_zone_upper_HR: heart rate at the limits
+  of the Fatmax zone (bpm), interpolated as \`FAT_MAX_HR\`.
+
+- HRmax: \`HRmax\` as given (\`NA\` if not given).
+
+- HR_peak: highest mean HR in \`db_graded\` over the VO2max window (bpm;
+  \`NA\` without \`db_graded\`, without HR, or with a numeric
+  \`VO2max\`). Used by \[MFO_zones()\].
+
 - FAT_MAX_load, FatMax_zone_lower_load, FatMax_zone_upper_load: Fatmax
   and the Fatmax zone in \`load_unit\` (\`NA\` without load).
 
@@ -268,6 +277,8 @@ Returns a list which contains:
 
 - energy_equivalents: energy equivalents used for \`Kcal\` ("classic" or
   "source").
+
+- author: stoichiometric equation used.
 
 - VO2max: VO2max used to express intensity (ml/min).
 

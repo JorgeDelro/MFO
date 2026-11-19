@@ -65,7 +65,7 @@
       <h1>From gas exchange to Fatmax</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/JorgeDelro/MFO/blob/v0.3.0-alpha.2/vignettes/mfo-workflow.Rmd" class="external-link"><code>vignettes/mfo-workflow.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/JorgeDelro/MFO/blob/main/vignettes/mfo-workflow.Rmd" class="external-link"><code>vignettes/mfo-workflow.Rmd</code></a></small>
       <div class="d-none name"><code>mfo-workflow.Rmd</code></div>
     </div>
 
@@ -1053,6 +1053,268 @@ here. Every warning is repeated with the participant ID in front.</p>
 </tbody>
 </table>
 </div>
+<div class="section level2">
+<h2 id="heart-rate-zones-and-reference-values">10. Heart-rate zones and reference values<a class="anchor" aria-label="anchor" href="#heart-rate-zones-and-reference-values"></a>
+</h2>
+<p><code><a href="../reference/MFO_zones.html">MFO_zones()</a></code> turns a result into a prescription in heart
+rate and places MFO and Fatmax among published reference values. It
+takes the result of <code><a href="../reference/MFO.html">MFO()</a></code> or the table of
+<code><a href="../reference/MFOs.html">MFOs()</a></code>.</p>
+<div class="section level3">
+<h3 id="one-participant">10.1 One participant<a class="anchor" aria-label="anchor" href="#one-participant"></a>
+</h3>
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">zones</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/MFO_zones.html">MFO_zones</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span>
+<span><span class="co">#&gt; No percentile for 1 result(s) with mode "cycling": the reference (Amaro-Gahete et al. 2018) was measured walking on a treadmill, and the mode of exercise changes MFO and Fatmax. Set MFO_protocol(mode = ) if the test was walking or running.</span></span>
+<span><span class="va">zones</span></span>
+<span><span class="co">#&gt; MFO zones</span></span>
+<span><span class="co">#&gt;   Fatmax:      36.2% VO2max, 128 bpm, 69.5% HRmax</span></span>
+<span><span class="co">#&gt;   Fatmax zone: 24.2-48.3% VO2max, 107-145 bpm, 57.9-78.4% HRmax</span></span>
+<span><span class="co">#&gt;   HRmax:       185 bpm (measured)</span></span>
+<span><span class="co">#&gt;   Reference:   Amaro-Gahete 2018: Sedentary adults (n = 167)</span></span>
+<span><span class="co">#&gt;     MFO 0.32 g/min: no percentile</span></span>
+<span><span class="co">#&gt;     Fatmax 36.2 % VO2max: no percentile</span></span>
+<span><span class="co">#&gt;     Differences: mode: cycling (reference: treadmill walking; no percentile); method: P3 (reference: third-degree polynomial through (0;0), Croci et al. 2014); fasting: reference 5-6 h, not overnight</span></span></code></pre></div>
+<p>Fatmax and the limits of the Fatmax zone are given in % VO2max, in
+bpm (interpolated linearly between steps, as <code>FAT_MAX_HR</code>)
+and in % HRmax. The HRmax is, in this order, the <code>HRmax</code> you
+give (here or in <code><a href="../reference/MFO.html">MFO()</a></code>), the peak HR measured in the graded
+test (<code>HR_peak</code>: the highest mean HR over the same window as
+VO2max, 40 s here) or, only if you ask with
+<code>predicted_HRmax = TRUE</code> and <code>age</code>, the predicted
+HRmax of <span class="citation">Tanaka et al. (<a href="#ref-tanaka2001">2001</a>)</span> (208 − 0.7 × age;
+<code>HRmax_formula = "fox"</code> for 220 − age).
+<code>HRmax_source</code> says which one was used. Here it is the
+measured peak, 185 bpm.</p>
+</div>
+<div class="section level3">
+<h3 id="no-percentile-for-a-cycling-test">10.2 No percentile for a cycling test<a class="anchor" aria-label="anchor" href="#no-percentile-for-a-cycling-test"></a>
+</h3>
+<p>The reference values are the percentiles of Table 1 of <span class="citation">Amaro-Gahete et al. (<a href="#ref-amarogahete2018">2018</a>)</span> (dataset
+<code>reference_MFO</code>): 167 sedentary adults tested <strong>walking
+on a treadmill</strong>. The mode of exercise changes MFO and Fatmax, so
+a result only gets a percentile when <code>MFO_protocol(mode = )</code>
+is <code>"walking"</code> or <code>"running"</code>. The example data
+come from a cycle ergometer (the default <code>mode = "cycling"</code>),
+so the message above explains why <code>MFO_percentile</code> and
+<code>Fatmax_percentile</code> are <code>NA</code>. The Fatmax zone in
+heart rate is still returned.</p>
+<p>To show a percentile, the next chunk uses a
+<strong>simulated</strong> test, not the example data: one participant
+walking (<code>MFO_protocol(mode = "walking")</code>) from
+<code><a href="../reference/simulate_MFO_sessions.html">simulate_MFO_sessions()</a></code>, whose MFO and Fatmax are drawn
+from its sedentary defaults, the mean and SD of the same Table 1 (0.34 ±
+0.10 g/min, 44.2 ± 12.4 % VO2max). VO2max has no default and must be
+given; its value (2500 ml/min here) is arbitrary and does not change MFO
+in g/min or Fatmax in % VO2max. The protocol is passed on to
+<code><a href="../reference/MFO.html">MFO()</a></code>, which is where the mode comes from.</p>
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate_MFO_sessions.html">simulate_MFO_sessions</a></span><span class="op">(</span>n_participants <span class="op">=</span> <span class="fl">1</span>, n_sessions <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>                             population <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>VO2max <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2500</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>                             protocol <span class="op">=</span> <span class="fu"><a href="../reference/MFO_protocol.html">MFO_protocol</a></span><span class="op">(</span>mode <span class="op">=</span> <span class="st">"walking"</span><span class="op">)</span>,</span>
+<span>                             seed <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
+<span><span class="va">s1</span> <span class="op">&lt;-</span> <span class="va">sim</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">P01</span><span class="op">$</span><span class="va">S1</span></span>
+<span><span class="va">res_walk</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/MFO.html">MFO</a></span><span class="op">(</span>step_time <span class="op">=</span> <span class="va">sim</span><span class="op">$</span><span class="va">settings</span><span class="op">$</span><span class="va">step_time</span>, db_MFO <span class="op">=</span> <span class="va">s1</span><span class="op">$</span><span class="va">db_MFO</span>,</span>
+<span>                db_basal <span class="op">=</span> <span class="va">s1</span><span class="op">$</span><span class="va">db_basal</span>, db_graded <span class="op">=</span> <span class="va">s1</span><span class="op">$</span><span class="va">db_graded</span>,</span>
+<span>                cv_var <span class="op">=</span> <span class="st">"RER"</span>, author <span class="op">=</span> <span class="st">"Frayn"</span>,</span>
+<span>                energy_equivalents <span class="op">=</span> <span class="st">"classic"</span>, age <span class="op">=</span> <span class="fl">30</span>,</span>
+<span>                protocol <span class="op">=</span> <span class="va">sim</span><span class="op">$</span><span class="va">settings</span><span class="op">$</span><span class="va">protocol</span><span class="op">)</span></span>
+<span><span class="co">#&gt; VO2max: a 30-s window is not a multiple of step_time (20 s); using 2 record(s) = 40 s.</span></span>
+<span><span class="va">z</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/MFO_zones.html">MFO_zones</a></span><span class="op">(</span><span class="va">res_walk</span>, sex <span class="op">=</span> <span class="st">"male"</span>, age_group <span class="op">=</span> <span class="st">"young"</span><span class="op">)</span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">z</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"MFO"</span>, <span class="st">"MFO_percentile_label"</span>, <span class="st">"FAT_MAX"</span>,</span>
+<span>                   <span class="st">"Fatmax_percentile_label"</span>, <span class="st">"reference"</span>, <span class="st">"reference_n"</span><span class="op">)</span><span class="op">]</span>,</span>
+<span>             digits <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
+<table style="width:100%;" class="table">
+<colgroup>
+<col width="4%">
+<col width="18%">
+<col width="6%">
+<col width="20%">
+<col width="39%">
+<col width="10%">
+</colgroup>
+<thead><tr class="header">
+<th align="right">MFO</th>
+<th align="left">MFO_percentile_label</th>
+<th align="right">FAT_MAX</th>
+<th align="left">Fatmax_percentile_label</th>
+<th align="left">reference</th>
+<th align="right">reference_n</th>
+</tr></thead>
+<tbody><tr class="odd">
+<td align="right">0.41</td>
+<td align="left">P66</td>
+<td align="right">41.92</td>
+<td align="left">P64</td>
+<td align="left">Amaro-Gahete 2018: Sedentary young adult men</td>
+<td align="right">41</td>
+</tr></tbody>
+</table>
+<p>The simulated truth was MFO = 0.409 g/min and Fatmax = 42.2 % VO2max.
+The seed was chosen for a clean example. With other seeds (for example
+<code>seed = 15</code>) the simulated Fatmax lands on the last step, and
+<code><a href="../reference/MFO.html">MFO()</a></code> warns that Fatmax “is at the last exercise step … the
+maximum is at the edge of the measured range”: see the section
+<em>Quality warnings</em> of <code><a href="../reference/MFO.html">?MFO</a></code>.</p>
+<p>The percentile is interpolated linearly between the published P20,
+P40, P60 and P80. Below P20 or above P80 the label is
+<code>"&lt; P20"</code> or <code>"&gt; P80"</code>: there is no
+extrapolation. A percentile always comes with its group
+(<code>reference</code>) and its N (<code>reference_n</code>); with
+small groups, such as the 19 middle-aged men, read it with care. The
+group is chosen with <code>sex</code>, <code>age_group</code>
+(<code>"young"</code>, 22.1 ± 2.2 years; <code>"middle-aged"</code>,
+52.1 ± 4.6 years) and <code>weight_status</code> (<code>"normal"</code>,
+<code>"overweight"</code>, <code>"obese"</code>), only in the
+combinations Table 1 prints. The source does not publish its age or BMI
+cut-offs, so the group is never deduced from a numeric age or BMI, and
+<code>weight_status</code> cannot be combined with <code>sex</code> or
+<code>age_group</code>.</p>
+</div>
+<div class="section level3">
+<h3 id="reading-reference_differences">10.3 Reading <code>reference_differences</code><a class="anchor" aria-label="anchor" href="#reading-reference_differences"></a>
+</h3>
+<p>A percentile is only meaningful if the test was done in the same way.
+<code>reference_differences</code> lists every way in which the result
+differs from the reference test:</p>
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/strsplit.html" class="external-link">strsplit</a></span><span class="op">(</span><span class="va">z</span><span class="op">$</span><span class="va">reference_differences</span>, <span class="st">"; "</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
+<span><span class="co">#&gt; [1] "method: P3 (reference: third-degree polynomial through (0;0), Croci et al. 2014)"</span></span>
+<span><span class="co">#&gt; [2] "fasting: reference 5-6 h, not overnight"</span></span></code></pre></div>
+<ul>
+<li>
+<strong>mode</strong>: running is compared with walking, and the
+difference is stated; cycling gets no percentile.</li>
+<li>
+<strong>equation</strong>: the reference used <span class="citation">Frayn (<a href="#ref-frayn1983">1983</a>)</span>
+without protein; another <code>author</code> is listed.</li>
+<li>
+<strong>protocol</strong>: the reference used 3-min steps averaged
+over the last 60 s; other step lengths, ramps or relative protocols are
+listed.</li>
+<li>
+<strong>method</strong>: always listed. The reference fitted a
+third-degree polynomial through the origin (0;0) <span class="citation">(<a href="#ref-croci2014"><span class="nocase">Croci et
+al.</span> 2014</a>)</span>, unlike the unconstrained <code>"P3"</code>
+of <code><a href="../reference/MFO.html">MFO()</a></code>.</li>
+<li>
+<strong>fasting</strong>: always listed. The reference participants
+fasted 5–6 h, not overnight; check how long your participants
+fasted.</li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="recommendation-for-obesity">10.4 Recommendation for obesity<a class="anchor" aria-label="anchor" href="#recommendation-for-obesity"></a>
+</h3>
+<p>With <code>population = "obesity"</code> and <code>body_fat</code>
+(%), the zone in % HRmax is compared with the range of the
+meta-regression of <span class="citation">Chávez-Guevara et al. (<a href="#ref-chavezguevara2023">2023</a>)</span>: 61–66 % HRpeak with more
+than 35 % body fat and 57–64 % HRpeak with less than 35 %. The source
+does not cover exactly 35.0 %, so then there is no range.</p>
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">zo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/MFO_zones.html">MFO_zones</a></span><span class="op">(</span><span class="va">res</span>, population <span class="op">=</span> <span class="st">"obesity"</span>, body_fat <span class="op">=</span> <span class="fl">38</span><span class="op">)</span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">zo</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"zone_lower_porcHRmax"</span>, <span class="st">"zone_upper_porcHRmax"</span>,</span>
+<span>                    <span class="st">"obesity_range_lower"</span>, <span class="st">"obesity_range_upper"</span>, <span class="st">"obesity_zone"</span><span class="op">)</span><span class="op">]</span>,</span>
+<span>             digits <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<colgroup>
+<col width="21%">
+<col width="21%">
+<col width="20%">
+<col width="20%">
+<col width="16%">
+</colgroup>
+<thead><tr class="header">
+<th align="right">zone_lower_porcHRmax</th>
+<th align="right">zone_upper_porcHRmax</th>
+<th align="right">obesity_range_lower</th>
+<th align="right">obesity_range_upper</th>
+<th align="left">obesity_zone</th>
+</tr></thead>
+<tbody><tr class="odd">
+<td align="right">57.9</td>
+<td align="right">78.4</td>
+<td align="right">61</td>
+<td align="right">66</td>
+<td align="left">partly overlaps</td>
+</tr></tbody>
+</table>
+<p><code>obesity_zone</code> is <code>"inside"</code> when the whole
+individual zone falls in the range, <code>"partly overlaps"</code> or
+<code>"outside"</code>; read it with the numbers in % HRpeak next to it.
+The range refers to the <strong>measured</strong> HRpeak: with a
+predicted HRmax it is still shown, with a warning. % HRpeak is preferred
+to % VO2max in obesity because the HR–VO2 relation is more stable than a
+measured VO2max, which is often submaximal in these patients. The
+recommendation is only given when you ask for it with
+<code>population = "obesity"</code>; <code>body_fat</code> alone does
+not trigger it.</p>
+</div>
+<div class="section level3">
+<h3 id="many-participants">10.5 Many participants<a class="anchor" aria-label="anchor" href="#many-participants"></a>
+</h3>
+<p>With the table of <code><a href="../reference/MFOs.html">MFOs()</a></code>, <code>HRmax</code>,
+<code>age</code>, <code>body_fat</code>, <code>sex</code>,
+<code>age_group</code> and <code>weight_status</code> take one value, or
+one per participant (here the body fat of P01 and P02; the message about
+cycling is the same as above):</p>
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">zb</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/MFO_zones.html">MFO_zones</a></span><span class="op">(</span><span class="va">batch</span>, sex <span class="op">=</span> <span class="st">"male"</span>, population <span class="op">=</span> <span class="st">"obesity"</span>,</span>
+<span>                body_fat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">38</span>, <span class="fl">30</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">zb</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ID"</span>, <span class="st">"HRmax"</span>, <span class="st">"HRmax_source"</span>, <span class="st">"zone_lower_porcHRmax"</span>,</span>
+<span>                    <span class="st">"zone_upper_porcHRmax"</span>, <span class="st">"obesity_range_lower"</span>,</span>
+<span>                    <span class="st">"obesity_range_upper"</span>, <span class="st">"obesity_zone"</span>, <span class="st">"reference_n"</span><span class="op">)</span><span class="op">]</span>,</span>
+<span>             digits <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<colgroup>
+<col width="3%">
+<col width="4%">
+<col width="9%">
+<col width="15%">
+<col width="15%">
+<col width="15%">
+<col width="15%">
+<col width="12%">
+<col width="9%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">ID</th>
+<th align="right">HRmax</th>
+<th align="left">HRmax_source</th>
+<th align="right">zone_lower_porcHRmax</th>
+<th align="right">zone_upper_porcHRmax</th>
+<th align="right">obesity_range_lower</th>
+<th align="right">obesity_range_upper</th>
+<th align="left">obesity_zone</th>
+<th align="right">reference_n</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">P01</td>
+<td align="right">184.6</td>
+<td align="left">measured</td>
+<td align="right">57.9</td>
+<td align="right">78.4</td>
+<td align="right">61</td>
+<td align="right">66</td>
+<td align="left">partly overlaps</td>
+<td align="right">60</td>
+</tr>
+<tr class="even">
+<td align="left">P02</td>
+<td align="right">184.6</td>
+<td align="left">measured</td>
+<td align="right">57.9</td>
+<td align="right">78.4</td>
+<td align="right">57</td>
+<td align="right">64</td>
+<td align="left">partly overlaps</td>
+<td align="right">60</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <div class="section level2 unnumbered">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
@@ -1068,11 +1330,23 @@ Alcantara, et al.</span> 2019. <span>“Optimizing Maximal Fat Oxidation
 Assessment by a Treadmill-Based Graded Exercise Protocol: When Should
 the Test End?”</span> <em>Frontiers in Physiology</em> 10: 909. <a href="https://doi.org/10.3389/fphys.2019.00909" class="external-link">https://doi.org/10.3389/fphys.2019.00909</a>.
 </div>
+<div id="ref-amarogahete2018" class="csl-entry">
+Amaro-Gahete, F. J., G. Sanchez-Delgado, and J. R. Ruiz. 2018.
+<span>“Commentary: Contextualising Maximal Fat Oxidation During
+Exercise: Determinants and Normative Values.”</span> <em>Frontiers in
+Physiology</em> 9: 1460. <a href="https://doi.org/10.3389/fphys.2018.01460" class="external-link">https://doi.org/10.3389/fphys.2018.01460</a>.
+</div>
 <div id="ref-brooks1994" class="csl-entry">
 Brooks, G. A., and J. Mercier. 1994. <span>“Balance of Carbohydrate and
 Lipid Utilization During Exercise: The <span>‘Crossover’</span>
 Concept.”</span> <em>Journal of Applied Physiology</em> 76 (6): 2253–61.
 <a href="https://doi.org/10.1152/jappl.1994.76.6.2253" class="external-link">https://doi.org/10.1152/jappl.1994.76.6.2253</a>.
+</div>
+<div id="ref-chavezguevara2023" class="csl-entry">
+Chávez-Guevara, I. A., F. J. Amaro-Gahete, A. Ramos-Jiménez, and J. F.
+Brun. 2023. <span>“Toward Exercise Guidelines for Optimizing Fat
+Oxidation During Exercise in Obesity: A Systematic Review and
+Meta-Regression.”</span> <em>Sports Medicine</em> 53 (12): 2399–416. <a href="https://doi.org/10.1007/s40279-023-01897-y" class="external-link">https://doi.org/10.1007/s40279-023-01897-y</a>.
 </div>
 <div id="ref-cheneviere2009" class="csl-entry">
 Chenevière, X., D. Malatesta, E. M. Peters, and F. Borrani. 2009.

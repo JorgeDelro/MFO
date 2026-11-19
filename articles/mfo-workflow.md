@@ -824,6 +824,185 @@ knitr::kable(batch[, c("ID", "MFO_g_min", "FAT_MAX_perVO2max", "VO2max",
 | P01 | 0.317 | 36.17 | 3315.0 | 24.19 | 48.34 | -0.385 | 0.91 | 0.355 | 76.44 |
 | P02 | 0.348 | 36.17 | 3646.5 | 24.19 | 48.34 | -0.385 | 0.91 | 0.355 | 76.44 |
 
+## 10. Heart-rate zones and reference values
+
+[`MFO_zones()`](https://jorgedelro.github.io/MFO/reference/MFO_zones.md)
+turns a result into a prescription in heart rate and places MFO and
+Fatmax among published reference values. It takes the result of
+[`MFO()`](https://jorgedelro.github.io/MFO/reference/MFO.md) or the
+table of [`MFOs()`](https://jorgedelro.github.io/MFO/reference/MFOs.md).
+
+### 10.1 One participant
+
+``` r
+
+zones <- MFO_zones(res)
+#> No percentile for 1 result(s) with mode "cycling": the reference (Amaro-Gahete et al. 2018) was measured walking on a treadmill, and the mode of exercise changes MFO and Fatmax. Set MFO_protocol(mode = ) if the test was walking or running.
+zones
+#> MFO zones
+#>   Fatmax:      36.2% VO2max, 128 bpm, 69.5% HRmax
+#>   Fatmax zone: 24.2-48.3% VO2max, 107-145 bpm, 57.9-78.4% HRmax
+#>   HRmax:       185 bpm (measured)
+#>   Reference:   Amaro-Gahete 2018: Sedentary adults (n = 167)
+#>     MFO 0.32 g/min: no percentile
+#>     Fatmax 36.2 % VO2max: no percentile
+#>     Differences: mode: cycling (reference: treadmill walking; no percentile); method: P3 (reference: third-degree polynomial through (0;0), Croci et al. 2014); fasting: reference 5-6 h, not overnight
+```
+
+Fatmax and the limits of the Fatmax zone are given in % VO2max, in bpm
+(interpolated linearly between steps, as `FAT_MAX_HR`) and in % HRmax.
+The HRmax is, in this order, the `HRmax` you give (here or in
+[`MFO()`](https://jorgedelro.github.io/MFO/reference/MFO.md)), the peak
+HR measured in the graded test (`HR_peak`: the highest mean HR over the
+same window as VO2max, 40 s here) or, only if you ask with
+`predicted_HRmax = TRUE` and `age`, the predicted HRmax of Tanaka et al.
+([2001](#ref-tanaka2001)) (208 − 0.7 × age; `HRmax_formula = "fox"` for
+220 − age). `HRmax_source` says which one was used. Here it is the
+measured peak, 185 bpm.
+
+### 10.2 No percentile for a cycling test
+
+The reference values are the percentiles of Table 1 of Amaro-Gahete et
+al. ([2018](#ref-amarogahete2018)) (dataset `reference_MFO`): 167
+sedentary adults tested **walking on a treadmill**. The mode of exercise
+changes MFO and Fatmax, so a result only gets a percentile when
+`MFO_protocol(mode = )` is `"walking"` or `"running"`. The example data
+come from a cycle ergometer (the default `mode = "cycling"`), so the
+message above explains why `MFO_percentile` and `Fatmax_percentile` are
+`NA`. The Fatmax zone in heart rate is still returned.
+
+To show a percentile, the next chunk uses a **simulated** test, not the
+example data: one participant walking (`MFO_protocol(mode = "walking")`)
+from
+[`simulate_MFO_sessions()`](https://jorgedelro.github.io/MFO/reference/simulate_MFO_sessions.md),
+whose MFO and Fatmax are drawn from its sedentary defaults, the mean and
+SD of the same Table 1 (0.34 ± 0.10 g/min, 44.2 ± 12.4 % VO2max). VO2max
+has no default and must be given; its value (2500 ml/min here) is
+arbitrary and does not change MFO in g/min or Fatmax in % VO2max. The
+protocol is passed on to
+[`MFO()`](https://jorgedelro.github.io/MFO/reference/MFO.md), which is
+where the mode comes from.
+
+``` r
+
+sim <- simulate_MFO_sessions(n_participants = 1, n_sessions = 1,
+                             population = list(VO2max = c(2500, 0)),
+                             protocol = MFO_protocol(mode = "walking"),
+                             seed = 4)
+s1 <- sim$data$P01$S1
+res_walk <- MFO(step_time = sim$settings$step_time, db_MFO = s1$db_MFO,
+                db_basal = s1$db_basal, db_graded = s1$db_graded,
+                cv_var = "RER", author = "Frayn",
+                energy_equivalents = "classic", age = 30,
+                protocol = sim$settings$protocol)
+#> VO2max: a 30-s window is not a multiple of step_time (20 s); using 2 record(s) = 40 s.
+z <- MFO_zones(res_walk, sex = "male", age_group = "young")
+knitr::kable(z[, c("MFO", "MFO_percentile_label", "FAT_MAX",
+                   "Fatmax_percentile_label", "reference", "reference_n")],
+             digits = 2)
+```
+
+| MFO | MFO_percentile_label | FAT_MAX | Fatmax_percentile_label | reference | reference_n |
+|---:|:---|---:|:---|:---|---:|
+| 0.41 | P66 | 41.92 | P64 | Amaro-Gahete 2018: Sedentary young adult men | 41 |
+
+The simulated truth was MFO = 0.409 g/min and Fatmax = 42.2 % VO2max.
+The seed was chosen for a clean example. With other seeds (for example
+`seed = 15`) the simulated Fatmax lands on the last step, and
+[`MFO()`](https://jorgedelro.github.io/MFO/reference/MFO.md) warns that
+Fatmax “is at the last exercise step … the maximum is at the edge of the
+measured range”: see the section *Quality warnings* of
+[`?MFO`](https://jorgedelro.github.io/MFO/reference/MFO.md).
+
+The percentile is interpolated linearly between the published P20, P40,
+P60 and P80. Below P20 or above P80 the label is `"< P20"` or `"> P80"`:
+there is no extrapolation. A percentile always comes with its group
+(`reference`) and its N (`reference_n`); with small groups, such as the
+19 middle-aged men, read it with care. The group is chosen with `sex`,
+`age_group` (`"young"`, 22.1 ± 2.2 years; `"middle-aged"`, 52.1 ± 4.6
+years) and `weight_status` (`"normal"`, `"overweight"`, `"obese"`), only
+in the combinations Table 1 prints. The source does not publish its age
+or BMI cut-offs, so the group is never deduced from a numeric age or
+BMI, and `weight_status` cannot be combined with `sex` or `age_group`.
+
+### 10.3 Reading `reference_differences`
+
+A percentile is only meaningful if the test was done in the same way.
+`reference_differences` lists every way in which the result differs from
+the reference test:
+
+``` r
+
+strsplit(z$reference_differences, "; ")[[1]]
+#> [1] "method: P3 (reference: third-degree polynomial through (0;0), Croci et al. 2014)"
+#> [2] "fasting: reference 5-6 h, not overnight"
+```
+
+- **mode**: running is compared with walking, and the difference is
+  stated; cycling gets no percentile.
+- **equation**: the reference used Frayn ([1983](#ref-frayn1983))
+  without protein; another `author` is listed.
+- **protocol**: the reference used 3-min steps averaged over the last 60
+  s; other step lengths, ramps or relative protocols are listed.
+- **method**: always listed. The reference fitted a third-degree
+  polynomial through the origin (0;0) ([Croci et al.
+  2014](#ref-croci2014)), unlike the unconstrained `"P3"` of
+  [`MFO()`](https://jorgedelro.github.io/MFO/reference/MFO.md).
+- **fasting**: always listed. The reference participants fasted 5–6 h,
+  not overnight; check how long your participants fasted.
+
+### 10.4 Recommendation for obesity
+
+With `population = "obesity"` and `body_fat` (%), the zone in % HRmax is
+compared with the range of the meta-regression of Chávez-Guevara et al.
+([2023](#ref-chavezguevara2023)): 61–66 % HRpeak with more than 35 %
+body fat and 57–64 % HRpeak with less than 35 %. The source does not
+cover exactly 35.0 %, so then there is no range.
+
+``` r
+
+zo <- MFO_zones(res, population = "obesity", body_fat = 38)
+knitr::kable(zo[, c("zone_lower_porcHRmax", "zone_upper_porcHRmax",
+                    "obesity_range_lower", "obesity_range_upper", "obesity_zone")],
+             digits = 1)
+```
+
+| zone_lower_porcHRmax | zone_upper_porcHRmax | obesity_range_lower | obesity_range_upper | obesity_zone |
+|---:|---:|---:|---:|:---|
+| 57.9 | 78.4 | 61 | 66 | partly overlaps |
+
+`obesity_zone` is `"inside"` when the whole individual zone falls in the
+range, `"partly overlaps"` or `"outside"`; read it with the numbers in %
+HRpeak next to it. The range refers to the **measured** HRpeak: with a
+predicted HRmax it is still shown, with a warning. % HRpeak is preferred
+to % VO2max in obesity because the HR–VO2 relation is more stable than a
+measured VO2max, which is often submaximal in these patients. The
+recommendation is only given when you ask for it with
+`population = "obesity"`; `body_fat` alone does not trigger it.
+
+### 10.5 Many participants
+
+With the table of
+[`MFOs()`](https://jorgedelro.github.io/MFO/reference/MFOs.md), `HRmax`,
+`age`, `body_fat`, `sex`, `age_group` and `weight_status` take one
+value, or one per participant (here the body fat of P01 and P02; the
+message about cycling is the same as above):
+
+``` r
+
+zb <- MFO_zones(batch, sex = "male", population = "obesity",
+                body_fat = c(38, 30))
+knitr::kable(zb[, c("ID", "HRmax", "HRmax_source", "zone_lower_porcHRmax",
+                    "zone_upper_porcHRmax", "obesity_range_lower",
+                    "obesity_range_upper", "obesity_zone", "reference_n")],
+             digits = 1)
+```
+
+| ID | HRmax | HRmax_source | zone_lower_porcHRmax | zone_upper_porcHRmax | obesity_range_lower | obesity_range_upper | obesity_zone | reference_n |
+|:---|---:|:---|---:|---:|---:|---:|:---|---:|
+| P01 | 184.6 | measured | 57.9 | 78.4 | 61 | 66 | partly overlaps | 60 |
+| P02 | 184.6 | measured | 57.9 | 78.4 | 57 | 64 | partly overlaps | 60 |
+
 ## References
 
 Achten, J., M. Gleeson, and A. E. Jeukendrup. 2002. “Determination of
@@ -836,10 +1015,21 @@ Amaro-Gahete, F. J., G. Sanchez-Delgado, J. M. A. Alcantara, et al.
 Graded Exercise Protocol: When Should the Test End?” *Frontiers in
 Physiology* 10: 909. <https://doi.org/10.3389/fphys.2019.00909>.
 
+Amaro-Gahete, F. J., G. Sanchez-Delgado, and J. R. Ruiz. 2018.
+“Commentary: Contextualising Maximal Fat Oxidation During Exercise:
+Determinants and Normative Values.” *Frontiers in Physiology* 9: 1460.
+<https://doi.org/10.3389/fphys.2018.01460>.
+
 Brooks, G. A., and J. Mercier. 1994. “Balance of Carbohydrate and Lipid
 Utilization During Exercise: The ‘Crossover’ Concept.” *Journal of
 Applied Physiology* 76 (6): 2253–61.
 <https://doi.org/10.1152/jappl.1994.76.6.2253>.
+
+Chávez-Guevara, I. A., F. J. Amaro-Gahete, A. Ramos-Jiménez, and J. F.
+Brun. 2023. “Toward Exercise Guidelines for Optimizing Fat Oxidation
+During Exercise in Obesity: A Systematic Review and Meta-Regression.”
+*Sports Medicine* 53 (12): 2399–416.
+<https://doi.org/10.1007/s40279-023-01897-y>.
 
 Chenevière, X., D. Malatesta, E. M. Peters, and F. Borrani. 2009. “A
 Mathematical Model to Describe Fat Oxidation Kinetics During Graded

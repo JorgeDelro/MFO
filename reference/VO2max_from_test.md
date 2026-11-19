@@ -69,8 +69,9 @@ An object of class \`MFO_VO2max\`: a list with \`VO2max\` (ml/min),
 \`type\` (\`"VO2max"\` or \`"VO2peak"\`), \`window\` (effective, s),
 \`window_requested\`, \`n_records\`, \`criteria\` (a data frame with one
 row per criterion: \`criterion\`, \`value\`, \`threshold\`, \`met\`,
-\`NA\` when not evaluated), \`HRmax_predicted\`, \`HRmax_formula\` and
-\`age\`. It can be passed to \[MFO()\] as \`VO2max\`.
+\`NA\` when not evaluated), \`HRmax_predicted\`, \`HRmax_formula\`,
+\`age\` and \`HR_peak\` (highest mean HR over the same window as VO2max,
+bpm; \`NA\` without HR). It can be passed to \[MFO()\] as \`VO2max\`.
 
 ## Details
 

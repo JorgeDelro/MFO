@@ -46,7 +46,7 @@ methods to locate MFO (P3, P2, MV, MRER) and stoichiometric equations
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Maximal Fat Oxidation &amp; FatMax Function</h1>
-      <small class="dont-index">Source: <a href="https://github.com/JorgeDelro/MFO/blob/v0.3.0-alpha.2/R/MFO.R" class="external-link"><code>R/MFO.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/JorgeDelro/MFO/blob/main/R/MFO.R" class="external-link"><code>R/MFO.R</code></a></small>
       <div class="d-none name"><code>MFO.Rd</code></div>
     </div>
 
@@ -273,6 +273,12 @@ plot subtitle and Fatmax's as a grey band (default `TRUE`).</p></dd>
 <li><p>FatMax_zone_lower: Lower bound of FatMax zone (% VO2max).</p></li>
 <li><p>FatMax_zone_upper: Upper bound of FatMax zone (% VO2max).</p></li>
 <li><p>FatMax_zone_method: "fitted curve", or "linear interpolation" for `method = "MV"`.</p></li>
+<li><p>FatMax_zone_lower_HR, FatMax_zone_upper_HR: heart rate at the limits of
+  the Fatmax zone (bpm), interpolated as `FAT_MAX_HR`.</p></li>
+<li><p>HRmax: `HRmax` as given (`NA` if not given).</p></li>
+<li><p>HR_peak: highest mean HR in `db_graded` over the VO2max window (bpm;
+  `NA` without `db_graded`, without HR, or with a numeric `VO2max`). Used by
+  [MFO_zones()].</p></li>
 <li><p>FAT_MAX_load, FatMax_zone_lower_load, FatMax_zone_upper_load: Fatmax and
   the Fatmax zone in `load_unit` (`NA` without load).</p></li>
 <li><p>load_unit: "W", "km/h" or "W/kg" (`NA` without load).</p></li>
@@ -284,6 +290,7 @@ plot subtitle and Fatmax's as a grey band (default `TRUE`).</p></dd>
 <li><p>method_used: Method actually used: it differs from `method` when the
   fit falls back (P3 to P2, P2 or MRER to MV), with a warning.</p></li>
 <li><p>energy_equivalents: energy equivalents used for `Kcal` ("classic" or "source").</p></li>
+<li><p>author: stoichiometric equation used.</p></li>
 <li><p>VO2max: VO2max used to express intensity (ml/min).</p></li>
 <li><p>VO2max_window: effective averaging window for VO2max (s); NA if VO2max was supplied.</p></li>
 <li><p>VO2max_window_requested: `vo2max_window` as requested (s); NA if VO2max was supplied.</p></li>

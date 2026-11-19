@@ -42,7 +42,7 @@ Supports all parameters from the MFO() and MFO_kinetics() functions."></head><bo
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Maximal Fat Oxidation calculation of multiple databases</h1>
-      <small class="dont-index">Source: <a href="https://github.com/JorgeDelro/MFO/blob/v0.3.0-alpha.2/R/MFOs.R" class="external-link"><code>R/MFOs.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/JorgeDelro/MFO/blob/main/R/MFOs.R" class="external-link"><code>R/MFOs.R</code></a></small>
       <div class="d-none name"><code>MFOs.Rd</code></div>
     </div>
 
@@ -284,6 +284,11 @@ model. See [MFO_kinetics()].</p></dd>
 <li><p>FatMax_zone_lower: Lower bound of FatMax zone (% VO2max).</p></li>
 <li><p>FatMax_zone_upper: Upper bound of FatMax zone (% VO2max).</p></li>
 <li><p>FatMax_zone_method: "fitted curve", or "linear interpolation" for "MV".</p></li>
+<li><p>FatMax_zone_lower_HR, FatMax_zone_upper_HR: heart rate at the limits of
+  the Fatmax zone (bpm).</p></li>
+<li><p>HRmax: `HRmax` as given (`NA` if not given).</p></li>
+<li><p>HR_peak: highest mean HR of the graded test over the VO2max window
+  (bpm); `NA` with a numeric `VO2max`. See [MFO_zones()].</p></li>
 <li><p>FAT_MAX_load, FatMax_zone_lower_load, FatMax_zone_upper_load: Fatmax and
   Fatmax zone in load units; load_unit and load_source as in [MFO()].</p></li>
 <li><p>crossover_point: Crossover intensity (% VO2max).</p></li>
@@ -291,6 +296,7 @@ model. See [MFO_kinetics()].</p></dd>
 <li><p>method: method requested.</p></li>
 <li><p>method_used: method actually used (differs after a fallback).</p></li>
 <li><p>energy_equivalents: "classic" or "source".</p></li>
+<li><p>author: stoichiometric equation used.</p></li>
 <li><p>protocol: protocol type (see [MFO_protocol()]).</p></li>
 <li><p>mode: exercise mode of the protocol.</p></li>
 <li><p>d: SIN dilatation parameter.</p></li>

@@ -56,7 +56,7 @@ the heart-rate criteria are met; otherwise it is labelled `&quot;VO2peak&quot;`
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>VO2max of a graded test, with maximality criteria</h1>
-      <small class="dont-index">Source: <a href="https://github.com/JorgeDelro/MFO/blob/v0.3.0-alpha.2/R/VO2max_from_test.R" class="external-link"><code>R/VO2max_from_test.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/JorgeDelro/MFO/blob/main/R/VO2max_from_test.R" class="external-link"><code>R/VO2max_from_test.R</code></a></small>
       <div class="d-none name"><code>VO2max_from_test.Rd</code></div>
     </div>
 
@@ -133,8 +133,9 @@ must reach (default 0.90).</p></dd>
   `type` (`"VO2max"` or `"VO2peak"`), `window` (effective, s),
   `window_requested`, `n_records`, `criteria` (a data frame with one row
   per criterion: `criterion`, `value`, `threshold`, `met`, `NA` when not
-  evaluated), `HRmax_predicted`, `HRmax_formula` and `age`. It can be passed
-  to [MFO()] as `VO2max`.</p>
+  evaluated), `HRmax_predicted`, `HRmax_formula`, `age` and `HR_peak`
+  (highest mean HR over the same window as VO2max, bpm; `NA` without HR).
+  It can be passed to [MFO()] as `VO2max`.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>

@@ -27,6 +27,14 @@ curve fit (P3, P2, MV, MRER), Fatmax zone and crossover point.
 - [`MFO()`](https://jorgedelro.github.io/MFO/reference/MFO.md) : Maximal
   Fat Oxidation & FatMax Function
 
+## Zones and reference values
+
+Fatmax zone in heart rate, range for obesity (Chávez-Guevara et al.,
+2023) and percentiles of sedentary adults (Amaro-Gahete et al., 2018).
+
+- [`MFO_zones()`](https://jorgedelro.github.io/MFO/reference/MFO_zones.md)
+  : Heart-rate zones and reference values for MFO and Fatmax
+
 ## Kinetics
 
 SIN model of fat oxidation kinetics (Chenevière et al., 2009).
@@ -73,7 +81,8 @@ uncertainty studies and demonstrations.
 
 ## Datasets
 
-Anonymised example recordings of one participant (20-s averages).
+Anonymised example recordings of one participant (20-s averages) and
+published reference values.
 
 - [`basal_df`](https://jorgedelro.github.io/MFO/reference/basal_df.md) :
   Basal test dataframe
@@ -81,6 +90,8 @@ Anonymised example recordings of one participant (20-s averages).
   test dataframe
 - [`VO2max_df`](https://jorgedelro.github.io/MFO/reference/VO2max_df.md)
   : Graded exercise test dataframe
+- [`reference_MFO`](https://jorgedelro.github.io/MFO/reference/reference_MFO.md)
+  : Reference values for MFO and Fatmax
 
 ## Internal helpers
 
