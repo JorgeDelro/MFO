@@ -47,6 +47,12 @@ reference:
     curve fit (P3, P2, MV, MRER), Fatmax zone and crossover point.
   contents:
   - MFO
+- title: Zones and reference values
+  desc: >
+    Fatmax zone in heart rate, range for obesity (Chávez-Guevara et al., 2023)
+    and percentiles of sedentary adults (Amaro-Gahete et al., 2018).
+  contents:
+  - MFO_zones
 - title: Kinetics
   desc: SIN model of fat oxidation kinetics (Chenevière et al., 2009).
   contents:

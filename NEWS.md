@@ -178,6 +178,15 @@
   protein, P3 through the origin, 5-6 h fasting) so that comparisons can
   state how they differ (SPEC 15.2).
 
+* New `MFO_zones()` (SPEC 15): Fatmax and the Fatmax zone in bpm and
+  % HRmax, with HRmax given > measured peak HR > predicted (Tanaka or Fox,
+  only with `predicted_HRmax = TRUE`) and its source reported; with
+  `population = "obesity"` and `body_fat`, the zone is compared with the
+  % HRpeak range of Chavez-Guevara et al. (2023); MFO and Fatmax are placed
+  among the percentiles of `reference_MFO` ("< P20" / "> P80" without
+  extrapolation), only for walking or running tests, with the differences
+  from the reference test listed. Works on `MFO()` and `MFOs()` results.
+
 * `MFO()` and `MFOs()` also return `FatMax_zone_lower_HR`,
   `FatMax_zone_upper_HR`, `HRmax`, `HR_peak` and `author`;
   `VO2max_from_test()` returns `HR_peak`, the highest mean HR over the
