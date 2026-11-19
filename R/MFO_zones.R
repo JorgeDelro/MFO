@@ -18,8 +18,9 @@
 #' @section Obesity:
 #' With `population = "obesity"`, the zone in \% HRmax is compared with the
 #' range of Chavez-Guevara et al. (2023, \doi{10.1007/s40279-023-01897-y}):
-#' 61-66 \% HRpeak with more than 35 \% body fat and 57-64 \% HRpeak
-#' otherwise; `body_fat` chooses the range. `obesity_zone` is `"inside"` (the
+#' 61-66 \% HRpeak with more than 35 \% body fat and 57-64 \% HRpeak with
+#' less than 35 \%; `body_fat` chooses the range. The source does not cover
+#' exactly 35.0 \%: there is no range (`NA`), with a message. `obesity_zone` is `"inside"` (the
 #' whole zone falls in the range), `"partly overlaps"` or `"outside"`. The
 #' range refers to the measured HRpeak: with a predicted HRmax it is still
 #' shown, with a warning.
@@ -168,9 +169,16 @@ MFO_zones <- function(x,
       stop('population = "obesity" needs body_fat (%) to choose the range of ',
            "Chavez-Guevara et al. (2023).", call. = FALSE)
     }
+    # The source defines > 35 % and < 35 %; exactly 35 % gets no range
     high <- body_fat > 35
-    out$obesity_range_lower <- ifelse(high, 61, 57)
-    out$obesity_range_upper <- ifelse(high, 66, 64)
+    covered <- body_fat != 35
+    if (any(!covered)) {
+      message("Chavez-Guevara et al. (2023) define > 35 % and < 35 % body fat; ",
+              "35.0 % is not covered, so there is no range for ", sum(!covered),
+              " result(s).")
+    }
+    out$obesity_range_lower <- ifelse(covered, ifelse(high, 61, 57), NA_real_)
+    out$obesity_range_upper <- ifelse(covered, ifelse(high, 66, 64), NA_real_)
     out$obesity_zone <- .zone_overlap(out$zone_lower_porcHRmax, out$zone_upper_porcHRmax,
                                       out$obesity_range_lower, out$obesity_range_upper)
     if (any(grepl("^predicted", source))) {

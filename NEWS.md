@@ -182,7 +182,8 @@
   % HRmax, with HRmax given > measured peak HR > predicted (Tanaka or Fox,
   only with `predicted_HRmax = TRUE`) and its source reported; with
   `population = "obesity"` and `body_fat`, the zone is compared with the
-  % HRpeak range of Chavez-Guevara et al. (2023); MFO and Fatmax are placed
+  % HRpeak range of Chavez-Guevara et al. (2023) (none at exactly 35.0 %,
+  which the source does not cover); MFO and Fatmax are placed
   among the percentiles of `reference_MFO` ("< P20" / "> P80" without
   extrapolation), only for walking or running tests, with the differences
   from the reference test listed. Works on `MFO()` and `MFOs()` results.

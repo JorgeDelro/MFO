@@ -98,8 +98,11 @@ test_that("obesity range of Chavez-Guevara et al. (2023)", {
   z <- MFO_zones(x, population = "obesity", body_fat = 38)
   expect_equal(c(z$obesity_range_lower, z$obesity_range_upper), c(61, 66))
   expect_identical(z$obesity_zone, "partly overlaps")
-  z <- MFO_zones(x, population = "obesity", body_fat = 35)
+  z <- MFO_zones(x, population = "obesity", body_fat = 34.9)
   expect_equal(c(z$obesity_range_lower, z$obesity_range_upper), c(57, 64))
+  expect_message(z <- MFO_zones(x, population = "obesity", body_fat = 35),
+                 "35.0 % is not covered")
+  expect_true(all(is.na(c(z$obesity_range_lower, z$obesity_range_upper, z$obesity_zone))))
   expect_true(is.na(MFO_zones(x)$obesity_zone))
 
   expect_identical(.zone_overlap(58, 63, 57, 64), "inside")

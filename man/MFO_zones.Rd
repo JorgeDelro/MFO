@@ -78,8 +78,9 @@ in common use described by Tanaka, Monahan and Seals (2001). The column
 
 With `population = "obesity"`, the zone in \% HRmax is compared with the
 range of Chavez-Guevara et al. (2023, \doi{10.1007/s40279-023-01897-y}):
-61-66 \% HRpeak with more than 35 \% body fat and 57-64 \% HRpeak
-otherwise; `body_fat` chooses the range. `obesity_zone` is `"inside"` (the
+61-66 \% HRpeak with more than 35 \% body fat and 57-64 \% HRpeak with
+less than 35 \%; `body_fat` chooses the range. The source does not cover
+exactly 35.0 \%: there is no range (`NA`), with a message. `obesity_zone` is `"inside"` (the
 whole zone falls in the range), `"partly overlaps"` or `"outside"`. The
 range refers to the measured HRpeak: with a predicted HRmax it is still
 shown, with a warning.
