@@ -140,3 +140,141 @@ test_that("read_cart() reads a ZAN export through spiro", {
   expect_error(read_cart("no_such_file.csv"), "File not found")
   expect_error(read_cart(f, device = "parvo"))
 })
+
+
+# --- device = "generic" (#22). No real export yet: the example tables are
+# written as an analyser would (metadata line, header, units row, decimal
+# comma, mm:ss, VO2 in L/min) and must be read back exactly ---
+
+.write_generic_csv <- function(db, file, time = seq_len(nrow(db)) * 20) {
+  comma <- function(x) sub(".", ",", format(x, digits = 15, trim = TRUE), fixed = TRUE)
+  writeLines(c("Exported by a cart;MFO test",
+               "t;VO2;VCO2;FC;Watts",
+               "mm:ss;L/min;L/min;1/min;W",
+               sprintf("%02d:%02d;%s;%s;%s;%s", time %/% 60, time %% 60,
+                       comma(db$VO2 / 1000), comma(db$VCO2 / 1000), comma(db$HR),
+                       if (is.null(db$Load)) "" else db$Load)), file)
+}
+
+test_that("a generic csv with metadata, units row and decimal comma is read exactly", {
+  data(MFO_df, package = "MFO", envir = environment())
+  f <- withr::local_tempfile(fileext = ".csv")
+  .write_generic_csv(MFO_df, f)
+  expect_message(
+    cart <- read_cart(f, device = "generic", interval = "none", skip = 1,
+                      units_row = TRUE, decimal = ",",
+                      columns = c(Time = "t", HR = "FC", Load = "Watts")),
+    "unit taken from the units row: L/min")
+  expect_s3_class(cart, "MFO_cart")
+  expect_equal(cart$step_time, 20)
+  expect_equal(cart$db_MFO$Time, seq_len(nrow(MFO_df)) * 20)
+  # L/min x 1000 back to mL/min (tolerance for the binary representation)
+  expect_equal(cart$db_MFO$VO2, MFO_df$VO2, tolerance = 1e-12)
+  expect_equal(cart$db_MFO$VCO2, MFO_df$VCO2, tolerance = 1e-12)
+  expect_equal(cart$db_MFO$HR, MFO_df$HR)
+  expect_equal(cart$db_MFO$Load, MFO_df$Load)
+  expect_equal(cart$db_MFO$RER, MFO_df$VCO2 / MFO_df$VO2, tolerance = 1e-12)
+  expect_equal(cart$info$vo2_unit, "L/min")
+  expect_output(print(cart), "20-s records as exported")
+  # an explicit vo2_unit wins over the units row, without the message
+  expect_no_message(read_cart(f, device = "generic", interval = "none", skip = 1,
+                              units_row = TRUE, decimal = ",", vo2_unit = "L/min",
+                              columns = c(Time = "t", HR = "FC", Load = "Watts")))
+})
+
+test_that("an xlsx with one sheet per phase reproduces MFO() on the tables", {
+  data(list = c("basal_df", "MFO_df", "VO2max_df"), package = "MFO", envir = environment())
+  sec <- function(db) seq_len(nrow(db)) * 20
+  tab <- function(db) {
+    out <- data.frame(Time = sec(db) / 86400, VO2 = db$VO2, VCO2 = db$VCO2, HR = db$HR)
+    if (!is.null(db$Load)) out$Load <- db$Load
+    out
+  }
+  f <- withr::local_tempfile(fileext = ".xlsx")
+  openxlsx::write.xlsx(list(Rest = tab(basal_df), Steps = tab(MFO_df), GXT = tab(VO2max_df)), f)
+  expect_message(
+    cart <- read_cart(f, device = "generic", interval = "none",
+                      sheets = c(basal = "Rest", MFO = "Steps", graded = "GXT")),
+    "Excel times")
+  expect_equal(cart$step_time, 20)
+  expect_equal(cart$db_basal$Time, sec(basal_df), tolerance = 1e-9)
+  expect_equal(cart$db_graded$VO2, VO2max_df$VO2)
+  expect_equal(cart$info$n_breaths, nrow(basal_df) + nrow(MFO_df) + nrow(VO2max_df))
+  run <- function(...) suppressWarnings(suppressMessages(
+    MFO(cv_var = "RER", author = "Frayn", energy_equivalents = "classic", age = 30, ...)))
+  r_cart <- run(step_time = cart$step_time, db_MFO = cart$db_MFO,
+                db_basal = cart$db_basal, db_graded = cart$db_graded)
+  # The tables with RER = VCO2/VO2, as the contract recomputes it
+  rer <- function(db) transform(db, RER = VCO2 / VO2)
+  r_tab <- run(step_time = 20, db_MFO = rer(MFO_df), db_basal = rer(basal_df),
+               db_graded = rer(VO2max_df))
+  expect_identical(r_cart$MFO, r_tab$MFO)
+  expect_identical(r_cart$FAT_MAX, r_tab$FAT_MAX)
+  expect_identical(r_cart$VO2max, r_tab$VO2max)
+  expect_identical(r_cart$x_FAT, r_tab$x_FAT)
+  expect_identical(r_cart$FAT_MAX_load, r_tab$FAT_MAX_load)
+  # one unnamed sheet is the phase named in `phase`
+  one <- suppressMessages(read_cart(f, device = "generic", interval = "none",
+                                    sheets = "GXT", phase = "graded"))
+  expect_equal(one$db_graded$VO2, VO2max_df$VO2)
+  expect_null(one$db_MFO)
+})
+
+test_that("generic records with cuts split like the shared pipeline", {
+  data(list = c("basal_df", "MFO_df"), package = "MFO", envir = environment())
+  both <- rbind(data.frame(basal_df)[, c("VO2", "VCO2", "HR")],
+                data.frame(MFO_df)[, c("VO2", "VCO2", "HR")])
+  f <- withr::local_tempfile(fileext = ".csv")
+  utils::write.csv(data.frame(Time = seq_len(nrow(both)) * 20, both), f, row.names = FALSE)
+  cart <- read_cart(f, device = "generic", interval = "none",
+                    cuts = c(basal_end = nrow(basal_df) * 20))
+  expect_equal(cart$db_basal$VO2, basal_df$VO2)
+  expect_equal(cart$db_MFO$VO2, MFO_df$VO2)
+  expect_equal(cart$db_MFO$Time[1], (nrow(basal_df) + 1) * 20)
+})
+
+test_that("a generic breath-by-breath file is averaged per interval", {
+  f <- withr::local_tempfile(fileext = ".csv")
+  utils::write.csv(data.frame(Time = c(1, 4, 12, 35), VO2 = c(1000, 2000, 3000, 4000),
+                              VCO2 = c(800, 1600, 2400, 3200)), f, row.names = FALSE)
+  cart <- read_cart(f, device = "generic", interval = 10)
+  expect_equal(cart$db_MFO$VO2, c(1500, 3000, NA, 4000))
+  expect_error(read_cart(f, device = "generic", interval = "none"),
+               "regular step.*Time goes from 4 to 12 s")
+})
+
+test_that("generic input errors name what to fix", {
+  f <- withr::local_tempfile(fileext = ".csv")
+  writeLines(c("time,VO2 (ml/min),VCO2", "20,\"2,4\",2000", "40,2500,2100"), f)
+  expect_error(read_cart(f, device = "generic", interval = "none",
+                         columns = c(Time = "Tiempo")),
+               "\"Tiempo\", \"VO2\" not found.*Columns in the file: \"time\", \"VO2 \\(ml/min\\)\"")
+  expect_error(read_cart(f, device = "generic", interval = "none",
+                         columns = c(Time = "time", VO2 = "VO2 (ml/min)")),
+               "VO2 has 1 value\\(s\\) that are not numbers \\(e.g. \"2,4\"\\).*decimal = \",\"")
+  expect_error(read_cart(f, device = "generic", columns = c(Tiempo = "t")),
+               "Unknown name\\(s\\) in columns: Tiempo")
+  expect_error(read_cart(f, device = "generic", columns = "time"), "named character")
+  expect_error(read_cart(f, device = "generic", sheets = c(MFO = "A")), "only for xlsx")
+  expect_error(read_cart(f, device = "zan", columns = c(Time = "time")),
+               "for device = \"generic\"")
+  g <- withr::local_tempfile(fileext = ".dat")
+  writeLines("x", g)
+  expect_error(read_cart(g, device = "generic"), "not .dat")
+})
+
+test_that("sheets are checked against cuts, names and steps", {
+  data(MFO_df, package = "MFO", envir = environment())
+  d20 <- data.frame(Time = seq_len(10) * 20, VO2 = MFO_df$VO2[1:10], VCO2 = MFO_df$VCO2[1:10])
+  d10 <- transform(d20, Time = seq_len(10) * 10)
+  f <- withr::local_tempfile(fileext = ".xlsx")
+  openxlsx::write.xlsx(list(A = d20, B = d10), f)
+  expect_error(read_cart(f, device = "generic", interval = "none",
+                         sheets = c(MFO = "A"), cuts = c(MFO_end = 100)), "cuts or sheets")
+  expect_error(read_cart(f, device = "generic", interval = "none",
+                         sheets = c(test = "A")), "named basal, MFO")
+  expect_error(read_cart(f, device = "generic", interval = "none", sheets = c("A", "B")),
+               "Name the sheets")
+  expect_error(read_cart(f, device = "generic", interval = "none",
+                         sheets = c(MFO = "A", graded = "B")), "different steps")
+})

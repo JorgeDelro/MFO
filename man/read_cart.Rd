@@ -11,17 +11,24 @@ read_cart(
   cuts = NULL,
   phase = c("MFO", "basal", "graded"),
   body_mass = NULL,
-  vo2_unit = c("auto", "mL/min", "L/min", "mL/kg/min")
+  vo2_unit = c("auto", "mL/min", "L/min", "mL/kg/min"),
+  columns = NULL,
+  skip = 0,
+  units_row = FALSE,
+  decimal = c(".", ","),
+  sheets = NULL
 )
 }
 \arguments{
 \item{file}{path of the export.}
 
 \item{device}{`NULL` (detected by \pkg{spiro}), `"cortex"`, `"cosmed"`,
-`"vyntus"` or `"zan"`.}
+`"vyntus"`, `"zan"`, or `"generic"` for a csv/xlsx file with mapped
+columns (does not need \pkg{spiro}).}
 
-\item{interval}{length of the averaging intervals in seconds (default 10);
-it becomes `step_time` for [MFO()].}
+\item{interval}{length of the averaging intervals in seconds (default 10),
+or `"none"` for records already averaged by the analyser; it becomes
+`step_time` for [MFO()].}
 
 \item{cuts}{optional named vector of cut times in seconds, with `basal_end`
 and/or `MFO_end`.}
@@ -33,14 +40,21 @@ and/or `MFO_end`.}
 
 \item{vo2_unit}{unit of VO2 and VCO2 in the export: `"auto"` (default),
 `"mL/min"`, `"L/min"` or `"mL/kg/min"`.}
+
+\item{columns, skip, units_row, decimal, sheets}{for `device = "generic"`
+only: column mapping (named character vector), lines before the header
+(default 0), whether a units row follows the header (default `FALSE`),
+decimal mark (`"."` or `","`) and xlsx sheets per phase. See *Generic
+files*.}
 }
 \value{
 An object of class `MFO_cart`: a list with `db_basal`, `db_MFO`,
   `db_graded` (data frames with `Time`, `VO2`, `VCO2`, `RER` and, when the
   export has them, `HR`, `Load`, `VE`; `NULL` for a phase not in the file),
-  `step_time` (= `interval`) and `info` (device, interval, VO2 unit, cuts,
-  number of breaths, of intervals and of empty intervals, and the RER
-  mismatch count, `NA` when the export has no RER).
+  `step_time` (= `interval`, or the step of `Time` with `interval = "none"`)
+  and `info` (device, interval, averaging, VO2 unit, cuts, number of breaths
+  or records, of intervals and of empty intervals, and the RER mismatch
+  count, `NA` when the export has no RER).
 }
 \description{
 Reads the breath-by-breath export of a metabolic cart, averages it into
@@ -79,10 +93,54 @@ the recording is split into basal, MFO and graded tables; with
 `cuts`, the whole recording is the phase named in `phase`. Detecting the
 phases from the analyser's markers will come with each device importer.
 
+**Generic files** (`device = "generic"`). A csv or xlsx file whose
+columns are mapped with `columns`, as `col_name_*` in [MFO()] (SPEC 16):
+\itemize{
+\item `columns` maps the contract names `Time`, `VO2`, `VCO2` and,
+  optionally, `RER`, `HR`, `Load` and `VE` to the names in the file, e.g.
+  `c(Time = "t", VO2 = "VO2 STPD")`; names not given are looked up as they
+  are. Names must match exactly; a missing column stops with the list of
+  columns in the file.
+\item `skip` lines (e.g. metadata) come before the header; with
+  `units_row = TRUE` the line after the header holds the units. A
+  recognised VO2 unit there ("mL/min", "L/min", "mL/kg/min") is taken as a
+  declaration of the file, with a message; an explicit `vo2_unit` wins.
+\item `decimal` is the decimal mark (default "."); the csv field separator
+  (tab, ";" or ",") is detected from the header line.
+\item `Time` is the elapsed time from the start of the recording, in seconds,
+  mm:ss, hh:mm:ss or Excel times (fractions of a day), detected
+  automatically.
+\item Records already averaged by the analyser (e.g. every 20 s) are read
+  with `interval = "none"`: they are kept as they are and `step_time` is the
+  step of `Time`, which must be regular. A numeric `interval` is for
+  breath-by-breath files.
+\item `sheets` reads the phases from the sheets of an xlsx file,
+  `c(basal = , MFO = , graded = )` (any of them), as an alternative to
+  `cuts`; one unnamed sheet is the phase named in `phase`.
+}
+
 No personal data from the file are kept: the result holds only the
 measured variables and technical information.
 }
 \examples{
+# A generic csv: metadata line, header, units row, decimal comma, records
+# already averaged every 20 s (the example MFO test, VO2 in L/min)
+data(MFO_df, package = "MFO")
+t <- seq_len(nrow(MFO_df)) * 20
+f <- tempfile(fileext = ".csv")
+writeLines(c("Example export;MFO test",
+             "t;VO2;VCO2;FC;Watts",
+             "mm:ss;L/min;L/min;1/min;W",
+             sprintf("\%02d:\%02d;\%s;\%s;\%s;\%s", t \%/\% 60, t \%\% 60,
+                     sub(".", ",", MFO_df$VO2 / 1000, fixed = TRUE),
+                     sub(".", ",", MFO_df$VCO2 / 1000, fixed = TRUE),
+                     sub(".", ",", MFO_df$HR, fixed = TRUE), MFO_df$Load)), f)
+cart <- read_cart(f, device = "generic", interval = "none", skip = 1,
+                  units_row = TRUE, decimal = ",",
+                  columns = c(Time = "t", HR = "FC", Load = "Watts"))
+cart
+head(cart$db_MFO)
+
 \donttest{
 if (requireNamespace("spiro", quietly = TRUE)) {
   # A graded test exported by a ZAN cart (example file of spiro)

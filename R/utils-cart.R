@@ -1,6 +1,7 @@
 # Internal pipeline shared by the importers (SPEC 16): breath-by-breath data
-# in, the internal data contract out. read_cart() feeds it from spiro; the
-# generic reader (#22) will feed it from a mapped csv/xlsx.
+# (or records already averaged by the analyser) in, the internal data
+# contract out. read_cart() feeds it from spiro or, with device = "generic",
+# from a mapped csv/xlsx (R/utils-generic.R).
 
 # Columns of the internal contract: required, then optional in this order
 .contract_required <- c("Time", "VO2", "VCO2", "RER")
@@ -55,11 +56,16 @@
 
 
 # Breath-by-breath data frame (Time, VO2, VCO2 and optional RER, HR, Load, VE)
-# -> MFO_cart object with one table per phase
+# -> MFO_cart object with one table per phase. interval = "none": the rows
+# are records already averaged by the analyser, kept as they are, and the
+# step is read from Time (Jorge, 2026-11-19)
 .cart_from_breaths <- function(breaths, interval, cuts, phase, body_mass, vo2_unit,
                                device) {
-  if (!is.numeric(interval) || length(interval) != 1 || is.na(interval) || interval <= 0) {
-    stop("interval must be a single positive number of seconds.", call. = FALSE)
+  as_is <- identical(interval, "none")
+  if (!as_is && (!is.numeric(interval) || length(interval) != 1 || is.na(interval) ||
+                 interval <= 0)) {
+    stop("interval must be a single positive number of seconds, or \"none\" for ",
+         "records already averaged.", call. = FALSE)
   }
   missing_cols <- setdiff(c("Time", "VO2", "VCO2"), names(breaths))
   if (length(missing_cols) > 0) {
@@ -73,7 +79,13 @@
   if (n_breaths == 0) stop("The data have no breaths with a valid Time.", call. = FALSE)
 
   units <- .to_ml_min(breaths, vo2_unit, body_mass)
-  binned <- .bin_breaths(units$breaths, interval)
+  if (as_is) {
+    interval <- .regular_step(breaths$Time)
+    binned <- units$breaths
+    rownames(binned) <- NULL
+  } else {
+    binned <- .bin_breaths(units$breaths, interval)
+  }
 
   # RER is always VCO2/VO2 of the interval means; an exported RER is compared
   # with it and intervals differing by more than 0.02 are counted (SPEC 16)
@@ -98,6 +110,8 @@
                  db_graded = phases$graded,
                  step_time = interval,
                  info = list(device = device, interval = interval,
+                             averaging = if (as_is) "none (records as exported)" else
+                               "mean of breaths per interval",
                              vo2_unit = units$unit, cuts = cuts,
                              n_breaths = n_breaths, n_intervals = nrow(binned),
                              empty_intervals = empty, RER_mismatch = rer_mismatch)),
@@ -106,7 +120,10 @@
 
 
 # Phases by the user's cut times (s): basal_end and/or MFO_end. Without cuts
-# the whole recording is the phase named in `phase`.
+# the whole recording is the phase named in `phase`. Each record covers
+# (Time - interval, Time]; a cut falls on a record boundary, other values are
+# rounded to the nearest one (with binned breaths the boundaries are the
+# multiples of interval)
 .split_phases <- function(binned, cuts, phase, interval) {
   out <- list(basal = NULL, MFO = NULL, graded = NULL)
   if (is.null(cuts)) {
@@ -119,11 +136,12 @@
     stop("cuts must be a named number vector with basal_end and/or MFO_end (s).",
          call. = FALSE)
   }
-  # A cut falls on an interval boundary; other values are rounded to the nearest
-  rec <- round(cuts / interval)
-  if (!isTRUE(all.equal(as.numeric(rec * interval), as.numeric(cuts)))) {
-    message(sprintf("cuts rounded to multiples of interval (%g s): %s.", interval,
-                    paste(names(cuts), rec * interval, sep = " = ", collapse = ", ")))
+  boundaries <- c(binned$Time[1] - interval, binned$Time)
+  rec <- vapply(cuts, function(x) which.min(abs(boundaries - x)) - 1L, integer(1))
+  at <- boundaries[rec + 1]
+  if (!isTRUE(all.equal(as.numeric(at), as.numeric(cuts)))) {
+    message(sprintf("cuts rounded to the nearest record boundary (%g-s records): %s.",
+                    interval, paste(names(cuts), at, sep = " = ", collapse = ", ")))
   }
   bounds <- c(0, rec[intersect(c("basal_end", "MFO_end"), names(rec))], nrow(binned))
   if (any(diff(bounds) <= 0)) {
@@ -146,4 +164,27 @@
     out[[names_seg[i]]] <- seg
   }
   out
+}
+
+
+# Step of records already averaged by the analyser: Time must increase by the
+# same amount from record to record (Jorge, 2026-11-19)
+.regular_step <- function(time) {
+  if (length(time) < 2) {
+    stop("interval = \"none\" needs at least two records.", call. = FALSE)
+  }
+  d <- diff(time)
+  # the most frequent step (the first one on ties)
+  r <- round(d, 6)
+  step <- as.numeric(names(which.max(table(factor(r, levels = unique(r))))))
+  bad <- which(abs(d - step) > 1e-6 * max(1, step))
+  if (step <= 0 || length(bad) > 0) {
+    i <- if (length(bad) > 0) bad[1] else 1
+    stop(sprintf(paste0("interval = \"none\" needs records at a regular step, but ",
+                        "Time goes from %s to %s s (record %d to %d) while the usual ",
+                        "step is %s s. Use a numeric interval for breath-by-breath data."),
+                 format(time[i]), format(time[i + 1]), i, i + 1, format(step)),
+         call. = FALSE)
+  }
+  step
 }
