@@ -663,6 +663,10 @@ knitr::kable(z[, c("MFO", "MFO_percentile_label", "FAT_MAX",
 
 The simulated truth was MFO = `r round(sim$truth$MFO, 3)` g/min and
 Fatmax = `r round(sim$truth$Fatmax, 1)` % VO2max.
+The seed was chosen for a clean example. With other seeds (for example
+`seed = 15`) the simulated Fatmax lands on the last step, and `MFO()` warns
+that Fatmax "is at the last exercise step ... the maximum is at the edge of
+the measured range": see the section *Quality warnings* of `?MFO`.
 
 The percentile is interpolated linearly between the published P20, P40, P60
 and P80. Below P20 or above P80 the label is `"< P20"` or `"> P80"`: there is
