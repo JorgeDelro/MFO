@@ -221,6 +221,16 @@ MFO_zones <- function(x,
 
 #' @export
 print.MFO_zones <- function(x, digits = 1, ...) {
+  # A subset of columns prints as a plain data frame
+  needed <- c("FAT_MAX", "FAT_MAX_HR", "FAT_MAX_porcHRmax", "zone_lower", "zone_upper",
+              "zone_lower_HR", "zone_upper_HR", "zone_lower_porcHRmax",
+              "zone_upper_porcHRmax", "HRmax", "HRmax_source", "obesity_range_lower",
+              "obesity_range_upper", "obesity_zone", "reference", "reference_n", "MFO",
+              "MFO_percentile_label", "Fatmax_percentile_label", "reference_differences")
+  if (!all(needed %in% names(x))) {
+    print(as.data.frame(unclass(x), stringsAsFactors = FALSE), ...)
+    return(invisible(x))
+  }
   f <- function(v, d = digits) ifelse(is.na(v), "NA", formatC(v, format = "f", digits = d))
   for (i in seq_len(nrow(x))) {
     r <- x[i, , drop = FALSE]

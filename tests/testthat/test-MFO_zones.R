@@ -132,6 +132,7 @@ test_that("MFO_zones() takes MFOs() rows with one value per participant", {
   expect_error(MFO_zones(df, sex = c("male", "female", "male")), "length 1 or one value")
   expect_error(MFO_zones(list(a = 1)), "result of MFO")
   expect_output(print(z), "== P2 ==")
+  expect_output(print(z[, c("ID", "HRmax")]), "P2")
 })
 
 test_that("MFO() returns HR at the zone limits and the peak HR", {
