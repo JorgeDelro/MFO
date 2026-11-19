@@ -16,7 +16,8 @@ read_cart(
   skip = 0,
   units_row = FALSE,
   decimal = c(".", ","),
-  sheets = NULL
+  sheets = NULL,
+  time_origin = c("elapsed", "clock")
 )
 }
 \arguments{
@@ -41,18 +42,20 @@ and/or `MFO_end`.}
 \item{vo2_unit}{unit of VO2 and VCO2 in the export: `"auto"` (default),
 `"mL/min"`, `"L/min"` or `"mL/kg/min"`.}
 
-\item{columns, skip, units_row, decimal, sheets}{for `device = "generic"`
-only: column mapping (named character vector), lines before the header
-(default 0), whether a units row follows the header (default `FALSE`),
-decimal mark (`"."` or `","`) and xlsx sheets per phase. See *Generic
-files*.}
+\item{columns, skip, units_row, decimal, sheets, time_origin}{for
+`device = "generic"` only: column mapping (named character vector), lines
+before the header (default 0), whether a units row follows the header
+(default `FALSE`), decimal mark (`"."` or `","`), xlsx sheets per phase,
+and whether `Time` is `"elapsed"` (default) or `"clock"` time. See
+*Generic files*.}
 }
 \value{
 An object of class `MFO_cart`: a list with `db_basal`, `db_MFO`,
   `db_graded` (data frames with `Time`, `VO2`, `VCO2`, `RER` and, when the
   export has them, `HR`, `Load`, `VE`; `NULL` for a phase not in the file),
   `step_time` (= `interval`, or the step of `Time` with `interval = "none"`)
-  and `info` (device, interval, averaging, VO2 unit, cuts, number of breaths
+  and `info` (device, interval, averaging, VO2 unit, cuts, `time_origin` and
+  `time_offset` for generic files, number of breaths
   or records, of intervals and of empty intervals, and the RER mismatch
   count, `NA` when the export has no RER).
 }
@@ -107,9 +110,12 @@ columns are mapped with `columns`, as `col_name_*` in [MFO()] (SPEC 16):
   declaration of the file, with a message; an explicit `vo2_unit` wins.
 \item `decimal` is the decimal mark (default "."); the csv field separator
   (tab, ";" or ",") is detected from the header line.
-\item `Time` is the elapsed time from the start of the recording, in seconds,
-  mm:ss, hh:mm:ss or Excel times (fractions of a day), detected
-  automatically.
+\item `Time` is in seconds, mm:ss, hh:mm:ss or Excel times (fractions of a
+  day), detected automatically. With `time_origin = "elapsed"` (default) it
+  is the time from the start of the recording; a first value above 1 h
+  stops with an error suggesting `"clock"`. With `time_origin = "clock"`
+  (time of day), the first value is subtracted, so Time counts from the
+  first record, and the value subtracted is kept in `info$time_offset`.
 \item Records already averaged by the analyser (e.g. every 20 s) are read
   with `interval = "none"`: they are kept as they are and `step_time` is the
   step of `Time`, which must be regular. A numeric `interval` is for

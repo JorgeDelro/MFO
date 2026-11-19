@@ -151,7 +151,10 @@ test_that("read_cart() reads a ZAN export through spiro", {
   writeLines(c("Exported by a cart;MFO test",
                "t;VO2;VCO2;FC;Watts",
                "mm:ss;L/min;L/min;1/min;W",
-               sprintf("%02d:%02d;%s;%s;%s;%s", time %/% 60, time %% 60,
+               sprintf("%s;%s;%s;%s;%s",
+                       if (max(time) < 3600) sprintf("%02d:%02d", time %/% 60, time %% 60)
+                       else sprintf("%02d:%02d:%02d", time %/% 3600, time %% 3600 %/% 60,
+                                    time %% 60),
                        comma(db$VO2 / 1000), comma(db$VCO2 / 1000), comma(db$HR),
                        if (is.null(db$Load)) "" else db$Load)), file)
 }
@@ -277,4 +280,30 @@ test_that("sheets are checked against cuts, names and steps", {
                "Name the sheets")
   expect_error(read_cart(f, device = "generic", interval = "none",
                          sheets = c(MFO = "A", graded = "B")), "different steps")
+})
+
+
+test_that("clock time: error without time_origin = \"clock\", offset kept with it", {
+  data(MFO_df, package = "MFO", envir = environment())
+  f <- withr::local_tempfile(fileext = ".csv")
+  # records every 20 s from 10:32:20 (time of day, hh:mm:ss)
+  .write_generic_csv(MFO_df, f, time = 10 * 3600 + 32 * 60 + seq_len(nrow(MFO_df)) * 20)
+  args <- list(f, device = "generic", interval = "none", skip = 1, units_row = TRUE,
+               decimal = ",", columns = c(Time = "t", HR = "FC", Load = "Watts"))
+  expect_error(suppressMessages(do.call(read_cart, args)),
+               "first Time is 37940 s \\(10:32:20\\).*time_origin = \"clock\"")
+  cart <- suppressMessages(do.call(read_cart, c(args, time_origin = "clock")))
+  expect_equal(cart$info$time_origin, "clock")
+  expect_equal(cart$info$time_offset, 37940)
+  expect_equal(cart$db_MFO$Time, (seq_len(nrow(MFO_df)) - 1) * 20)
+  expect_equal(cart$step_time, 20)
+  expect_equal(cart$db_MFO$VO2, MFO_df$VO2, tolerance = 1e-12)
+  # elapsed time keeps its values and records offset 0
+  g <- withr::local_tempfile(fileext = ".csv")
+  .write_generic_csv(MFO_df, g)
+  e <- suppressMessages(read_cart(g, device = "generic", interval = "none", skip = 1,
+                                  units_row = TRUE, decimal = ",",
+                                  columns = c(Time = "t", HR = "FC", Load = "Watts")))
+  expect_equal(c(e$info$time_origin, e$info$time_offset), c("elapsed", "0"))
+  expect_error(read_cart(g, device = "zan", time_origin = "clock"), "for device = \"generic\"")
 })

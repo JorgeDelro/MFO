@@ -161,7 +161,10 @@
   (SPEC 16, #22). It handles metadata lines (`skip`), a units row
   (`units_row`, taken as the file's declaration of the VO2 unit unless
   `vo2_unit` is given), the decimal mark (`decimal`), Time in seconds,
-  mm:ss, hh:mm:ss or Excel times, records already averaged by the analyser
+  mm:ss, hh:mm:ss or Excel times (`time_origin = "clock"` for a time of
+  day: the first value is subtracted and kept in `info$time_offset`; an
+  elapsed Time starting above 1 h stops with an error suggesting it),
+  records already averaged by the analyser
   (`interval = "none"`, step read from `Time`, which must be regular) and one
   xlsx sheet per phase (`sheets`, an alternative to `cuts`). Not yet
   validated with a real export. Cuts now fall on the nearest record boundary
