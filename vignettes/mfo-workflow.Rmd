@@ -635,18 +635,34 @@ gets a percentile when `MFO_protocol(mode = )` is `"walking"` or
 `Fatmax_percentile` are `NA`. The Fatmax zone in heart rate is still
 returned.
 
-To show what a percentile looks like, the next chunk relabels the example as
-a walking test. **This is for illustration only**: the example data are
-from a cycle ergometer.
+To show a percentile, the next chunk uses a **simulated** test, not the
+example data: one participant walking (`MFO_protocol(mode = "walking")`)
+from `simulate_MFO_sessions()`, whose MFO and Fatmax are drawn from its
+sedentary defaults, the mean and SD of the same Table 1 (0.34 ± 0.10 g/min,
+44.2 ± 12.4 % VO2max). VO2max has no default and must be given; its value
+(2500 ml/min here) is arbitrary and does not change MFO in g/min or Fatmax
+in % VO2max. The protocol is passed on to `MFO()`, which is where the mode
+comes from.
 
 ```{r zones-walking}
-res_walk <- res
-res_walk$mode <- "walking"
+sim <- simulate_MFO_sessions(n_participants = 1, n_sessions = 1,
+                             population = list(VO2max = c(2500, 0)),
+                             protocol = MFO_protocol(mode = "walking"),
+                             seed = 4)
+s1 <- sim$data$P01$S1
+res_walk <- MFO(step_time = sim$settings$step_time, db_MFO = s1$db_MFO,
+                db_basal = s1$db_basal, db_graded = s1$db_graded,
+                cv_var = "RER", author = "Frayn",
+                energy_equivalents = "classic", age = 30,
+                protocol = sim$settings$protocol)
 z <- MFO_zones(res_walk, sex = "male", age_group = "young")
 knitr::kable(z[, c("MFO", "MFO_percentile_label", "FAT_MAX",
                    "Fatmax_percentile_label", "reference", "reference_n")],
              digits = 2)
 ```
+
+The simulated truth was MFO = `r round(sim$truth$MFO, 3)` g/min and
+Fatmax = `r round(sim$truth$Fatmax, 1)` % VO2max.
 
 The percentile is interpolated linearly between the published P20, P40, P60
 and P80. Below P20 or above P80 the label is `"< P20"` or `"> P80"`: there is

@@ -123,6 +123,21 @@ MFO_zones(res, sex = "male", age_group = "young")
 # Range for obesity of Chavez-Guevara et al. (2023)
 MFO_zones(res, population = "obesity", body_fat = 38)
 }
+\references{
+Amaro-Gahete FJ, Sanchez-Delgado G, Ruiz JR (2018). Commentary:
+Contextualising maximal fat oxidation during exercise: determinants and
+normative values. Front Physiol 9: 1460, Table 1.
+\doi{10.3389/fphys.2018.01460}
+
+Chavez-Guevara IA, Amaro-Gahete FJ, Ramos-Jimenez A, Brun JF (2023).
+Toward exercise guidelines for optimizing fat oxidation during exercise in
+obesity: a systematic review and meta-regression. Sports Med 53(12):
+2399-2416. \doi{10.1007/s40279-023-01897-y}
+
+Tanaka H, Monahan KD, Seals DR (2001). Age-predicted maximal heart rate
+revisited. J Am Coll Cardiol 37(1): 153-156.
+\doi{10.1016/s0735-1097(00)01054-8}
+}
 \seealso{
 [MFO()], [MFOs()], [reference_MFO]
 }
