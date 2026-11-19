@@ -209,6 +209,21 @@
   data from the file are kept. None of the devices has yet been
   validated with a real export of MFO’s own.
 
+- `read_cart(device = "generic")` reads a csv or xlsx file with mapped
+  columns (`columns = c(Time = , VO2 = , ...)`, exact names), without
+  spiro (SPEC 16, [\#22](https://github.com/JorgeDelro/MFO/issues/22)).
+  It handles metadata lines (`skip`), a units row (`units_row`, taken as
+  the file’s declaration of the VO2 unit unless `vo2_unit` is given),
+  the decimal mark (`decimal`), Time in seconds, mm:ss, hh:mm:ss or
+  Excel times (`time_origin = "clock"` for a time of day: the first
+  value is subtracted and kept in `info$time_offset`; an elapsed Time
+  starting above 1 h stops with an error suggesting it), records already
+  averaged by the analyser (`interval = "none"`, step read from `Time`,
+  which must be regular) and one xlsx sheet per phase (`sheets`, an
+  alternative to `cuts`). Not yet validated with a real export. Cuts now
+  fall on the nearest record boundary of `Time`, which gives the same
+  split as before for averaged breaths.
+
 - The example data `MFO_df` gain a `Load` column (25–200 W, 25-W
   stages), as described in their documentation.
 

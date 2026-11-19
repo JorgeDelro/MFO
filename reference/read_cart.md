@@ -15,7 +15,13 @@ read_cart(
   cuts = NULL,
   phase = c("MFO", "basal", "graded"),
   body_mass = NULL,
-  vo2_unit = c("auto", "mL/min", "L/min", "mL/kg/min")
+  vo2_unit = c("auto", "mL/min", "L/min", "mL/kg/min"),
+  columns = NULL,
+  skip = 0,
+  units_row = FALSE,
+  decimal = c(".", ","),
+  sheets = NULL,
+  time_origin = c("elapsed", "clock")
 )
 ```
 
@@ -27,12 +33,14 @@ read_cart(
 
 - device:
 
-  \`NULL\` (detected by spiro), \`"cortex"\`, \`"cosmed"\`, \`"vyntus"\`
-  or \`"zan"\`.
+  \`NULL\` (detected by spiro), \`"cortex"\`, \`"cosmed"\`,
+  \`"vyntus"\`, \`"zan"\`, or \`"generic"\` for a csv/xlsx file with
+  mapped columns (does not need spiro).
 
 - interval:
 
-  length of the averaging intervals in seconds (default 10); it becomes
+  length of the averaging intervals in seconds (default 10), or
+  \`"none"\` for records already averaged by the analyser; it becomes
   \`step_time\` for \[MFO()\].
 
 - cuts:
@@ -54,15 +62,25 @@ read_cart(
   unit of VO2 and VCO2 in the export: \`"auto"\` (default),
   \`"mL/min"\`, \`"L/min"\` or \`"mL/kg/min"\`.
 
+- columns, skip, units_row, decimal, sheets, time_origin:
+
+  for \`device = "generic"\` only: column mapping (named character
+  vector), lines before the header (default 0), whether a units row
+  follows the header (default \`FALSE\`), decimal mark (\`"."\` or
+  \`","\`), xlsx sheets per phase, and whether \`Time\` is \`"elapsed"\`
+  (default) or \`"clock"\` time. See \*Generic files\*.
+
 ## Value
 
 An object of class \`MFO_cart\`: a list with \`db_basal\`, \`db_MFO\`,
 \`db_graded\` (data frames with \`Time\`, \`VO2\`, \`VCO2\`, \`RER\`
 and, when the export has them, \`HR\`, \`Load\`, \`VE\`; \`NULL\` for a
-phase not in the file), \`step_time\` (= \`interval\`) and \`info\`
-(device, interval, VO2 unit, cuts, number of breaths, of intervals and
-of empty intervals, and the RER mismatch count, \`NA\` when the export
-has no RER).
+phase not in the file), \`step_time\` (= \`interval\`, or the step of
+\`Time\` with \`interval = "none"\`) and \`info\` (device, interval,
+averaging, VO2 unit, cuts, \`time_origin\` and \`time_offset\` for
+generic files, number of breaths or records, of intervals and of empty
+intervals, and the RER mismatch count, \`NA\` when the export has no
+RER).
 
 ## Details
 
@@ -98,6 +116,42 @@ MFO. Without \`cuts\`, the whole recording is the phase named in
 \`phase\`. Detecting the phases from the analyser's markers will come
 with each device importer.
 
+\*\*Generic files\*\* (\`device = "generic"\`). A csv or xlsx file whose
+columns are mapped with \`columns\`, as \`col_name\_\*\` in \[MFO()\]
+(SPEC 16):
+
+- \`columns\` maps the contract names \`Time\`, \`VO2\`, \`VCO2\` and,
+  optionally, \`RER\`, \`HR\`, \`Load\` and \`VE\` to the names in the
+  file, e.g. \`c(Time = "t", VO2 = "VO2 STPD")\`; names not given are
+  looked up as they are. Names must match exactly; a missing column
+  stops with the list of columns in the file.
+
+- \`skip\` lines (e.g. metadata) come before the header; with
+  \`units_row = TRUE\` the line after the header holds the units. A
+  recognised VO2 unit there ("mL/min", "L/min", "mL/kg/min") is taken as
+  a declaration of the file, with a message; an explicit \`vo2_unit\`
+  wins.
+
+- \`decimal\` is the decimal mark (default "."); the csv field separator
+  (tab, ";" or ",") is detected from the header line.
+
+- \`Time\` is in seconds, mm:ss, hh:mm:ss or Excel times (fractions of a
+  day), detected automatically. With \`time_origin = "elapsed"\`
+  (default) it is the time from the start of the recording; a first
+  value above 1 h stops with an error suggesting \`"clock"\`. With
+  \`time_origin = "clock"\` (time of day), the first value is
+  subtracted, so Time counts from the first record, and the value
+  subtracted is kept in \`info\$time_offset\`.
+
+- Records already averaged by the analyser (e.g. every 20 s) are read
+  with \`interval = "none"\`: they are kept as they are and
+  \`step_time\` is the step of \`Time\`, which must be regular. A
+  numeric \`interval\` is for breath-by-breath files.
+
+- \`sheets\` reads the phases from the sheets of an xlsx file, \`c(basal
+  = , MFO = , graded = )\` (any of them), as an alternative to \`cuts\`;
+  one unnamed sheet is the phase named in \`phase\`.
+
 No personal data from the file are kept: the result holds only the
 measured variables and technical information.
 
@@ -108,6 +162,35 @@ measured variables and technical information.
 ## Examples
 
 ``` r
+# A generic csv: metadata line, header, units row, decimal comma, records
+# already averaged every 20 s (the example MFO test, VO2 in L/min)
+data(MFO_df, package = "MFO")
+t <- seq_len(nrow(MFO_df)) * 20
+f <- tempfile(fileext = ".csv")
+writeLines(c("Example export;MFO test",
+             "t;VO2;VCO2;FC;Watts",
+             "mm:ss;L/min;L/min;1/min;W",
+             sprintf("%02d:%02d;%s;%s;%s;%s", t %/% 60, t %% 60,
+                     sub(".", ",", MFO_df$VO2 / 1000, fixed = TRUE),
+                     sub(".", ",", MFO_df$VCO2 / 1000, fixed = TRUE),
+                     sub(".", ",", MFO_df$HR, fixed = TRUE), MFO_df$Load)), f)
+cart <- read_cart(f, device = "generic", interval = "none", skip = 1,
+                  units_row = TRUE, decimal = ",",
+                  columns = c(Time = "t", HR = "FC", Load = "Watts"))
+#> VO2 and VCO2 unit taken from the units row: L/min.
+cart
+#> <MFO_cart> generic, 20-s records as exported, VO2 in L/min
+#>   MFO       72 intervals (0-1440 s)
+#>   72 records; 0 empty interval(s)
+head(cart$db_MFO)
+#>   Time VO2 VCO2       RER   HR Load
+#> 1   20 635  487 0.7669291 90.2   25
+#> 2   40 627  479 0.7639553 94.9   25
+#> 3   60 634  468 0.7381703 93.3   25
+#> 4   80 646  486 0.7523220 95.6   25
+#> 5  100 630  483 0.7666667 93.5   25
+#> 6  120 679  517 0.7614138 99.4   25
+
 # \donttest{
 if (requireNamespace("spiro", quietly = TRUE)) {
   # A graded test exported by a ZAN cart (example file of spiro)

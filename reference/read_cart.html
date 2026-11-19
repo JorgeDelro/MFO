@@ -66,7 +66,13 @@ knows the proprietary formats.</p>
 <span>  cuts <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  phase <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"MFO"</span>, <span class="st">"basal"</span>, <span class="st">"graded"</span><span class="op">)</span>,</span>
 <span>  body_mass <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  vo2_unit <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"auto"</span>, <span class="st">"mL/min"</span>, <span class="st">"L/min"</span>, <span class="st">"mL/kg/min"</span><span class="op">)</span></span>
+<span>  vo2_unit <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"auto"</span>, <span class="st">"mL/min"</span>, <span class="st">"L/min"</span>, <span class="st">"mL/kg/min"</span><span class="op">)</span>,</span>
+<span>  columns <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  skip <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  units_row <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  decimal <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"."</span>, <span class="st">","</span><span class="op">)</span>,</span>
+<span>  sheets <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  time_origin <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"elapsed"</span>, <span class="st">"clock"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -80,12 +86,14 @@ knows the proprietary formats.</p>
 
 <dt id="arg-device">device<a class="anchor" aria-label="anchor" href="#arg-device"></a></dt>
 <dd><p>`NULL` (detected by <span class="pkg">spiro</span>), `"cortex"`, `"cosmed"`,
-`"vyntus"` or `"zan"`.</p></dd>
+`"vyntus"`, `"zan"`, or `"generic"` for a csv/xlsx file with mapped
+columns (does not need <span class="pkg">spiro</span>).</p></dd>
 
 
 <dt id="arg-interval">interval<a class="anchor" aria-label="anchor" href="#arg-interval"></a></dt>
-<dd><p>length of the averaging intervals in seconds (default 10);
-it becomes `step_time` for [MFO()].</p></dd>
+<dd><p>length of the averaging intervals in seconds (default 10),
+or `"none"` for records already averaged by the analyser; it becomes
+`step_time` for [MFO()].</p></dd>
 
 
 <dt id="arg-cuts">cuts<a class="anchor" aria-label="anchor" href="#arg-cuts"></a></dt>
@@ -106,15 +114,26 @@ and/or `MFO_end`.</p></dd>
 <dd><p>unit of VO2 and VCO2 in the export: `"auto"` (default),
 `"mL/min"`, `"L/min"` or `"mL/kg/min"`.</p></dd>
 
+
+<dt id="arg-columns-skip-units-row-decimal-sheets-time-origin">columns, skip, units_row, decimal, sheets, time_origin<a class="anchor" aria-label="anchor" href="#arg-columns-skip-units-row-decimal-sheets-time-origin"></a></dt>
+<dd><p>for
+`device = "generic"` only: column mapping (named character vector), lines
+before the header (default 0), whether a units row follows the header
+(default `FALSE`), decimal mark (`"."` or `","`), xlsx sheets per phase,
+and whether `Time` is `"elapsed"` (default) or `"clock"` time. See
+*Generic files*.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>An object of class `MFO_cart`: a list with `db_basal`, `db_MFO`,
   `db_graded` (data frames with `Time`, `VO2`, `VCO2`, `RER` and, when the
   export has them, `HR`, `Load`, `VE`; `NULL` for a phase not in the file),
-  `step_time` (= `interval`) and `info` (device, interval, VO2 unit, cuts,
-  number of breaths, of intervals and of empty intervals, and the RER
-  mismatch count, `NA` when the export has no RER).</p>
+  `step_time` (= `interval`, or the step of `Time` with `interval = "none"`)
+  and `info` (device, interval, averaging, VO2 unit, cuts, `time_origin` and
+  `time_offset` for generic files, number of breaths
+  or records, of intervals and of empty intervals, and the RER mismatch
+  count, `NA` when the export has no RER).</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -144,7 +163,32 @@ the recording is split into basal, MFO and graded tables; with
 [MFO_protocol()]); with `basal_end` only, into basal and MFO. Without
 `cuts`, the whole recording is the phase named in `phase`. Detecting the
 phases from the analyser's markers will come with each device importer.</p>
-<p>No personal data from the file are kept: the result holds only the
+<p>**Generic files** (`device = "generic"`). A csv or xlsx file whose
+columns are mapped with `columns`, as `col_name_*` in [MFO()] (SPEC 16):</p><ul><li><p>`columns` maps the contract names `Time`, `VO2`, `VCO2` and,
+  optionally, `RER`, `HR`, `Load` and `VE` to the names in the file, e.g.
+  `c(Time = "t", VO2 = "VO2 STPD")`; names not given are looked up as they
+  are. Names must match exactly; a missing column stops with the list of
+  columns in the file.</p></li>
+<li><p>`skip` lines (e.g. metadata) come before the header; with
+  `units_row = TRUE` the line after the header holds the units. A
+  recognised VO2 unit there ("mL/min", "L/min", "mL/kg/min") is taken as a
+  declaration of the file, with a message; an explicit `vo2_unit` wins.</p></li>
+<li><p>`decimal` is the decimal mark (default "."); the csv field separator
+  (tab, ";" or ",") is detected from the header line.</p></li>
+<li><p>`Time` is in seconds, mm:ss, hh:mm:ss or Excel times (fractions of a
+  day), detected automatically. With `time_origin = "elapsed"` (default) it
+  is the time from the start of the recording; a first value above 1 h
+  stops with an error suggesting `"clock"`. With `time_origin = "clock"`
+  (time of day), the first value is subtracted, so Time counts from the
+  first record, and the value subtracted is kept in `info$time_offset`.</p></li>
+<li><p>Records already averaged by the analyser (e.g. every 20 s) are read
+  with `interval = "none"`: they are kept as they are and `step_time` is the
+  step of `Time`, which must be regular. A numeric `interval` is for
+  breath-by-breath files.</p></li>
+<li><p>`sheets` reads the phases from the sheets of an xlsx file,
+  `c(basal = , MFO = , graded = )` (any of them), as an alternative to
+  `cuts`; one unnamed sheet is the phase named in `phase`.</p></li>
+</ul><p>No personal data from the file are kept: the result holds only the
 measured variables and technical information.</p>
     </div>
     <div class="section level2">
@@ -154,7 +198,36 @@ measured variables and technical information.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># A generic csv: metadata line, header, units row, decimal comma, records</span></span></span>
+<span class="r-in"><span><span class="co"># already averaged every 20 s (the example MFO test, VO2 in L/min)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">MFO_df</span>, package <span class="op">=</span> <span class="st">"MFO"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">t</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">MFO_df</span><span class="op">)</span><span class="op">)</span> <span class="op">*</span> <span class="fl">20</span></span></span>
+<span class="r-in"><span><span class="va">f</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span>fileext <span class="op">=</span> <span class="st">".csv"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/writeLines.html" class="external-link">writeLines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Example export;MFO test"</span>,</span></span>
+<span class="r-in"><span>             <span class="st">"t;VO2;VCO2;FC;Watts"</span>,</span></span>
+<span class="r-in"><span>             <span class="st">"mm:ss;L/min;L/min;1/min;W"</span>,</span></span>
+<span class="r-in"><span>             <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"%02d:%02d;%s;%s;%s;%s"</span>, <span class="va">t</span> <span class="op"><a href="https://rdrr.io/r/base/Arithmetic.html" class="external-link">%/%</a></span> <span class="fl">60</span>, <span class="va">t</span> <span class="op"><a href="https://rdrr.io/r/base/Arithmetic.html" class="external-link">%%</a></span> <span class="fl">60</span>,</span></span>
+<span class="r-in"><span>                     <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">sub</a></span><span class="op">(</span><span class="st">"."</span>, <span class="st">","</span>, <span class="va">MFO_df</span><span class="op">$</span><span class="va">VO2</span> <span class="op">/</span> <span class="fl">1000</span>, fixed <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                     <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">sub</a></span><span class="op">(</span><span class="st">"."</span>, <span class="st">","</span>, <span class="va">MFO_df</span><span class="op">$</span><span class="va">VCO2</span> <span class="op">/</span> <span class="fl">1000</span>, fixed <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                     <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">sub</a></span><span class="op">(</span><span class="st">"."</span>, <span class="st">","</span>, <span class="va">MFO_df</span><span class="op">$</span><span class="va">HR</span>, fixed <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, <span class="va">MFO_df</span><span class="op">$</span><span class="va">Load</span><span class="op">)</span><span class="op">)</span>, <span class="va">f</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">cart</span> <span class="op">&lt;-</span> <span class="fu">read_cart</span><span class="op">(</span><span class="va">f</span>, device <span class="op">=</span> <span class="st">"generic"</span>, interval <span class="op">=</span> <span class="st">"none"</span>, skip <span class="op">=</span> <span class="fl">1</span>,</span></span>
+<span class="r-in"><span>                  units_row <span class="op">=</span> <span class="cn">TRUE</span>, decimal <span class="op">=</span> <span class="st">","</span>,</span></span>
+<span class="r-in"><span>                  columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>Time <span class="op">=</span> <span class="st">"t"</span>, HR <span class="op">=</span> <span class="st">"FC"</span>, Load <span class="op">=</span> <span class="st">"Watts"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> VO2 and VCO2 unit taken from the units row: L/min.</span>
+<span class="r-in"><span><span class="va">cart</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;MFO_cart&gt; generic, 20-s records as exported, VO2 in L/min</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   MFO       72 intervals (0-1440 s)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   72 records; 0 empty interval(s)</span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">cart</span><span class="op">$</span><span class="va">db_MFO</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Time VO2 VCO2       RER   HR Load</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1   20 635  487 0.7669291 90.2   25</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2   40 627  479 0.7639553 94.9   25</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3   60 634  468 0.7381703 93.3   25</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4   80 646  486 0.7523220 95.6   25</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5  100 630  483 0.7666667 93.5   25</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6  120 679  517 0.7614138 99.4   25</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># \donttest{</span></span></span>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"spiro"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span>  <span class="co"># A graded test exported by a ZAN cart (example file of spiro)</span></span></span>
 <span class="r-in"><span>  <span class="va">cart</span> <span class="op">&lt;-</span> <span class="fu">read_cart</span><span class="op">(</span><span class="fu">spiro</span><span class="fu">::</span><span class="fu"><a href="https://docs.ropensci.org/spiro/reference/spiro_example.html" class="external-link">spiro_example</a></span><span class="op">(</span><span class="st">"zan_gxt"</span><span class="op">)</span>, phase <span class="op">=</span> <span class="st">"graded"</span><span class="op">)</span></span></span>
