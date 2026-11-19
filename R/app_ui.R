@@ -1,0 +1,28 @@
+# Interface of the app (#24): one tab per screen of SPEC 10
+
+.app_ui <- function(request, default_lang = "en") {
+  lang <- .app_lang(request, default_lang)
+  t <- function(key) .tr(key, lang)
+  soon <- function(key) {
+    bslib::nav_panel(t(key), bslib::card(bslib::card_body(shiny::p(t("app.soon")))))
+  }
+  bslib::page_navbar(
+    title = "MFO",
+    id = "tabs",
+    theme = bslib::bs_theme(version = 5),
+    lang = lang,
+    bslib::nav_panel(t("tab.data"), .mod_data_ui("data", lang)),
+    soon("tab.analysis"),
+    soon("tab.results"),
+    soon("tab.zones"),
+    soon("tab.report"),
+    soon("tab.reliability"),
+    bslib::nav_spacer(),
+    bslib::nav_item(
+      shiny::selectInput("lang", NULL, choices = .app_languages, selected = lang,
+                         width = "130px")
+    ),
+    footer = shiny::div(class = "text-muted small p-2",
+                        sprintf("MFO %s. %s", utils::packageVersion("MFO"), t("app.local")))
+  )
+}

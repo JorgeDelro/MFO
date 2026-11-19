@@ -1,0 +1,405 @@
+# Data tab of the app (#24, SPEC 10 point 1): source, files or zip, column
+# mapping, phases by file/sheet or by cuts on the recording. The reading is
+# done by read_cart(); the helpers below have no Shiny code so they can be
+# tested directly.
+
+# Contract columns that the mapping offers; the first three are required
+.app_map_cols <- c("Time", "VO2", "VCO2", "RER", "HR", "Load", "VE")
+
+# Example data of the package as an MFO_cart (20-s records)
+.app_example_data <- function() {
+  e <- new.env()
+  utils::data(list = c("basal_df", "MFO_df", "VO2max_df"), package = "MFO", envir = e)
+  structure(list(db_basal = as.data.frame(e$basal_df), db_MFO = as.data.frame(e$MFO_df),
+                 db_graded = as.data.frame(e$VO2max_df), step_time = 20,
+                 info = list(device = "example data", interval = 20,
+                             averaging = "none (records as exported)", vo2_unit = "mL/min",
+                             cuts = NULL, n_breaths = nrow(e$basal_df) + nrow(e$MFO_df) +
+                               nrow(e$VO2max_df), n_intervals = NA, empty_intervals = 0,
+                             RER_mismatch = NA_integer_)),
+            class = "MFO_cart")
+}
+
+
+# Uploaded files (name, datapath, as given by fileInput) -> one row per table:
+# zips are unpacked, and with expand_sheets every sheet of an xlsx is a table
+.app_tables <- function(files, expand_sheets = TRUE, exdir = tempfile("mfo_zip_")) {
+  if (is.null(files) || nrow(files) == 0) {
+    return(data.frame(label = character(0), path = character(0), sheet = character(0),
+                      stringsAsFactors = FALSE))
+  }
+  rows <- list()
+  add <- function(label, path, sheet = NA_character_) {
+    rows[[length(rows) + 1]] <<- data.frame(label = label, path = path, sheet = sheet,
+                                            stringsAsFactors = FALSE)
+  }
+  is_ext <- function(x, e) grepl(paste0("\\.(", paste(e, collapse = "|"), ")$"), x,
+                                 ignore.case = TRUE)
+  for (i in seq_len(nrow(files))) {
+    name <- files$name[i]
+    path <- files$datapath[i]
+    if (is_ext(name, "zip")) {
+      dir <- file.path(exdir, i)
+      inside <- utils::unzip(path, exdir = dir)
+      inside <- inside[!grepl("(^|/)(__MACOSX|\\.)", sub(paste0("^", dir, "/"), "", inside))]
+      for (f in inside) {
+        fake <- data.frame(name = sub(paste0("^", dir, "/"), "", f), datapath = f,
+                           stringsAsFactors = FALSE)
+        rows[[length(rows) + 1]] <- .app_tables(fake, expand_sheets, exdir)
+      }
+    } else if (expand_sheets && is_ext(name, c("xlsx", "xls"))) {
+      sheets <- readxl::excel_sheets(path)
+      if (length(sheets) == 1) {
+        add(name, path, sheets)
+      } else {
+        for (sh in sheets) add(paste0(name, " [", sh, "]"), path, sh)
+      }
+    } else {
+      add(name, path)
+    }
+  }
+  out <- do.call(rbind, rows)
+  rownames(out) <- NULL
+  out
+}
+
+
+# Read the data with read_cart(): one table per phase (assign$mode = "phases",
+# with assign$basal, $MFO, $graded = table labels or NA) or one recording with
+# cuts (assign$mode = "cuts", assign$table, assign$cuts). settings holds the
+# read_cart() arguments.
+.app_read_data <- function(tables, assign, settings) {
+  generic <- identical(settings$device, "generic")
+  get <- function(label) {
+    i <- match(label, tables$label)
+    if (is.na(i)) stop("Table not found: ", label, call. = FALSE)
+    tables[i, ]
+  }
+  read <- function(tab, phase = "MFO", cuts = NULL) {
+    args <- list(file = tab$path, interval = settings$interval, phase = phase,
+                 cuts = cuts, vo2_unit = settings$vo2_unit, body_mass = settings$body_mass)
+    if (generic) {
+      args <- c(args, list(device = "generic", columns = settings$columns,
+                           skip = settings$skip, units_row = settings$units_row,
+                           decimal = settings$decimal, time_origin = settings$time_origin,
+                           sheets = if (is.na(tab$sheet)) NULL else tab$sheet))
+    } else {
+      args$device <- settings$device
+    }
+    do.call(read_cart, args)
+  }
+  if (identical(assign$mode, "cuts")) {
+    cuts <- assign$cuts[!is.na(assign$cuts)]
+    if (length(cuts) == 0) stop("Give basal_end and/or MFO_end.", call. = FALSE)
+    return(read(get(assign$table), cuts = cuts))
+  }
+  phases <- c("basal", "MFO", "graded")
+  chosen <- phases[!vapply(phases, function(p) is.null(assign[[p]]) || is.na(assign[[p]]) ||
+                                                 assign[[p]] == "", logical(1))]
+  if (!"MFO" %in% chosen) stop("Choose the table of the MFO test.", call. = FALSE)
+  parts <- lapply(chosen, function(p) read(get(assign[[p]]), phase = p))
+  names(parts) <- chosen
+  steps <- vapply(parts, function(p) p$step_time, numeric(1))
+  if (length(unique(steps)) > 1) {
+    stop("The tables have different steps (", paste(names(steps), steps, sep = " = ",
+         collapse = ", "), " s); MFO() needs one step_time.", call. = FALSE)
+  }
+  info <- parts$MFO$info
+  info$tables <- unlist(assign[chosen])
+  structure(list(db_basal = parts$basal$db_basal, db_MFO = parts$MFO$db_MFO,
+                 db_graded = parts$graded$db_graded, step_time = steps[[1]], info = info),
+            class = "MFO_cart")
+}
+
+
+# Run expr and keep its value, messages, warnings and error for the alerts
+.app_capture <- function(expr) {
+  msgs <- character(0)
+  warns <- character(0)
+  value <- tryCatch(
+    withCallingHandlers(expr,
+      message = function(m) {
+        msgs <<- c(msgs, trimws(conditionMessage(m)))
+        invokeRestart("muffleMessage")
+      },
+      warning = function(w) {
+        warns <<- c(warns, conditionMessage(w))
+        invokeRestart("muffleWarning")
+      }),
+    error = function(e) structure(conditionMessage(e), class = "app_error"))
+  error <- if (inherits(value, "app_error")) as.character(value) else NULL
+  list(value = if (is.null(error)) value, messages = msgs, warnings = warns, error = error)
+}
+
+
+# One row per phase: records, time span and step
+.app_phase_summary <- function(cart) {
+  rows <- lapply(c("basal", "MFO", "graded"), function(p) {
+    db <- cart[[paste0("db_", p)]]
+    if (is.null(db)) return(NULL)
+    data.frame(phase = p, records = nrow(db),
+               duration_s = nrow(db) * cart$step_time,
+               columns = paste(names(db), collapse = ", "), stringsAsFactors = FALSE)
+  })
+  do.call(rbind, rows)
+}
+
+
+.mod_data_ui <- function(id, lang = "en") {
+  ns <- shiny::NS(id)
+  t <- function(key) .tr(key, lang)
+  map_input <- function(col) {
+    shiny::selectInput(ns(paste0("map_", col)), col, choices = character(0))
+  }
+  bslib::layout_sidebar(
+    sidebar = bslib::sidebar(
+      width = 380,
+      shiny::radioButtons(ns("source"), t("data.source"),
+                          choices = stats::setNames(c("example", "generic", "device"),
+                                                    c(t("data.source.example"),
+                                                      t("data.source.generic"),
+                                                      t("data.source.device")))),
+      shiny::conditionalPanel(
+        sprintf("input['%s'] != 'example'", ns("source")),
+        shiny::fileInput(ns("files"), t("data.files"), multiple = TRUE),
+        shiny::helpText(t("data.files.help")),
+        shiny::conditionalPanel(
+          sprintf("input['%s'] == 'device'", ns("source")),
+          shiny::selectInput(ns("device"), t("data.device"),
+                             choices = stats::setNames(c("auto", "cortex", "cosmed", "vyntus", "zan"),
+                                                       c(t("data.device.auto"), "Cortex", "Cosmed",
+                                                         "Vyntus", "ZAN")))
+        ),
+        shiny::radioButtons(ns("assign"), t("data.assign"),
+                            choices = stats::setNames(c("phases", "cuts"),
+                                                      c(t("data.assign.phases"),
+                                                        t("data.assign.cuts")))),
+        shiny::conditionalPanel(
+          sprintf("input['%s'] == 'phases'", ns("assign")),
+          shiny::selectInput(ns("tab_basal"), t("data.phase.basal"), choices = character(0)),
+          shiny::selectInput(ns("tab_MFO"), t("data.phase.MFO"), choices = character(0)),
+          shiny::selectInput(ns("tab_graded"), t("data.phase.graded"), choices = character(0))
+        ),
+        shiny::conditionalPanel(
+          sprintf("input['%s'] == 'cuts'", ns("assign")),
+          shiny::selectInput(ns("tab_recording"), t("data.recording"), choices = character(0)),
+          shiny::numericInput(ns("basal_end"), t("data.basal_end"), value = NA, min = 0),
+          shiny::numericInput(ns("MFO_end"), t("data.MFO_end"), value = NA, min = 0),
+          shiny::helpText(t("data.cuts.help"))
+        ),
+        bslib::accordion(
+          open = FALSE,
+          bslib::accordion_panel(
+            t("data.options"),
+            shiny::radioButtons(ns("interval_mode"), t("data.interval"),
+                                choices = stats::setNames(c("none", "numeric"),
+                                                          c(t("data.interval.none"),
+                                                            t("data.interval.numeric")))),
+            shiny::conditionalPanel(
+              sprintf("input['%s'] == 'numeric'", ns("interval_mode")),
+              shiny::numericInput(ns("interval"), t("data.interval.s"), value = 10, min = 1)
+            ),
+            shiny::selectInput(ns("vo2_unit"), t("data.vo2_unit"),
+                               choices = stats::setNames(c("auto", "mL/min", "L/min", "mL/kg/min"),
+                                                         c(t("data.vo2_unit.auto"), "mL/min",
+                                                           "L/min", "mL/kg/min"))),
+            shiny::numericInput(ns("body_mass"), t("data.body_mass"), value = NA, min = 0),
+            shiny::conditionalPanel(
+              sprintf("input['%s'] == 'generic'", ns("source")),
+              shiny::numericInput(ns("skip"), t("data.skip"), value = 0, min = 0, step = 1),
+              shiny::checkboxInput(ns("units_row"), t("data.units_row"), value = FALSE),
+              shiny::radioButtons(ns("decimal"), t("data.decimal"), choices = c(".", ","),
+                                  inline = TRUE),
+              shiny::radioButtons(ns("time_origin"), t("data.time_origin"),
+                                  choices = stats::setNames(c("elapsed", "clock"),
+                                                            c(t("data.time_origin.elapsed"),
+                                                              t("data.time_origin.clock"))))
+            )
+          ),
+          bslib::accordion_panel(
+            t("data.mapping"),
+            shiny::conditionalPanel(
+              sprintf("input['%s'] == 'generic'", ns("source")),
+              shiny::helpText(t("data.mapping.help")),
+              lapply(.app_map_cols, map_input)
+            ),
+            shiny::conditionalPanel(
+              sprintf("input['%s'] != 'generic'", ns("source")),
+              shiny::helpText(t("data.mapping.device"))
+            )
+          )
+        )
+      ),
+      shiny::actionButton(ns("read"), t("data.read"), class = "btn-primary")
+    ),
+    shiny::uiOutput(ns("alerts")),
+    bslib::card(
+      bslib::card_header(t("data.recording.plot")),
+      shiny::plotOutput(ns("plot"), height = "300px",
+                        brush = shiny::brushOpts(ns("brush"), direction = "x", resetOnNew = TRUE))
+    ),
+    bslib::card(
+      bslib::card_header(t("data.summary")),
+      shiny::tableOutput(ns("summary"))
+    )
+  )
+}
+
+
+.mod_data_server <- function(id, lang = "en") {
+  shiny::moduleServer(id, function(input, output, session) {
+    t <- function(key) .tr(key, lang)
+
+    tables <- shiny::reactive({
+      .app_tables(input$files, expand_sheets = identical(input$source, "generic"))
+    })
+
+    # Table choices: the MFO test is required, the other phases optional
+    shiny::observe({
+      labs <- tables()$label
+      none <- stats::setNames("", t("data.none"))
+      shiny::updateSelectInput(session, "tab_basal", choices = c(none, labs),
+                               selected = if (length(labs) > 1) labs[1] else "")
+      shiny::updateSelectInput(session, "tab_MFO", choices = labs,
+                               selected = if (length(labs) > 1) labs[2] else labs[1])
+      shiny::updateSelectInput(session, "tab_graded", choices = c(none, labs),
+                               selected = if (length(labs) > 2) labs[3] else "")
+      shiny::updateSelectInput(session, "tab_recording", choices = labs)
+    })
+
+    # Column mapping from the header of the MFO table (or the recording)
+    header <- shiny::reactive({
+      tabs <- tables()
+      if (!identical(input$source, "generic") || nrow(tabs) == 0) return(character(0))
+      lab <- if (identical(input$assign, "cuts")) input$tab_recording else input$tab_MFO
+      i <- match(lab, tabs$label)
+      if (is.na(i)) i <- 1
+      tryCatch(.generic_header(tabs$path[i], if (is.na(tabs$sheet[i])) NULL else tabs$sheet[i],
+                               skip = if (is.na(input$skip)) 0 else input$skip,
+                               decimal = input$decimal),
+               error = function(e) character(0))
+    })
+    shiny::observe({
+      h <- header()
+      for (col in .app_map_cols) {
+        required <- col %in% c("Time", "VO2", "VCO2")
+        choices <- if (required) h else c(stats::setNames("", t("data.none")), h)
+        shiny::updateSelectInput(session, paste0("map_", col), choices = choices,
+                                 selected = if (col %in% h) col else if (required) h[1] else "")
+      }
+    })
+
+    settings <- shiny::reactive({
+      columns <- vapply(.app_map_cols, function(col) {
+        v <- input[[paste0("map_", col)]]
+        if (is.null(v)) "" else v
+      }, character(1))
+      columns <- columns[columns != ""]
+      list(device = switch(input$source, generic = "generic",
+                           device = if (identical(input$device, "auto")) NULL else input$device),
+           columns = if (length(columns) > 0) columns,
+           skip = if (is.na(input$skip)) 0 else input$skip,
+           units_row = isTRUE(input$units_row),
+           decimal = input$decimal,
+           time_origin = input$time_origin,
+           interval = if (identical(input$interval_mode, "none")) "none" else input$interval,
+           vo2_unit = input$vo2_unit,
+           body_mass = if (is.na(input$body_mass)) NULL else input$body_mass)
+    })
+
+    # Whole recording without cuts, for the plot of the cuts mode
+    preview <- shiny::reactive({
+      shiny::req(identical(input$assign, "cuts"), input$tab_recording)
+      .app_capture(.app_read_data(tables(), list(mode = "phases", MFO = input$tab_recording),
+                                  settings()))$value
+    })
+
+    # Dragging over the MFO test sets both cuts
+    shiny::observeEvent(input$brush, {
+      shiny::updateNumericInput(session, "basal_end", value = round(input$brush$xmin))
+      shiny::updateNumericInput(session, "MFO_end", value = round(input$brush$xmax))
+    })
+
+    result <- shiny::reactiveVal(NULL)
+    log <- shiny::reactiveVal(NULL)
+
+    shiny::observeEvent(input$read, {
+      if (identical(input$source, "example")) {
+        out <- .app_capture(.app_example_data())
+        meta <- list(source = "example", tables = NULL, cuts = NULL, settings = NULL)
+      } else {
+        assign <- if (identical(input$assign, "cuts")) {
+          list(mode = "cuts", table = input$tab_recording,
+               cuts = c(basal_end = input$basal_end, MFO_end = input$MFO_end))
+        } else {
+          list(mode = "phases", basal = input$tab_basal, MFO = input$tab_MFO,
+               graded = input$tab_graded)
+        }
+        out <- .app_capture(.app_read_data(tables(), assign, settings()))
+        meta <- list(source = input$source, tables = assign, settings = settings(),
+                     cuts = if (identical(assign$mode, "cuts")) assign$cuts[!is.na(assign$cuts)])
+      }
+      log(out)
+      result(if (is.null(out$error)) c(list(cart = out$value), meta))
+    })
+
+    output$alerts <- shiny::renderUI({
+      l <- log()
+      if (is.null(l)) return(NULL)
+      box <- function(x, cls) {
+        if (length(x) == 0) return(NULL)
+        shiny::div(class = paste("alert", cls), lapply(x, shiny::p))
+      }
+      shiny::tagList(box(l$error, "alert-danger"), box(l$warnings, "alert-warning"),
+                     box(l$messages, "alert-info"),
+                     if (is.null(l$error)) shiny::div(class = "alert alert-success",
+                                                      t("data.read.ok")))
+    })
+
+    output$plot <- shiny::renderPlot({
+      cart <- if (identical(input$assign, "cuts") && !identical(input$source, "example")) {
+        preview()
+      } else {
+        result()$cart
+      }
+      shiny::req(cart)
+      .app_recording_plot(cart, c(input$basal_end, input$MFO_end))
+    })
+
+    output$summary <- shiny::renderTable({
+      shiny::req(result())
+      .app_phase_summary(result()$cart)
+    })
+
+    result
+  })
+}
+
+
+# VO2 against time of the phases in a cart, with the cuts as vertical lines.
+# One phase: its own Time (the cuts refer to it); several: records one after
+# another
+.app_recording_plot <- function(cart, cuts = NULL) {
+  rows <- lapply(c("basal", "MFO", "graded"), function(p) {
+    db <- cart[[paste0("db_", p)]]
+    if (is.null(db)) return(NULL)
+    tm <- if (is.numeric(db$Time)) db$Time else seq_len(nrow(db)) * cart$step_time
+    data.frame(phase = p, Time = tm, VO2 = db$VO2, stringsAsFactors = FALSE)
+  })
+  rows <- rows[!vapply(rows, is.null, logical(1))]
+  if (length(rows) > 1) {
+    for (i in seq_along(rows)) {
+      start <- if (i == 1) 0 else max(rows[[i - 1]]$Time)
+      rows[[i]]$Time <- start + seq_len(nrow(rows[[i]])) * cart$step_time
+    }
+  }
+  d <- do.call(rbind, rows)
+  d$phase <- factor(d$phase, levels = c("basal", "MFO", "graded"))
+  p <- ggplot2::ggplot(d, ggplot2::aes(x = Time, y = VO2, colour = phase)) +
+    ggplot2::geom_line() +
+    ggplot2::labs(x = "Time (s)", y = "VO2 (mL/min)", colour = NULL) +
+    ggplot2::theme_minimal()
+  cuts <- cuts[!is.na(cuts)]
+  if (length(cuts) > 0) p <- p + ggplot2::geom_vline(xintercept = cuts, linetype = "dashed")
+  p
+}

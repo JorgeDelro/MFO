@@ -14,6 +14,15 @@
 
 ## New features
 
+* `run_app()` opens the Shiny app of the package (SPEC 10, #24), which only
+  calls the package's functions and runs locally. `shiny` and `bslib` are
+  in Suggests. Interface in English and Spanish (selector in the navbar; all
+  strings in `inst/app/i18n.csv`). This first step has the Data tab: example
+  data, csv/xlsx files with column mapping or analyser exports (several
+  files or a zip), phases by table or by cuts dragged on the VO2 plot, and
+  every message and warning of the reading shown as an alert. The other
+  tabs follow.
+
 * `MFO_protocol()` describes the test (SPEC 14): `"step"` (fixed
   durations, as before), `"step_variable"` (a vector of durations whose last
   element is repeated, e.g. `c(300, 180)` for a 5-min first step; the

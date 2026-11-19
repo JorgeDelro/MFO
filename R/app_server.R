@@ -1,0 +1,17 @@
+# Server of the app (#24)
+
+.app_server <- function(input, output, session) {
+  lang <- .app_lang(session$request)
+
+  # Changing the language reloads the app with ?lang= (the interface is built
+  # once per language; loaded data are lost, which the selector says)
+  shiny::observeEvent(input$lang, {
+    if (!identical(input$lang, lang)) {
+      shiny::updateQueryString(paste0("?lang=", input$lang), mode = "replace")
+      session$reload()
+    }
+  }, ignoreInit = TRUE)
+
+  data <- .mod_data_server("data", lang)
+  invisible(list(data = data))
+}
