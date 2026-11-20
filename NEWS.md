@@ -20,8 +20,13 @@
   strings in `inst/app/i18n.csv`). This first step has the Data tab: example
   data, csv/xlsx files with column mapping or analyser exports (several
   files or a zip), phases by table or by cuts dragged on the VO2 plot, and
-  every message and warning of the reading shown as an alert. The other
-  tabs follow.
+  every message and warning of the reading shown as an alert. The Protocol
+  and analysis tab sets the arguments of `MFO_protocol()`, `MFO()` and
+  `MFO_kinetics()`; the Results tab shows the curve (hover for the nearest
+  step), the results table, confidence intervals on demand, the SIN
+  kinetics, the warnings of the run as quality alerts, and adds the
+  participant to the session's group table (the columns of `MFOs()` plus
+  session and analysis date). The other tabs follow.
 
 * `MFO_protocol()` describes the test (SPEC 14): `"step"` (fixed
   durations, as before), `"step_variable"` (a vector of durations whose last

@@ -346,14 +346,7 @@
     output$alerts <- shiny::renderUI({
       l <- log()
       if (is.null(l)) return(NULL)
-      box <- function(x, cls) {
-        if (length(x) == 0) return(NULL)
-        shiny::div(class = paste("alert", cls), lapply(x, shiny::p))
-      }
-      shiny::tagList(box(l$error, "alert-danger"), box(l$warnings, "alert-warning"),
-                     box(l$messages, "alert-info"),
-                     if (is.null(l$error)) shiny::div(class = "alert alert-success",
-                                                      t("data.read.ok")))
+      .app_alerts(l, if (is.null(l$error)) t("data.read.ok"))
     })
 
     output$plot <- shiny::renderPlot({
