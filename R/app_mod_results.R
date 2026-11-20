@@ -152,7 +152,7 @@
         .app_capture(.app_run_analysis(a$cart, a$opts, ci = input$ci, B = input$B,
                                        conf = input$conf, seed = .app_na_null(input$seed))))
       ci_log(r)
-      if (is.null(r$error)) ci_run(c(r$value, a[c("opts", "run", "date", "cart")],
+      if (is.null(r$error)) ci_run(c(r$value, a[c("opts", "run", "date", "cart", "data")],
                                      list(log = a$log, ci_settings = list(
                                        type = input$ci, B = input$B, conf = input$conf,
                                        seed = input$seed))))
@@ -223,5 +223,11 @@
   row <- .mfo_summary_row(ID, a$res, a$kin)
   cbind(row[1], session = as.character(session),
         analysis_date = format(a$date, "%Y-%m-%d %H:%M"), row[-1],
-        stringsAsFactors = FALSE)
+        phase_cuts = .app_cuts_text(a$data$cuts), stringsAsFactors = FALSE)
+}
+
+# Phase cuts as text for the downloads ("" when the phases came as tables)
+.app_cuts_text <- function(cuts) {
+  if (is.null(cuts) || length(cuts) == 0) return("")
+  paste(names(cuts), cuts, sep = " = ", collapse = "; ")
 }

@@ -17,6 +17,8 @@
   group <- shiny::reactiveVal(NULL)
   results <- .mod_results_server("results", analysis, group, lang)
   zones <- .mod_zones_server("zones", results, lang)
+  .mod_report_server("report", results, zones, group, lang)
+  reliability <- .mod_reliability_server("reliability", group, lang)
   invisible(list(data = data, analysis = analysis, results = results, group = group,
-                 zones = zones))
+                 zones = zones, reliability = reliability))
 }

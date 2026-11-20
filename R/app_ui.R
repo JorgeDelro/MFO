@@ -3,9 +3,6 @@
 .app_ui <- function(request, default_lang = "en") {
   lang <- .app_lang(request, default_lang)
   t <- function(key) .tr(key, lang)
-  soon <- function(key) {
-    bslib::nav_panel(t(key), bslib::card(bslib::card_body(shiny::p(t("app.soon")))))
-  }
   bslib::page_navbar(
     title = "MFO",
     id = "tabs",
@@ -15,8 +12,8 @@
     bslib::nav_panel(t("tab.analysis"), .mod_analysis_ui("analysis", lang)),
     bslib::nav_panel(t("tab.results"), .mod_results_ui("results", lang)),
     bslib::nav_panel(t("tab.zones"), .mod_zones_ui("zones", lang)),
-    soon("tab.report"),
-    soon("tab.reliability"),
+    bslib::nav_panel(t("tab.report"), .mod_report_ui("report", lang)),
+    bslib::nav_panel(t("tab.reliability"), .mod_reliability_ui("reliability", lang)),
     bslib::nav_spacer(),
     bslib::nav_item(
       shiny::selectInput("lang", NULL, choices = .app_languages, selected = lang,

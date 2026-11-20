@@ -44,7 +44,10 @@ test_that("a group row is the MFOs() row with session and date", {
   a <- .app_test_analysis()
   row <- .app_group_row("P01", "2", a)
   ref <- .mfo_summary_row("P01", a$res, a$kin)
-  expect_equal(names(row), c("ID", "session", "analysis_date", names(ref)[-1]))
+  expect_equal(names(row), c("ID", "session", "analysis_date", names(ref)[-1], "phase_cuts"))
+  expect_equal(row$phase_cuts, "")
+  expect_equal(.app_cuts_text(c(basal_end = 300, MFO_end = 1800)),
+               "basal_end = 300; MFO_end = 1800")
   expect_equal(row$MFO_g_min, ref$MFO_g_min)
   expect_equal(row$session, "2")
   expect_equal(row$analysis_date, "2026-11-20 10:00")

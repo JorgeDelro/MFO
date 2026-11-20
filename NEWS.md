@@ -31,7 +31,12 @@
   % HRmax with its HRmax source, the range for obesity, and the percentiles
   of `reference_MFO` with their group, N and the differences from the
   reference test. Tables and labels follow the interface language; the
-  package's own messages stay in English. The other tabs follow.
+  package's own messages stay in English. The Report and downloads tab
+  writes one self-contained HTML report (curve, results, intervals, SIN,
+  zones and references, alerts, a methods paragraph with its references,
+  and a footer with version, commit, dates, phase cuts and seed) and the
+  group table as xlsx or csv. The Reliability tab runs `MFO_reliability()`
+  on the group table of the session or on a downloaded one.
 
 * `MFO_protocol()` describes the test (SPEC 14): `"step"` (fixed
   durations, as before), `"step_variable"` (a vector of durations whose last

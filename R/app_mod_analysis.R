@@ -178,7 +178,8 @@
                                .app_capture(.app_run_analysis(d$cart, o)))
       log(r)
       out(if (is.null(r$error)) {
-        c(r$value, list(cart = d$cart, opts = o, log = r, run = input$run, date = Sys.time()))
+        c(r$value, list(cart = d$cart, opts = o, log = r, run = input$run, date = Sys.time(),
+                        data = d[c("source", "tables", "cuts", "settings")]))
       })
     })
 
