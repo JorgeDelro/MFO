@@ -157,7 +157,7 @@ De las dos raíces, una es un máximo y otra un mínimo; el paquete evalúa FAT 
 
 Más estable con pocos escalones (4–5), pero fuerza simetría y tiende a desplazar Fatmax hacia el centro del rango. Útil como respaldo.
 
-**Bondad de ajuste.** Para P2 y P3 el paquete devuelve R² (1 − SSres/SStot) y RMSE (raíz del error cuadrático medio de los residuos). Un R² < 0,80 o un RMSE del orden del 10–15 % del MFO indican que la curva no describe bien los datos y que Fatmax es poco fiable; la app deberá avisar de ello.
+**Bondad de ajuste.** Para P2 y P3 el paquete devuelve R² (1 − SSres/SStot) y RMSE (raíz del error cuadrático medio de los residuos). Como orientación, un R² < 0,80 o un RMSE del orden del 10–15 % del MFO sugieren que la curva no describe bien los datos y que Fatmax es poco fiable. **Estos umbrales no tienen fuente verificada (§19): son orientación, no regla del paquete**; ni `MFO()` ni la app avisan por ellos hasta que haya fuente (decisión de Jorge, 20 nov 2026; #49, 0.3.x).
 
 **6.4 Zona Fatmax y punto de cruce.** Sobre la curva ajustada se calcula la zona Fatmax como el intervalo de intensidades en que FAT ≥ 0,90 · MFO (Achten et al., 2002): su anchura informa de cuánto margen hay al prescribir. El punto de cruce (crossover) es la intensidad a la que CHO supera a FAT; el paquete lo obtiene por interpolación lineal entre los dos escalones en que cambia el signo de FAT − CHO.
 
@@ -351,7 +351,7 @@ Cada punto de la hoja de ruta responde a una limitación identificada en §4–�
 
 | Error | Consecuencia | Salvaguarda en el paquete/app |
 | --- | --- | --- |
-| Test sin ayuno o tras ejercicio | RER alto, MFO bajo | Alerta si RER basal > 0,90 |
+| Test sin ayuno o tras ejercicio | RER alto, MFO bajo | Revisar el RER basal; un RER basal > 0,90 es orientación sin fuente verificada, no regla del paquete (sin alerta automática; #49, 0.3.x) |
 | Promediar escalones enteros | Mezcla transición y meseta | `steady_state_duration` por defecto = último minuto |
 | Incluir escalones con RER > 1 en el polinomio | Curva deformada, Fatmax desplazado | `RER_cutoff`, `negative_FAT` |
 | Usar el VO2 instantáneo más alto como VO2max | Fatmax (%VO2max) sesgado a la baja | Media móvil de 30 s (v0.3.0) |
