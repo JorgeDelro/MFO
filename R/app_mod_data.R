@@ -364,7 +364,7 @@
     output$summary <- shiny::renderTable({
       shiny::req(result())
       .app_phase_summary(result()$cart, t)
-    })
+    }, digits = 0)
 
     result
   })

@@ -8,6 +8,8 @@
     id = "tabs",
     theme = bslib::bs_theme(version = 5),
     lang = lang,
+    # pages scroll; filling the window squeezes the cards and their plots
+    fillable = FALSE,
     bslib::nav_panel(t("tab.data"), .mod_data_ui("data", lang)),
     bslib::nav_panel(t("tab.analysis"), .mod_analysis_ui("analysis", lang)),
     bslib::nav_panel(t("tab.results"), .mod_results_ui("results", lang)),
