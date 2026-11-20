@@ -26,7 +26,12 @@
   step), the results table, confidence intervals on demand, the SIN
   kinetics, the warnings of the run as quality alerts, and adds the
   participant to the session's group table (the columns of `MFOs()` plus
-  session and analysis date). The other tabs follow.
+  session and analysis date; participant codes only, no names). The Zones
+  and references tab shows `MFO_zones()`: the Fatmax zone in bpm and
+  % HRmax with its HRmax source, the range for obesity, and the percentiles
+  of `reference_MFO` with their group, N and the differences from the
+  reference test. Tables and labels follow the interface language; the
+  package's own messages stay in English. The other tabs follow.
 
 * `MFO_protocol()` describes the test (SPEC 14): `"step"` (fixed
   durations, as before), `"step_variable"` (a vector of durations whose last

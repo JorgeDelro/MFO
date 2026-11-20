@@ -16,5 +16,7 @@
   analysis <- .mod_analysis_server("analysis", data, lang)
   group <- shiny::reactiveVal(NULL)
   results <- .mod_results_server("results", analysis, group, lang)
-  invisible(list(data = data, analysis = analysis, results = results, group = group))
+  zones <- .mod_zones_server("zones", results, lang)
+  invisible(list(data = data, analysis = analysis, results = results, group = group,
+                 zones = zones))
 }

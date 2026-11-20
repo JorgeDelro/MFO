@@ -14,7 +14,7 @@
     bslib::nav_panel(t("tab.data"), .mod_data_ui("data", lang)),
     bslib::nav_panel(t("tab.analysis"), .mod_analysis_ui("analysis", lang)),
     bslib::nav_panel(t("tab.results"), .mod_results_ui("results", lang)),
-    soon("tab.zones"),
+    bslib::nav_panel(t("tab.zones"), .mod_zones_ui("zones", lang)),
     soon("tab.report"),
     soon("tab.reliability"),
     bslib::nav_spacer(),

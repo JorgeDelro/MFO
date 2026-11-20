@@ -112,8 +112,9 @@ test_that("the example data run through MFO() and the plot and summary build", {
         db_graded = cart$db_graded, cv_var = "RER", author = "Frayn")))
   expect_true(r$MFO > 0)
   s <- .app_phase_summary(cart)
-  expect_equal(s$phase, c("basal", "MFO", "graded"))
-  expect_equal(s$records, c(45, 72, nrow(cart$db_graded)))
+  expect_equal(s$Phase, c("basal", "MFO", "graded"))
+  expect_equal(s$Records, c(45, 72, nrow(cart$db_graded)))
+  expect_equal(names(.app_phase_summary(cart, function(k) .tr(k, "es")))[1], "Fase")
   expect_s3_class(.app_recording_plot(cart, c(900, NA)), "ggplot")
 })
 

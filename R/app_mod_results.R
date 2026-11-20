@@ -4,15 +4,15 @@
 
 # Results of an MFO() run as a table: quantity, value, unit and, when
 # computed, the interval
-.app_results_table <- function(res) {
+.app_results_table <- function(res, t = function(key) .tr(key, "en")) {
   num <- function(x) if (is.null(x) || length(x) == 0) NA_real_ else as.numeric(x)
   rows <- data.frame(
     key = c("MFO", "MFO_relative", "MFO_FFM", "FAT_MAX", "FAT_MAX_HR", "FAT_MAX_porcHRmax",
             "FAT_MAX_load", "FatMax_zone_lower", "FatMax_zone_upper", "crossover_point",
             "VO2max", "R_squared", "RMSE"),
-    quantity = c("MFO", "MFO / body mass", "MFO / fat-free mass", "Fatmax", "HR at Fatmax",
-                 "Fatmax", "Fatmax", "Fatmax zone, lower", "Fatmax zone, upper",
-                 "Crossover point", "VO2max", "R\u00b2", "RMSE"),
+    quantity = c("MFO", t("tbl.mfo_bm"), t("tbl.mfo_ffm"), "Fatmax", t("tbl.hr_fatmax"),
+                 "Fatmax", "Fatmax", t("tbl.zone_lower"), t("tbl.zone_upper"),
+                 t("tbl.crossover"), "VO2max", "R\u00b2", "RMSE"),
     value = c(num(res$MFO), num(res$MFO_relative), num(res$MFO_FFM), num(res$FAT_MAX),
               num(res$FAT_MAX_HR), num(res$FAT_MAX_porcHRmax), num(res$FAT_MAX_load),
               num(res$FatMax_zone_lower), num(res$FatMax_zone_upper),
@@ -35,12 +35,23 @@
 }
 
 # SIN parameters as a table
-.app_sin_table <- function(kin) {
-  data.frame(parameter = c("d", "s", "t", "Fatmax (SIN)", "Fatmin", "R\u00b2", "fit"),
-             value = c(format(round(c(kin$d, kin$s, kin$t), 3)),
-                       format(round(c(kin$FatMax_SIN, kin$Fatmin), 1)),
-                       format(round(kin$R_squared, 3)), kin$fit),
-             stringsAsFactors = FALSE)
+.app_sin_table <- function(kin, t = function(key) .tr(key, "en")) {
+  out <- data.frame(c("d", "s", "t", "Fatmax (SIN, % VO2max)", "Fatmin (% VO2max)",
+                      "R\u00b2", t("tbl.fit")),
+                    c(format(round(c(kin$d, kin$s, kin$t), 3)),
+                      format(round(c(kin$FatMax_SIN, kin$Fatmin), 1)),
+                      format(round(kin$R_squared, 3)), kin$fit),
+                    stringsAsFactors = FALSE)
+  names(out) <- c(t("tbl.parameter"), t("tbl.value"))
+  out
+}
+
+# Column names of the results table in the interface language
+.app_results_names <- function(tab, t = function(key) .tr(key, "en")) {
+  tab$key <- NULL
+  names(tab) <- c(t("tbl.quantity"), t("tbl.value"), t("tbl.unit"), t("tbl.lower"),
+                  t("tbl.upper"))
+  tab
 }
 
 # The step nearest to a hover on the MFO plot (x = % VO2max, y = g/min)
@@ -154,12 +165,10 @@
     output$hover_step <- shiny::renderTable(.app_hover_step(current()$res$MFO_db, input$hover),
                                             digits = 2)
     output$values <- shiny::renderTable({
-      tab <- .app_results_table(current()$res)
-      tab$key <- NULL
-      tab
+      .app_results_names(.app_results_table(current()$res, t), t)
     }, digits = 3, na = "")
     output$sin_plot <- shiny::renderPlot(current()$kin$MFO_kinetics_plot)
-    output$sin_values <- shiny::renderTable(.app_sin_table(current()$kin))
+    output$sin_values <- shiny::renderTable(.app_sin_table(current()$kin, t))
     output$alerts <- shiny::renderUI({
       a <- current()
       l <- a$log

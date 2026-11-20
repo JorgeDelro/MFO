@@ -1,13 +1,6 @@
 # Results tab (#24): tables built from MFO() and MFO_kinetics() results, and
 # the group table with the MFOs() columns
 
-.app_test_analysis <- function(...) {
-  cart <- .app_example_data()
-  o <- utils::modifyList(.app_default_opts(), list(age = 30, ...))
-  a <- suppressWarnings(suppressMessages(.app_run_analysis(cart, o)))
-  c(a, list(cart = cart, opts = o, run = 1, date = as.POSIXct("2026-11-20 10:00"),
-            log = list(messages = "a note", warnings = "a warning", error = NULL)))
-}
 
 test_that("the results table shows MFO() values and, when computed, intervals", {
   a <- .app_test_analysis()
@@ -22,7 +15,9 @@ test_that("the results table shows MFO() values and, when computed, intervals", 
   expect_equal(tab$lower[tab$key == "MFO"], r$ci["MFO", "lower"])
   expect_equal(tab$upper[tab$key == "FatMax_zone_upper"], r$ci["FatMax_zone_upper", "upper"])
   s <- .app_sin_table(a$kin)
-  expect_equal(s$value[s$parameter == "d"], format(round(a$kin$d, 3)))
+  expect_equal(s$Value[s$Parameter == "d"], format(round(a$kin$d, 3)))
+  es <- .app_results_names(tab, function(k) .tr(k, "es"))
+  expect_equal(names(es), c("Magnitud", "Valor", "Unidad", "Inferior", "Superior"))
 })
 
 test_that("hovering picks the nearest step", {

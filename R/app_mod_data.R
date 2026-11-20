@@ -133,7 +133,7 @@
 
 
 # One row per phase: records, time span and step
-.app_phase_summary <- function(cart) {
+.app_phase_summary <- function(cart, t = function(key) .tr(key, "en")) {
   rows <- lapply(c("basal", "MFO", "graded"), function(p) {
     db <- cart[[paste0("db_", p)]]
     if (is.null(db)) return(NULL)
@@ -141,7 +141,9 @@
                duration_s = nrow(db) * cart$step_time,
                columns = paste(names(db), collapse = ", "), stringsAsFactors = FALSE)
   })
-  do.call(rbind, rows)
+  out <- do.call(rbind, rows)
+  names(out) <- c(t("tbl.phase"), t("tbl.records"), t("tbl.duration"), t("tbl.columns"))
+  out
 }
 
 
@@ -361,7 +363,7 @@
 
     output$summary <- shiny::renderTable({
       shiny::req(result())
-      .app_phase_summary(result()$cart)
+      .app_phase_summary(result()$cart, t)
     })
 
     result
