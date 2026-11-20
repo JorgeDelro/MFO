@@ -1,0 +1,140 @@
+---
+title: "Using the app"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Using the app}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", eval = FALSE)
+```
+
+`run_app()` opens a point-and-click version of the workflow of
+`vignette("mfo-workflow")`. The app does no science of its own: every number
+comes from `read_cart()`, `MFO()`, `MFO_kinetics()`, `MFO_zones()` and
+`MFO_reliability()`, with the same arguments and defaults. The screenshots
+show the example data of the package.
+
+## Starting the app
+
+The app needs two suggested packages, shiny and bslib:
+
+```{r}
+install.packages(c("shiny", "bslib"))
+MFO::run_app()          # interface in English
+MFO::run_app("es")      # interface in Spanish
+```
+
+The language can also be changed in the navigation bar. Changing it reloads
+the app, so the data read so far are lost. The interface is translated; the
+messages and warnings of the package's functions stay in English.
+
+## Your data stay on your computer
+
+`run_app()` starts the app on your own computer, and the files you upload
+are read there; nothing is sent to any server. Keep it that way:
+
+- **Do not deploy the app on a public server with participant data.** The
+  0.3.0 release is meant for local use only. A public demonstration, if one
+  is ever offered, will work with simulated or example data and without file
+  uploads.
+- **Use codes, not names.** The group table and the report identify a
+  participant only by a code of letters, digits, `_` and `-` (up to 20
+  characters); anything else, such as a name or an e-mail address, is
+  refused.
+- Analyser exports often carry the participant's name in their header lines.
+  The app keeps only the columns you map (time, gases, heart rate, load,
+  ventilation), never the header.
+- The group table lives only in the open session: download it before
+  closing the app.
+
+## Tab by tab
+
+### 1. Data
+
+Choose the source: the example data of the package, a csv/xlsx file with
+your own column names, or an export of a metabolic cart read by the spiro
+package (Cortex, Cosmed, Vyntus, ZAN). Upload one or several files, or a
+zip; every sheet of an xlsx file is a table.
+
+The three phases of the test (resting measure, MFO test and graded test) come
+either as one table each, or as one recording that you cut: drag over the
+MFO test on the VO2 plot to set both cuts, then adjust them in the numeric
+fields. The cuts are kept in the report and the group table.
+
+The reading options are those of `read_cart()`: records already averaged by
+the analyser or breath by breath, the unit of VO2 (a units row in the file is
+taken as its declaration), lines before the header, the decimal mark, and
+elapsed or clock time. Every message and warning of the reading is shown.
+
+```{r, echo = FALSE, eval = TRUE, out.width = "100%", fig.alt = "The Data tab after reading the example data: VO2 over time for the resting measure, the MFO test and the graded test, and a table with the records and columns of each phase."}
+knitr::include_graphics("figures/app-data.png")
+```
+
+### 2. Protocol and analysis
+
+The arguments of `MFO_protocol()`, `MFO()` and `MFO_kinetics()`: type of
+protocol and exercise mode, step durations, load schedule, stoichiometric
+equation, energy equivalents, method for Fatmax, RER cutoff, handling of
+negative fat oxidation, VO2max from the graded test or measured elsewhere,
+and the participant's age, body mass, fat-free mass and HRmax. The defaults
+are those of `MFO()`.
+
+### 3. Results
+
+The fat and carbohydrate curve with MFO, Fatmax, the Fatmax zone and the
+crossover point (move the pointer over the plot to see the nearest step),
+the table of results, and the SIN kinetics. Confidence intervals are computed
+on demand (parametric or residual bootstrap, number of replicates, level and
+seed); they are dropped when the analysis is run again.
+
+The quality alerts are the warnings and messages of the run: few steps,
+Fatmax at the first or last step, missing heart rate, negative fat
+oxidation, a VO2max window rounded to whole records.
+
+At the bottom, a participant code and a session add the result to the group
+table of the session (the columns of `MFOs()`, plus session, analysis date
+and phase cuts).
+
+```{r, echo = FALSE, eval = TRUE, out.width = "100%", fig.alt = "The Results tab: fat and carbohydrate oxidation against %VO2max with the Fatmax zone shaded, and the table of results with the controls for confidence intervals."}
+knitr::include_graphics("figures/app-results.png")
+```
+
+### 4. Zones and references
+
+`MFO_zones()` on the current result: the Fatmax zone in bpm and % HRmax, and
+the source of HRmax (given, measured peak, or predicted only if you ask for
+it). With the obesity option and the body fat, the zone is compared with the
+range of Chávez-Guevara et al. (2023). MFO and Fatmax are placed among the
+percentiles of sedentary adults of Amaro-Gahete et al. (2018), always with
+the group and its N, and with a list of the ways in which your test differs
+from theirs. That reference was measured walking on a treadmill, so a
+cycling test gets no percentile.
+
+```{r, echo = FALSE, eval = TRUE, out.width = "100%", fig.alt = "The Zones and references tab: the Fatmax zone in % VO2max, bpm and % HRmax, and the reference values of sedentary adult men with the list of differences from the reference test."}
+knitr::include_graphics("figures/app-zones.png")
+```
+
+### 5. Report and downloads
+
+The individual report is a single HTML file, with the plots inside, that
+opens in any browser and can be printed to PDF. It holds the curve and the
+results (with their intervals if computed), the SIN kinetics, the heart-rate
+zones and reference values, the quality alerts, a methods paragraph ready to
+adapt for a paper, its references, and a footer with the package version and
+commit, the dates of the analysis and the report, the data source, the phase
+cuts and the seed. The methods paragraph starts with a bracket for you to
+complete (hours of fasting and ergometer) and cites only the sources the
+package has verified.
+
+The group table can be downloaded as xlsx or csv.
+
+### 6. Reliability
+
+`MFO_reliability()` on the group table of the session, or on one downloaded
+earlier, so that sessions analysed on different days can be put together:
+two or more sessions per participant, at least 3 participants (30 or more are
+recommended). It shows the ICC, SEM, MDC and CV of each outcome, the bias and
+limits of agreement of each pair of sessions, and the Bland-Altman plots.

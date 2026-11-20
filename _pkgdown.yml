@@ -18,6 +18,10 @@ articles:
   navbar: ~
   contents:
   - mfo-workflow
+- title: Using the app
+  navbar: Using the app
+  contents:
+  - app
 - title: Bayesian fit
   navbar: Bayesian fit
   contents:

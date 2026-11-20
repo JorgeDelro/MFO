@@ -106,6 +106,29 @@ kin$MFO_kinetics_plot
 To process a whole folder of participants and write a summary table, see
 `?MFOs`.
 
+## Using the app
+
+The same analysis can be run in a point-and-click app that ships with the
+package. It needs two suggested packages:
+
+```r
+install.packages(c("shiny", "bslib"))
+MFO::run_app()          # English
+MFO::run_app("es")      # Spanish
+```
+
+The app runs on your computer and does not send your data anywhere. It
+follows the workflow tab by tab: read the data (example data, a csv/xlsx
+file with column mapping, or a metabolic cart export), describe the protocol
+and the calculation, look at the curve, the intervals and the SIN kinetics,
+express the Fatmax zone in heart rate and compare it with published
+reference values, download an HTML report with a methods paragraph, and
+compute the test-retest reliability of your lab from the group table. It only
+calls the functions of the package, so its results are those of `MFO()`.
+See `vignette("app", package = "MFO")`.
+
+![The Results tab of the app with the example data: fat and carbohydrate oxidation against %VO2max with the Fatmax zone, and the table of results.](man/figures/README-app-results.png)
+
 ## Methods
 
 ### Substrate oxidation
