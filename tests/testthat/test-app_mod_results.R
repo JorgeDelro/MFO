@@ -33,6 +33,18 @@ test_that("hovering picks the nearest step", {
   expect_null(.app_hover_step(db, NULL))
 })
 
+test_that("participant codes, not names", {
+  expect_true(.app_valid_id("P01"))
+  expect_true(.app_valid_id("lab-2_S01"))
+  expect_true(.app_valid_id(strrep("a", 20)))
+  expect_false(.app_valid_id(strrep("a", 21)))
+  expect_false(.app_valid_id("Ana Lopez"))
+  expect_false(.app_valid_id("ana@uca.es"))
+  expect_false(.app_valid_id("Jos\u00e9"))
+  expect_false(.app_valid_id(""))
+  expect_false(.app_valid_id(c("P01", "P02")))
+})
+
 test_that("a group row is the MFOs() row with session and date", {
   a <- .app_test_analysis()
   row <- .app_group_row("P01", "2", a)
@@ -60,9 +72,11 @@ test_that("the Results module computes intervals and fills the group table", {
     expect_null(current()$res$ci)
     session$setInputs(ID = "", add = 1)
     expect_null(group())
-    session$setInputs(ID = "P01", session_id = "1", add = 2)
-    session$setInputs(ID = "P01", session_id = "2", add = 3)
+    session$setInputs(ID = "Ana Lopez", add = 2)
+    expect_null(group())
+    session$setInputs(ID = "P01", session_id = "1", add = 3)
     session$setInputs(ID = "P01", session_id = "2", add = 4)
+    session$setInputs(ID = "P01", session_id = "2", add = 5)
     expect_equal(nrow(group()), 2)
     expect_equal(group()$session, c("1", "2"))
     expect_match(output$group_n, "2 result")

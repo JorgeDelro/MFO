@@ -183,6 +183,10 @@
         shiny::showNotification(t("res.ID.missing"), type = "error")
         return()
       }
+      if (!.app_valid_id(id)) {
+        shiny::showNotification(t("res.ID.invalid"), type = "error")
+        return()
+      }
       row <- .app_group_row(id, input$session_id, a)
       g <- group()
       if (!is.null(g)) g <- g[!(g$ID == row$ID & g$session == row$session), , drop = FALSE]
@@ -195,6 +199,13 @@
 
     current
   })
+}
+
+
+# Participant codes, not names: letters, digits, _ and -, up to 20
+# characters (Jorge, 2026-11-20)
+.app_valid_id <- function(x) {
+  is.character(x) && length(x) == 1 && grepl("^[A-Za-z0-9_-]{1,20}$", x)
 }
 
 
