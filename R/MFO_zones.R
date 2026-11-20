@@ -397,7 +397,7 @@ print.MFO_zones <- function(x, digits = 1, ...) {
   if (d$mode %in% "running") {
     out <- c(out, "mode: running (reference: treadmill walking)")
   } else if (!d$mode %in% "walking") {
-    out <- c(out, paste0("mode: ", d$mode, " (reference: treadmill walking; no percentile)"))
+    out <- c(out, paste0("mode: ", d$mode, " (reference: treadmill walking, no percentile)"))
   }
   if (is.na(d$author)) {
     out <- c(out, "equation: not recorded (reference: Frayn without protein)")
