@@ -89,11 +89,11 @@ met_basal <- function(step_time, db, cv_var, window_duration = 300,
 
 #' Substrate oxidation equations
 #'
-#' Calculate fat and carbohydrate oxidation from VO2 and VCO2 using
+#' Calculate fat and carbohydrate oxidation from \VO{} and \VCO{} using
 #' different stoichiometric equations.
 #'
 #' @param VO2 oxygen consumption in ml/min (scalar or vector)
-#' @param VCO2 carbon dioxide production in ml/min (same length as VO2)
+#' @param VCO2 carbon dioxide production in ml/min (same length as \VO{})
 #' @param author equation set: "Frayn", "Jeukendrup", or "Peronnet"
 #' @param VO2max maximum oxygen uptake in ml/min (required for Jeukendrup during exercise)
 #' @param phase "exercise" (default) or "rest". Only changes "Jeukendrup".
@@ -106,34 +106,34 @@ met_basal <- function(step_time, db, cv_var, window_duration = 300,
 #' coefficient is used only where the source prints no equation (SPEC 19).
 #'
 #' **Frayn (1983)** (J Appl Physiol 55: 628-634, eqs. 5 and 6, n = 0), as printed:
-#' CHO = 4.55 VCO2 - 3.21 VO2, FAT = 1.67 VO2 - 1.67 VCO2. Deriving them from his
+#' CHO = 4.55 \VCO{} - 3.21 \VO{}, FAT = 1.67 \VO{} - 1.67 \VCO{}. Deriving them from his
 #' Table 1 constants (glucose 0.746/0.746, fat 2.03/1.43 L/g) gives
 #' 4.535/3.195 and 1.667/1.667; this is only a cross-check in the tests.
 #'
 #' **Peronnet & Massicotte (1991)** (Can J Sport Sci 16: 23-29) print no
 #' equations. The package derives them from the O2/CO2 constants of their
 #' Table 1 (glucose 0.7455/0.7426, fatty acid 2.0092/1.4136 L/g) by solving
-#' VO2 = 0.7455 CHO + 2.0092 FAT and VCO2 = 0.7426 CHO + 1.4136 FAT for CHO and
-#' FAT: CHO = 4.58519 VCO2 - 3.22597 VO2, FAT = 1.69469 VO2 - 1.70130 VCO2.
+#' \VO{} = 0.7455 CHO + 2.0092 FAT and \VCO{} = 0.7426 CHO + 1.4136 FAT for CHO and
+#' FAT: CHO = 4.58519 \VCO{} - 3.22597 \VO{}, FAT = 1.69469 \VO{} - 1.70130 \VCO{}.
 #' Up to v0.2.0 the rounded 4.585 / 3.2255 / 1.6946 / 1.7012 were used
 #' (SPEC 19, finding 6).
 #'
 #' **Jeukendrup & Wallis (2005)** (Int J Sports Med 26 Suppl 1: S28-S37), with the
 #' coefficients printed in their Table 5:
 #' \itemize{
-#' \item below 50 \% VO2max (40-50 \% set): CHO = 4.344 VCO2 - 3.061 VO2;
-#' \item at or above 50 \% VO2max (50-75 \% set): CHO = 4.210 VCO2 - 2.962 VO2;
-#' \item FAT = 1.695 VO2 - 1.701 VCO2 in both.
+#' \item below 50 \% \VOmax{} (40-50 \% set): CHO = 4.344 \VCO{} - 3.061 \VO{};
+#' \item at or above 50 \% \VOmax{} (50-75 \% set): CHO = 4.210 \VCO{} - 2.962 \VO{};
+#' \item FAT = 1.695 \VO{} - 1.701 \VCO{} in both.
 #' }
 #' With `phase = "rest"` there is no printed equation: Jeukendrup & Wallis propose
 #' none. As a package decision (pure glucose, no glycogen use at rest), the pair is
 #' derived from the O2/CO2 constants of their Table 4 (glucose 0.7455/0.7426,
 #' fatty acid 2.0092/1.4136 L/g) by solving the 2x2 system:
-#' CHO = 4.58519 VCO2 - 3.22597 VO2, FAT = 1.69469 VO2 - 1.70130 VCO2.
+#' CHO = 4.58519 \VCO{} - 3.22597 \VO{}, FAT = 1.69469 \VO{} - 1.70130 \VCO{}.
 #' The same derivation with 50/50 and 20/80 glucose/glycogen reproduces the
 #' Table 5 coefficients within 0.005 and is kept as a cross-check in the tests.
 #'
-#' The Table 5 sets are defined for 40-75 \% VO2max only. Below 40 \% the 40-50 \%
+#' The Table 5 sets are defined for 40-75 \% \VOmax{} only. Below 40 \% the 40-50 \%
 #' set and above 75 \% the 50-75 \% set are extrapolated; [calculate_vars()] warns
 #' when an exercise step falls outside the range (SPEC 3, 9.5). Resting values
 #' (`phase = "rest"`) never trigger that warning.
@@ -147,10 +147,10 @@ met_basal <- function(step_time, db, cv_var, window_duration = 300,
 #' \item "source", `author = "Frayn"`: Frayn (1983, p. 632) gives no energy
 #'   equivalents; as a package decision the Peronnet & Massicotte values are used.
 #' \item "source", `author = "Jeukendrup"`: Jeukendrup & Wallis (2005, Table 5),
-#'   CHO 3.95 kcal/g below 50 \% VO2max (40-50 \% set) and 4.07 kcal/g at or above
+#'   CHO 3.95 kcal/g below 50 \% \VOmax{} (40-50 \% set) and 4.07 kcal/g at or above
 #'   50 \% (50-75 \% set), fat 9.75 kcal/g. At rest (`phase = "rest"`, pure glucose
 #'   pair, package decision) the Peronnet & Massicotte glucose and fat values are used,
-#'   because they are the constants of that pair. `Kcal` jumps at 50 \% VO2max
+#'   because they are the constants of that pair. `Kcal` jumps at 50 \% \VOmax{}
 #'   with the CHO value.
 #' }
 #'
@@ -249,7 +249,7 @@ substrate_oxidation <- function(VO2, VCO2, author, VO2max = NULL,
 
 #' Fat oxidation with the RER simplification (MRER)
 #'
-#' FAT (mg/min) = 1.7 (1 - RER) VO2 (ml/min), the simplification of the
+#' FAT (mg/min) = 1.7 (1 - RER) \VO{} (ml/min), the simplification of the
 #' Peronnet & Massicotte (1991) equation used by Perez-Martin et al. (2001) and
 #' Cheneviere et al. (2009, p. 1617). Used by `method = "MRER"` in [MFO()].
 #'
@@ -286,7 +286,7 @@ fat_oxidation_MRER <- function(VO2, RER) {
 #'   `steady_state_duration` are not used.
 #'
 #' @details With `author = "Jeukendrup"`, a single warning lists the steps (after
-#' `RER_cutoff`) whose intensity is outside 40-75 \% VO2max, the range of the
+#' `RER_cutoff`) whose intensity is outside 40-75 \% \VOmax{}, the range of the
 #' Jeukendrup & Wallis (2005, Table 5) equations (SPEC 3, 9.5).
 #'
 #' @importFrom dplyr pull mutate
@@ -503,8 +503,8 @@ preprocess_bxb <- function(db, target_interval = 20) {
 #' @param db_MFO_name name of the database of MFO test
 #' @param db_graded_name name of the database of the graded exercise test
 #' @param remove_rows An integer (or a vector of integers) representing the position of the rows to delete
-#' @param col_name_VO2 name given to the variable VO2 in the databases. Default "VO2"
-#' @param col_name_VCO2 name given to the variable VCO2 in the databases. Default "VCO2"
+#' @param col_name_VO2 name given to the variable \VO{} in the databases. Default "VO2"
+#' @param col_name_VCO2 name given to the variable \VCO{} in the databases. Default "VCO2"
 #' @param col_name_RER name given to the variable RER in the databases. Default "RER"
 #' @param col_name_HR name given to the variable HR in the databases. Default "HR"
 #' @param col_name_Load name given to the external load (W or km/h) in the

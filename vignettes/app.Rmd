@@ -62,11 +62,11 @@ zip; every sheet of an xlsx file is a table.
 
 The three phases of the test (resting measure, MFO test and graded test) come
 either as one table each, or as one recording that you cut: drag over the
-MFO test on the VO2 plot to set both cuts, then adjust them in the numeric
+MFO test on the VO₂ plot to set both cuts, then adjust them in the numeric
 fields. The cuts are kept in the report and the group table.
 
 The reading options are those of `read_cart()`: records already averaged by
-the analyser or breath by breath, the unit of VO2 (a units row in the file is
+the analyser or breath by breath, the unit of VO₂ (a units row in the file is
 taken as its declaration), lines before the header, the decimal mark, and
 elapsed or clock time. Every message and warning of the reading is shown.
 
@@ -79,7 +79,7 @@ knitr::include_graphics("figures/app-data.png")
 The arguments of `MFO_protocol()`, `MFO()` and `MFO_kinetics()`: type of
 protocol and exercise mode, step durations, load schedule, stoichiometric
 equation, energy equivalents, method for Fatmax, RER cutoff, handling of
-negative fat oxidation, VO2max from the graded test or measured elsewhere,
+negative fat oxidation, VO₂max from the graded test or measured elsewhere,
 and the participant's age, body mass, fat-free mass and HRmax. The defaults
 are those of `MFO()`.
 
@@ -93,7 +93,7 @@ seed); they are dropped when the analysis is run again.
 
 The quality alerts are the warnings and messages of the run: few steps,
 Fatmax at the first or last step, missing heart rate, negative fat
-oxidation, a VO2max window rounded to whole records.
+oxidation, a VO₂max window rounded to whole records.
 
 At the bottom, a participant code and a session add the result to the group
 table of the session (the columns of `MFOs()`, plus session, analysis date

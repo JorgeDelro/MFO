@@ -51,7 +51,7 @@ Extracts the last minute of each step (steady-state) for averaging.
 }
 \details{
 With `author = "Jeukendrup"`, a single warning lists the steps (after
-`RER_cutoff`) whose intensity is outside 40-75 \% VO2max, the range of the
+`RER_cutoff`) whose intensity is outside 40-75 \% \VOmax{}, the range of the
 Jeukendrup & Wallis (2005, Table 5) equations (SPEC 3, 9.5).
 }
 \keyword{internal}

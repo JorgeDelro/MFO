@@ -29,7 +29,7 @@ MFO_protocol(
   data go on after its last element, that last duration is repeated, so
   `c(300, 180)` means a 5-min first step followed by 3-min steps.
 \item `"relative"`: fixed-duration steps whose load is prescribed relative
-  to body mass (W/kg), as in the relative power FATmax test of
+  to body mass (W/kg), as in the relative power Fatmax test of
   postmenopausal females (2026,
   \url{https://pmc.ncbi.nlm.nih.gov/articles/PMC13315815/}). Steps are
   cut as in `"step"`; the load unit is `"W/kg"`.
@@ -46,7 +46,7 @@ MFO_protocol(
   maximal test in the same recording (Marin-Galindo et al. 2026, Sports
   Med Health Sci 8(3): 327-334, \doi{10.1016/j.smhs.2025.02.004}). Steps are cut as in
   `"step"` up to `cut_time`; the records after it are the graded test,
-  used for VO2max when `db_graded` and `VO2max` are not given. Automatic
+  used for \VOmax{} when `db_graded` and `VO2max` are not given. Automatic
   detection of the phases belongs to the importers (SPEC 16).
 }}
 

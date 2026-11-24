@@ -29,9 +29,9 @@ read_MFO_databases(
 
 \item{db_graded_name}{name of the database of the graded exercise test}
 
-\item{col_name_VO2}{name given to the variable VO2 in the databases. Default "VO2"}
+\item{col_name_VO2}{name given to the variable \VO{} in the databases. Default "VO2"}
 
-\item{col_name_VCO2}{name given to the variable VCO2 in the databases. Default "VCO2"}
+\item{col_name_VCO2}{name given to the variable \VCO{} in the databases. Default "VCO2"}
 
 \item{col_name_RER}{name given to the variable RER in the databases. Default "RER"}
 

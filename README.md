@@ -45,9 +45,9 @@ columns `VO2` and `VCO2` (mL/min), `RER` and `HR` (bpm):
 
 | Recording                      | Argument    | Used for                                                                                                               |
 |--------------------------------|-------------|------------------------------------------------------------------------------------------------------------------------|
-| Resting metabolism (15–30 min) | `db_basal`  | Most stable 5-min window → resting VO2, RER, CHO, FAT, kcal                                                            |
+| Resting metabolism (15–30 min) | `db_basal`  | Most stable 5-min window → resting VO₂, RER, CHO, FAT, kcal                                                            |
 | Incremental MFO test           | `db_MFO`    | Steady-state average of each step → fat oxidation curve                                                                |
-| Maximal graded test            | `db_graded` | VO2max = highest mean over `vo2max_window` s (default 30), to express intensity as %VO2max (or pass `VO2max` directly) |
+| Maximal graded test            | `db_graded` | VO₂max = highest mean over `vo2max_window` s (default 30), to express intensity as %VO₂max (or pass `VO2max` directly) |
 
 The package ships one anonymised example participant (`basal_df`,
 `MFO_df`, `VO2max_df`).
@@ -133,9 +133,9 @@ are those of `MFO()`. See `vignette("app", package = "MFO")`.
 
 <figure>
 <img src="man/figures/README-app-results.png"
-alt="The Results tab of the app with the example data: fat and carbohydrate oxidation against %VO2max with the Fatmax zone, and the table of results." />
+alt="The Results tab of the app with the example data: fat and carbohydrate oxidation against %VO₂max with the Fatmax zone, and the table of results." />
 <figcaption aria-hidden="true">The Results tab of the app with the
-example data: fat and carbohydrate oxidation against %VO2max with the
+example data: fat and carbohydrate oxidation against %VO₂max with the
 Fatmax zone, and the table of results.</figcaption>
 </figure>
 
@@ -144,16 +144,16 @@ Fatmax zone, and the table of results.</figcaption>
 ### Substrate oxidation
 
 Fat (FAT) and carbohydrate (CHO) oxidation in g/min are computed from
-VO2 and VCO2 in L/min, assuming negligible protein oxidation during
+VO₂ and VCO₂ in L/min, assuming negligible protein oxidation during
 exercise. Choose the equation set with `author`:
 
 | `author`       | CHO (g/min)                                                                      | FAT (g/min)                | Source                                             |
 |----------------|----------------------------------------------------------------------------------|----------------------------|----------------------------------------------------|
-| `"Frayn"`      | 4.55 VCO2 − 3.21 VO2                                                             | 1.67 VO2 − 1.67 VCO2       | Frayn (1983)                                       |
-| `"Peronnet"`   | 4.58519 VCO2 − 3.22597 VO2                                                       | 1.69469 VO2 − 1.70130 VCO2 | Péronnet & Massicotte (1991), derived from Table 1 |
-| `"Jeukendrup"` | 4.344 VCO2 − 3.061 VO2 (40–50 %VO2max)<br>4.210 VCO2 − 2.962 VO2 (50–75 %VO2max) | 1.695 VO2 − 1.701 VCO2     | Jeukendrup & Wallis (2005)                         |
+| `"Frayn"`      | 4.55 VCO₂ − 3.21 VO₂                                                             | 1.67 VO₂ − 1.67 VCO₂       | Frayn (1983)                                       |
+| `"Peronnet"`   | 4.58519 VCO₂ − 3.22597 VO₂                                                       | 1.69469 VO₂ − 1.70130 VCO₂ | Péronnet & Massicotte (1991), derived from Table 1 |
+| `"Jeukendrup"` | 4.344 VCO₂ − 3.061 VO₂ (40–50 %VO₂max)<br>4.210 VCO₂ − 2.962 VO₂ (50–75 %VO₂max) | 1.695 VO₂ − 1.701 VCO₂     | Jeukendrup & Wallis (2005)                         |
 
-`"Jeukendrup"` needs VO2max to pick the CHO equation for each step.
+`"Jeukendrup"` needs VO₂max to pick the CHO equation for each step.
 Energy expenditure (`Kcal`) is CHO × 4 + FAT × 9 kcal/min with
 `energy_equivalents = "classic"`, the default in 0.2.x; `"source"` uses
 the values of each equation’s source (Péronnet & Massicotte
@@ -164,11 +164,11 @@ for FAT but grow for CHO and the crossover point.
 
 ### Locating MFO and Fatmax
 
-Each step contributes one point (FAT, %VO2max). `method` chooses how the
+Each step contributes one point (FAT, %VO₂max). `method` chooses how the
 maximum is located:
 
 - **`"P3"`** (default): third-degree polynomial
-  $\mathrm{FAT}(x) = a + bx + cx^2 + dx^3$, with $x$ = %VO2max. Fatmax
+  $\mathrm{FAT}(x) = a + bx + cx^2 + dx^3$, with $x$ = %VO₂max. Fatmax
   is the root of $b + 2cx + 3dx^2 = 0$ that lies within the measured
   range and gives the highest FAT. Falls back to P2 with a warning if
   the cubic cannot be fitted.
@@ -209,7 +209,7 @@ $$
 - **t (translation)**: t \> 0 shifts the whole curve to the left.
 
 With d = 0, s = 1 and t = 0 the curve is a half sine wave peaking at 50
-%VO2max.
+%VO₂max.
 
 Fatmax and Fatmin follow in closed form from the equation: Fatmax =
 \[(π + 2d)·2^(−1/s) − d − t\]/K and Fatmin, the second zero of the
@@ -240,11 +240,11 @@ equations return negative FAT. Two arguments control this:
 | `MFO`                                    | g/min           | Maximal fat oxidation                          |
 | `MFO_relative`                           | mg/kg/min       | MFO / body mass (if `body_mass` given)         |
 | `MFO_FFM`                                | mg/kgFFM/min    | MFO / fat-free mass (if `fat_free_mass` given) |
-| `FAT_MAX`                                | %VO2max         | Intensity eliciting MFO                        |
+| `FAT_MAX`                                | %VO₂max         | Intensity eliciting MFO                        |
 | `FAT_MAX_HR`                             | bpm             | Heart rate at Fatmax (linear interpolation)    |
 | `FAT_MAX_porcHRmax`                      | %HRmax          | Fatmax as %HRmax (if `HRmax` given)            |
-| `FatMax_zone_lower`, `FatMax_zone_upper` | %VO2max         | Fatmax zone                                    |
-| `crossover_point`                        | %VO2max         | Intensity where CHO \> FAT                     |
+| `FatMax_zone_lower`, `FatMax_zone_upper` | %VO₂max         | Fatmax zone                                    |
+| `crossover_point`                        | %VO₂max         | Intensity where CHO \> FAT                     |
 | `R_squared`, `RMSE`                      | –               | Goodness of fit                                |
 | `x_CHO`, `x_FAT`, `x_Kcal`               | g/min, kcal/min | Resting values                                 |
 | `MFO_db`, `MFO_plot`                     | –               | Step table and ggplot                          |
@@ -261,7 +261,7 @@ and MRER issues do not affect MFO and Fatmax obtained with P3 or P2.
   fitted a P3-smoothed grid and used a 5 % threshold for `Fatmin`. Fixed
   in the development version.
 - **`method = "MRER"` in v0.2.0** took the observed maximum of 1.7 (1 −
-  RER) VO2, a measured-values method. The development version implements
+  RER) VO₂, a measured-values method. The development version implements
   the two-regression MRER of Chenevière et al. (2009) and adds
   `method = "MV"`.
 - The **resting row** is not used in the curve fit unless

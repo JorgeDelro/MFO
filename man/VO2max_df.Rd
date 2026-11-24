@@ -24,7 +24,7 @@ data(VO2max_df)
 \description{
 Synthetic breath-by-breath data from a graded exercise test
   to exhaustion (10 stages, 75-300 W). Simulates a moderately trained
-  male cyclist reaching VO2max ~3200 mL/min and HRmax ~185 bpm.
-  Used to determine VO2max when this value is not known a priori.
+  male cyclist reaching \VOmax{} ~3200 mL/min and HRmax ~185 bpm.
+  Used to determine \VOmax{} when this value is not known a priori.
 }
 \keyword{datasets}

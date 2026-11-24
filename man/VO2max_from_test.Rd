@@ -2,7 +2,7 @@
 % Please edit documentation in R/VO2max_from_test.R
 \name{VO2max_from_test}
 \alias{VO2max_from_test}
-\title{VO2max of a graded test, with maximality criteria}
+\title{\VOmax{} of a graded test, with maximality criteria}
 \usage{
 VO2max_from_test(
   db_graded,
@@ -29,7 +29,7 @@ message reports the effective window (as `vo2max_window` in [MFO()]).}
 
 \item{HRmax_formula}{`"tanaka"` (default) or `"fox"`.}
 
-\item{plateau_threshold}{VO2 increase between the last two stages below
+\item{plateau_threshold}{\VO{} increase between the last two stages below
 which there is a plateau, ml/min (default 150).}
 
 \item{RER_threshold}{RER above which the RER criterion is met (default 1.10).}
@@ -43,23 +43,23 @@ An object of class `MFO_VO2max`: a list with `VO2max` (ml/min),
   `window_requested`, `n_records`, `criteria` (a data frame with one row
   per criterion: `criterion`, `value`, `threshold`, `met`, `NA` when not
   evaluated), `HRmax_predicted`, `HRmax_formula`, `age` and `HR_peak`
-  (highest mean HR over the same window as VO2max, bpm; `NA` without HR).
+  (highest mean HR over the same window as \VOmax{}, bpm; `NA` without HR).
   It can be passed to [MFO()] as `VO2max`.
 }
 \description{
-Computes VO2max as the highest mean VO2 over `window` seconds of
+Computes \VOmax{} as the highest mean \VO{} over `window` seconds of
 consecutive records (as `MFO()` does from `db_graded`) and checks whether
 the test was maximal, following the criteria reviewed by Howley, Bassett
 and Welch (1995, Med Sci Sports Exerc 27(9): 1292-1301,
 \doi{10.1249/00005768-199509000-00009}). The value is labelled `"VO2max"`
-when VO2 reached a plateau, or, without a plateau, when both the RER and
+when \VO{} reached a plateau, or, without a plateau, when both the RER and
 the heart-rate criteria are met; otherwise it is labelled `"VO2peak"`
 (SPEC 14).
 }
 \details{
 Criteria (thresholds are arguments):
 \itemize{
-\item plateau: the mean VO2 of the final stage is less than
+\item plateau: the mean \VO{} of the final stage is less than
   `plateau_threshold` ml/min above that of the previous stage (150 ml/min,
   from Taylor et al. 1955 as reported by Howley et al. 1995). Stages are
   runs of equal `Load` above 0, each averaged over its last `window` s; the

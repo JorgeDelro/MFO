@@ -39,7 +39,7 @@ and/or `MFO_end`.}
 
 \item{body_mass}{body mass in kg, needed only when `vo2_unit = "mL/kg/min"`.}
 
-\item{vo2_unit}{unit of VO2 and VCO2 in the export: `"auto"` (default),
+\item{vo2_unit}{unit of \VO{} and \VCO{} in the export: `"auto"` (default),
 `"mL/min"`, `"L/min"` or `"mL/kg/min"`.}
 
 \item{columns, skip, units_row, decimal, sheets, time_origin}{for
@@ -54,7 +54,7 @@ An object of class `MFO_cart`: a list with `db_basal`, `db_MFO`,
   `db_graded` (data frames with `Time`, `VO2`, `VCO2`, `RER` and, when the
   export has them, `HR`, `Load`, `VE`; `NULL` for a phase not in the file),
   `step_time` (= `interval`, or the step of `Time` with `interval = "none"`)
-  and `info` (device, interval, averaging, VO2 unit, cuts, `time_origin` and
+  and `info` (device, interval, averaging, \VO{} unit, cuts, `time_origin` and
   `time_offset` for generic files, number of breaths
   or records, of intervals and of empty intervals, and the RER mismatch
   count, `NA` when the export has no RER).
@@ -78,13 +78,13 @@ tested only with the example files of \pkg{spiro}.
 that interval, not an interpolation. An interval without breaths is kept as
 a row of `NA`, so the records stay aligned in time (`MFO()` cuts steps by
 counting records). The default of 10 s divides the usual step durations
-(60-300 s) and the 30-s windows of VO2max and ramps exactly, so they need no
+(60-300 s) and the 30-s windows of \VOmax{} and ramps exactly, so they need no
 rounding.
 
-**Units.** VO2 and VCO2 are returned in mL/min. With `vo2_unit = "auto"` a
-median VO2 above 100 is read as mL/min; at or below 100 the unit must be
+**Units.** \VO{} and \VCO{} are returned in mL/min. With `vo2_unit = "auto"` a
+median \VO{} above 100 is read as mL/min; at or below 100 the unit must be
 given, because L/min and mL/kg/min cannot be told apart reliably. RER is
-always VCO2/VO2 of the interval means; when the export has its own RER, a
+always \VCO{}/\VO{} of the interval means; when the export has its own RER, a
 warning counts the intervals where they differ by more than 0.02. Load is
 passed through unconverted: declare its unit in [MFO_protocol()].
 
@@ -106,7 +106,7 @@ columns are mapped with `columns`, as `col_name_*` in [MFO()] (SPEC 16):
   columns in the file.
 \item `skip` lines (e.g. metadata) come before the header; with
   `units_row = TRUE` the line after the header holds the units. A
-  recognised VO2 unit there ("mL/min", "L/min", "mL/kg/min") is taken as a
+  recognised \VO{} unit there ("mL/min", "L/min", "mL/kg/min") is taken as a
   declaration of the file, with a message; an explicit `vo2_unit` wins.
 \item `decimal` is the decimal mark (default "."); the csv field separator
   (tab, ";" or ",") is detected from the header line.
