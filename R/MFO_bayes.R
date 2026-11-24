@@ -247,7 +247,7 @@ plot.MFO_bayes <- function(x, ndraws = 100, ...) {
               alpha = 0.15) +
     geom_line(data = med, aes(x = x, y = FAT), colour = "darkorange", linewidth = 1) +
     geom_point(data = x$data, aes(x = x, y = FAT), size = 2.5) +
-    labs(x = expression("Exercise intensity (% " * VO[2*max] * ")"),
+    labs(x = expression("Exercise intensity (% " * VO[2] * "max)"),
          y = expression("Fat oxidation (g" %.% "min"^{-1} * ")"),
          subtitle = subtitle,
          caption = "Grey: posterior draws. Orange: posterior median curve.") +
@@ -261,7 +261,7 @@ plot.MFO_prior_check <- function(x, ...) {
     geom_line(data = x$curves, aes(x = x, y = FAT, group = draw), colour = "grey50",
               alpha = 0.2) +
     geom_point(data = x$data, aes(x = x, y = FAT), size = 2.5) +
-    labs(x = expression("Exercise intensity (% " * VO[2*max] * ")"),
+    labs(x = expression("Exercise intensity (% " * VO[2] * "max)"),
          y = expression("Fat oxidation (g" %.% "min"^{-1} * ")"),
          subtitle = sprintf("Prior predictive check, %s model: %d curves from the priors",
                             x$model, nrow(x$draws)),

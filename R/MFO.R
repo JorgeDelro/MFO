@@ -1032,7 +1032,7 @@ MFO <- function(step_time,
     labs(subtitle = subtitle, caption = caption,
          colour = NULL, linetype = NULL, shape = NULL) +
     ylab(expression("Substrate oxidation (g" %.% "min"^{-1} * ")")) +
-    xlab(expression("Exercise intensity (% " * VO[2*max] * ")")) +
+    xlab(expression("Exercise intensity (% " * VO[2] * "max)")) +
     theme_bw() +
     theme(legend.position = "bottom",
           plot.caption = element_text(hjust = 0, colour = "grey30"),

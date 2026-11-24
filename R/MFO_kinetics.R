@@ -367,7 +367,7 @@ MFO_kinetics <- function(MFO_data, fatmin_threshold = NULL,
     xlim(0, 100) +
     labs(subtitle = subtitle) +
     ylab("Fat oxidation (%MFO)") +
-    xlab(expression("Exercise intensity (% " * VO[2*max] * ")")) +
+    xlab(expression("Exercise intensity (% " * VO[2] * "max)")) +
     theme_bw() +
     theme(legend.position = "bottom",
           legend.title = element_blank(),
