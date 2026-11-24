@@ -1,7 +1,7 @@
 # Server of the app (#24)
 
-.app_server <- function(input, output, session) {
-  lang <- .app_lang(session$request)
+.app_server <- function(input, output, session, default_lang = "en") {
+  lang <- .app_lang(session$request, default_lang)
 
   # Changing the language reloads the app with ?lang= (the interface is built
   # once per language; loaded data are lost, which the selector says)
