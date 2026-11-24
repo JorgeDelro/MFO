@@ -74,7 +74,7 @@
       col_widths = c(7, 5),
       bslib::card(
         bslib::card_header(t("res.curve")),
-        shiny::plotOutput(ns("plot"), height = "380px",
+        shiny::plotOutput(ns("plot"), height = "380px", fill = FALSE,
                           hover = shiny::hoverOpts(ns("hover"), delay = 100)),
         shiny::helpText(t("res.hover")),
         shiny::tableOutput(ns("hover_step"))
@@ -101,7 +101,7 @@
       col_widths = c(7, 5),
       bslib::card(
         bslib::card_header(t("res.sin")),
-        shiny::plotOutput(ns("sin_plot"), height = "320px")
+        shiny::plotOutput(ns("sin_plot"), height = "320px", fill = FALSE)
       ),
       bslib::card(
         bslib::card_header(t("res.sin.values")),

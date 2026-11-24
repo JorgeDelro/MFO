@@ -237,7 +237,7 @@
     shiny::uiOutput(ns("alerts")),
     bslib::card(
       bslib::card_header(t("data.recording.plot")),
-      shiny::plotOutput(ns("plot"), height = "300px",
+      shiny::plotOutput(ns("plot"), height = "300px", fill = FALSE,
                         brush = shiny::brushOpts(ns("brush"), direction = "x", resetOnNew = TRUE))
     ),
     bslib::card(

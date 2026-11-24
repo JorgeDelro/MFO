@@ -46,7 +46,7 @@
     bslib::card(bslib::card_header(t("rel.pairs")), shiny::tableOutput(ns("pairs"))),
     bslib::card(bslib::card_header(t("rel.plot")),
                 shiny::numericInput(ns("pair"), t("rel.pair"), 1, min = 1, step = 1),
-                shiny::plotOutput(ns("plot"), height = "420px"))
+                shiny::plotOutput(ns("plot"), height = "420px", fill = FALSE))
   )
 }
 
