@@ -4,12 +4,13 @@
 .zones_opts <- function(...) {
   utils::modifyList(list(HRmax = NA, predicted_HRmax = FALSE, age = NA,
                          HRmax_formula = "tanaka", population = "general", body_fat = NA,
-                         sex = "", age_group = "", weight_status = ""), list(...))
+                         compare_by = "cohort", sex = "male", age_group = "young",
+                         weight_status = "normal"), list(...))
 }
 
 test_that("the zones of the app are MFO_zones() with the options of the tab", {
   a <- .app_test_analysis()
-  zn <- suppressMessages(.app_run_zones(a$res, .zones_opts(sex = "male", age_group = "young",
+  zn <- suppressMessages(.app_run_zones(a$res, .zones_opts(compare_by = "sex_age",
                                                            population = "obesity",
                                                            body_fat = 38)))
   ref <- suppressMessages(MFO_zones(a$res, sex = "male", age_group = "young",
@@ -27,8 +28,27 @@ test_that("the zones of the app are MFO_zones() with the options of the tab", {
   expect_equal(.app_zones_label("partly overlaps", function(k) .tr(k, "es")), "solapa en parte")
   expect_equal(.app_zones_label("measured"), "measured peak HR")
   expect_equal(.app_zones_label(NA), NA)
-  expect_error(.app_run_zones(a$res, .zones_opts(sex = "male", weight_status = "obese")),
-               "does not cross")
+})
+
+test_that("one 'compare with' choice gives only the groups of Table 1", {
+  # Jorge, 2026-11-24: weight status with sex or age group gave the error
+  # of MFO_zones(); the selector keeps only the fields of the chosen group
+  g <- .app_reference_group(.zones_opts(compare_by = "weight", weight_status = "obese"))
+  expect_equal(g, list(sex = NULL, age_group = NULL, weight_status = "obese"))
+  expect_equal(.app_reference_group(.zones_opts(compare_by = "sex_age")),
+               list(sex = "male", age_group = "young", weight_status = NULL))
+  expect_equal(.app_reference_group(.zones_opts(compare_by = "age"))$age_group, "young")
+  expect_null(.app_reference_group(.zones_opts(compare_by = "age"))$sex)
+  expect_equal(.app_reference_group(.zones_opts()),
+               list(sex = NULL, age_group = NULL, weight_status = NULL))
+  a <- .app_test_analysis()
+  for (by in .app_compare_by) {
+    zn <- suppressMessages(.app_run_zones(a$res, .zones_opts(compare_by = by)))
+    expect_false(is.na(zn$reference_n))
+  }
+  expect_match(suppressMessages(.app_run_zones(a$res, .zones_opts(compare_by = "weight",
+                                                                   weight_status = "obese")))$reference,
+               "Obese")
 })
 
 test_that("the Zones module uses the analysis HRmax and shows errors", {
@@ -40,14 +60,16 @@ test_that("the Zones module uses the analysis HRmax and shows errors", {
     expect_match(log()$error, "Run the analysis first")
     results(a)
     session$setInputs(HRmax = 190, predicted_HRmax = FALSE, age = 30,
-                      HRmax_formula = "tanaka", obesity = TRUE, body_fat = 35, sex = "",
-                      age_group = "", weight_status = "obese", run = 2)
+                      HRmax_formula = "tanaka", obesity = TRUE, body_fat = 35,
+                      compare_by = "weight", sex = "male", age_group = "young",
+                      weight_status = "obese", run = 2)
     expect_equal(out()$zones$HRmax_source, "given")
     expect_match(output$hrmax_source, "HRmax 190 bpm \\(given\\)")
     expect_match(output$obesity_out$html, "not exactly 35.0")
     expect_match(output$reference_label, "Obese sedentary adults \\(n = 29\\)")
-    session$setInputs(sex = "male", run = 3)
-    expect_null(out())
-    expect_match(log()$error, "does not cross")
+    # the selectors of the other groups keep values, but are not used
+    expect_null(out()$options$sex)
+    session$setInputs(compare_by = "sex", run = 3)
+    expect_match(output$reference_label, "Sedentary adult men \\(n = 60\\)")
   })
 })

@@ -2,8 +2,24 @@
 # MFO_zones() on the current result. The arguments are those of MFO_zones();
 # HRmax and age default to the ones given in Protocol and analysis.
 
+# Groups of Table 1 of Amaro-Gahete et al. (2018), the only comparisons
+# MFO_zones() accepts: one selector, so a combination the table does not
+# print cannot be chosen (Jorge, 2026-11-24)
+.app_compare_by <- c("cohort", "sex", "age", "sex_age", "weight")
+
+# The sex, age_group and weight_status that a "compare by" choice uses; the
+# others are dropped even if their selectors keep a value
+.app_reference_group <- function(z) {
+  by <- if (is.null(z$compare_by)) "cohort" else z$compare_by
+  keep <- function(x, used) if (used && !is.null(x) && !identical(x, "")) x
+  list(sex = keep(z$sex, by %in% c("sex", "sex_age")),
+       age_group = keep(z$age_group, by %in% c("age", "sex_age")),
+       weight_status = keep(z$weight_status, by == "weight"))
+}
+
 # MFO_zones() with the options of the tab (NULL/NA = not given)
 .app_run_zones <- function(res, z) {
+  g <- .app_reference_group(z)
   MFO_zones(res,
             HRmax = .app_na_null(z$HRmax),
             predicted_HRmax = isTRUE(z$predicted_HRmax),
@@ -11,9 +27,7 @@
             HRmax_formula = z$HRmax_formula,
             population = z$population,
             body_fat = .app_na_null(z$body_fat),
-            sex = if (identical(z$sex, "")) NULL else z$sex,
-            age_group = if (identical(z$age_group, "")) NULL else z$age_group,
-            weight_status = if (identical(z$weight_status, "")) NULL else z$weight_status)
+            sex = g$sex, age_group = g$age_group, weight_status = g$weight_status)
 }
 
 # The MFO_zones() result as two tables (zones in HR, reference values) and the
@@ -52,7 +66,6 @@
 .mod_zones_ui <- function(id, lang = "en") {
   ns <- shiny::NS(id)
   t <- function(key) .tr(key, lang)
-  none <- stats::setNames("", t("data.none"))
   named <- function(values, keys) stats::setNames(values, vapply(keys, t, character(1)))
   bslib::layout_sidebar(
     sidebar = bslib::sidebar(
@@ -69,15 +82,26 @@
       ),
       shiny::helpText(t("zo.hrmax.help")),
       shiny::h6(t("zo.reference")),
-      shiny::selectInput(ns("sex"), t("zo.sex"),
-                         c(none, named(c("male", "female"), c("zo.sex.male", "zo.sex.female")))),
-      shiny::selectInput(ns("age_group"), t("zo.age_group"),
-                         c(none, named(c("young", "middle-aged"),
-                                       c("zo.age.young", "zo.age.middle")))),
-      shiny::selectInput(ns("weight_status"), t("zo.weight"),
-                         c(none, named(c("normal", "overweight", "obese"),
-                                       c("zo.weight.normal", "zo.weight.overweight",
-                                         "zo.weight.obese")))),
+      shiny::selectInput(ns("compare_by"), t("zo.compare_by"),
+                         named(.app_compare_by, c("zo.by.cohort", "zo.by.sex", "zo.by.age",
+                                                   "zo.by.sex_age", "zo.by.weight"))),
+      shiny::conditionalPanel(
+        sprintf("['sex', 'sex_age'].indexOf(input['%s']) >= 0", ns("compare_by")),
+        shiny::selectInput(ns("sex"), t("zo.sex"),
+                           named(c("male", "female"), c("zo.sex.male", "zo.sex.female")))
+      ),
+      shiny::conditionalPanel(
+        sprintf("['age', 'sex_age'].indexOf(input['%s']) >= 0", ns("compare_by")),
+        shiny::selectInput(ns("age_group"), t("zo.age_group"),
+                           named(c("young", "middle-aged"), c("zo.age.young", "zo.age.middle")))
+      ),
+      shiny::conditionalPanel(
+        sprintf("input['%s'] == 'weight'", ns("compare_by")),
+        shiny::selectInput(ns("weight_status"), t("zo.weight"),
+                           named(c("normal", "overweight", "obese"),
+                                 c("zo.weight.normal", "zo.weight.overweight",
+                                   "zo.weight.obese")))
+      ),
       shiny::helpText(t("zo.groups.help")),
       shiny::h6(t("zo.obesity")),
       shiny::checkboxInput(ns("obesity"), t("zo.obesity.check"), FALSE),
@@ -127,8 +151,11 @@
       z <- list(HRmax = input$HRmax, predicted_HRmax = input$predicted_HRmax, age = input$age,
                 HRmax_formula = input$HRmax_formula,
                 population = if (isTRUE(input$obesity)) "obesity" else "general",
-                body_fat = input$body_fat, sex = input$sex, age_group = input$age_group,
+                body_fat = input$body_fat, compare_by = input$compare_by, sex = input$sex,
+                age_group = input$age_group,
                 weight_status = input$weight_status)
+      z <- c(z[setdiff(names(z), c("sex", "age_group", "weight_status"))],
+             .app_reference_group(z))
       r <- .app_capture(.app_run_zones(a$res, z))
       log(r)
       out(if (is.null(r$error)) list(zones = r$value, options = z, log = r, run = a$run))
