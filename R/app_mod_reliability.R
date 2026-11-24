@@ -26,34 +26,36 @@
 
 .mod_reliability_ui <- function(id, lang = "en") {
   ns <- shiny::NS(id)
-  t <- function(key) .tr(key, lang)
+  i <- function(key) .i18n(key, lang)
   bslib::layout_sidebar(
     sidebar = bslib::sidebar(
       width = 340,
-      shiny::radioButtons(ns("source"), t("rel.source"),
-                          stats::setNames(c("session", "file"),
-                                          c(t("rel.source.session"), t("rel.source.file")))),
+      shiny::radioButtons(ns("source"), i("rel.source"),
+                          choiceNames = .app_choice_names(c("rel.source.session",
+                                                            "rel.source.file"), lang),
+                          choiceValues = c("session", "file")),
       shiny::conditionalPanel(
         sprintf("input['%s'] == 'file'", ns("source")),
-        shiny::fileInput(ns("file"), t("rel.file"), accept = c(".csv", ".xlsx"))
+        .app_file_input(ns("file"), "rel.file", lang, accept = c(".csv", ".xlsx"))
       ),
-      shiny::numericInput(ns("conf"), t("res.conf"), 0.95, min = 0.5, max = 0.99, step = 0.01),
-      shiny::helpText(t("rel.help")),
-      shiny::actionButton(ns("run"), t("rel.run"), class = "btn-primary")
+      shiny::numericInput(ns("conf"), i("res.conf"), 0.95, min = 0.5, max = 0.99, step = 0.01),
+      shiny::helpText(i("rel.help")),
+      shiny::actionButton(ns("run"), i("rel.run"), class = "btn-primary")
     ),
     shiny::uiOutput(ns("alerts")),
-    bslib::card(bslib::card_header(t("rel.table")), shiny::tableOutput(ns("table"))),
-    bslib::card(bslib::card_header(t("rel.pairs")), shiny::tableOutput(ns("pairs"))),
-    bslib::card(bslib::card_header(t("rel.plot")),
-                shiny::numericInput(ns("pair"), t("rel.pair"), 1, min = 1, step = 1),
+    bslib::card(bslib::card_header(i("rel.table")), shiny::tableOutput(ns("table"))),
+    bslib::card(bslib::card_header(i("rel.pairs")), shiny::tableOutput(ns("pairs"))),
+    bslib::card(bslib::card_header(i("rel.plot")),
+                shiny::numericInput(ns("pair"), i("rel.pair"), 1, min = 1, step = 1),
                 shiny::plotOutput(ns("plot"), height = "420px", fill = FALSE))
   )
 }
 
 
 .mod_reliability_server <- function(id, group, lang = "en") {
+  lang <- .app_lang_reactive(lang)
   shiny::moduleServer(id, function(input, output, session) {
-    t <- function(key) .tr(key, lang)
+    t <- function(key) .tr(key, lang())
     out <- shiny::reactiveVal(NULL)
     log <- shiny::reactiveVal(NULL)
 

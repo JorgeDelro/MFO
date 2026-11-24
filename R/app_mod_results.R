@@ -67,58 +67,58 @@
 
 .mod_results_ui <- function(id, lang = "en") {
   ns <- shiny::NS(id)
-  t <- function(key) .tr(key, lang)
+  i <- function(key) .i18n(key, lang)
   shiny::tagList(
     shiny::uiOutput(ns("status")),
     bslib::layout_columns(
       col_widths = c(7, 5),
       bslib::card(
-        bslib::card_header(t("res.curve")),
+        bslib::card_header(i("res.curve")),
         shiny::plotOutput(ns("plot"), height = "380px", fill = FALSE,
                           hover = shiny::hoverOpts(ns("hover"), delay = 100)),
-        shiny::helpText(t("res.hover")),
+        shiny::helpText(i("res.hover")),
         shiny::tableOutput(ns("hover_step"))
       ),
       bslib::card(
-        bslib::card_header(t("res.values")),
+        bslib::card_header(i("res.values")),
         shiny::tableOutput(ns("values")),
         shiny::hr(),
-        shiny::radioButtons(ns("ci"), t("res.ci"),
-                            stats::setNames(c("parametric", "bootstrap"),
-                                            c(t("res.ci.parametric"), t("res.ci.bootstrap"))),
-                            inline = TRUE),
+        shiny::radioButtons(ns("ci"), i("res.ci"),
+                            choiceNames = .app_choice_names(c("res.ci.parametric",
+                                                              "res.ci.bootstrap"), lang),
+                            choiceValues = c("parametric", "bootstrap"), inline = TRUE),
         bslib::layout_columns(
-          shiny::numericInput(ns("B"), t("res.B"), 2000, min = 100, step = 100),
-          shiny::numericInput(ns("conf"), t("res.conf"), 0.95, min = 0.5, max = 0.99,
+          shiny::numericInput(ns("B"), i("res.B"), 2000, min = 100, step = 100),
+          shiny::numericInput(ns("conf"), i("res.conf"), 0.95, min = 0.5, max = 0.99,
                               step = 0.01),
-          shiny::numericInput(ns("seed"), t("res.seed"), 1)
+          shiny::numericInput(ns("seed"), i("res.seed"), 1)
         ),
-        shiny::actionButton(ns("compute_ci"), t("res.compute_ci")),
-        shiny::helpText(t("res.ci.help"))
+        shiny::actionButton(ns("compute_ci"), i("res.compute_ci")),
+        shiny::helpText(i("res.ci.help"))
       )
     ),
     bslib::layout_columns(
       col_widths = c(7, 5),
       bslib::card(
-        bslib::card_header(t("res.sin")),
+        bslib::card_header(i("res.sin")),
         shiny::plotOutput(ns("sin_plot"), height = "320px", fill = FALSE)
       ),
       bslib::card(
-        bslib::card_header(t("res.sin.values")),
+        bslib::card_header(i("res.sin.values")),
         shiny::tableOutput(ns("sin_values"))
       )
     ),
     bslib::card(
-      bslib::card_header(t("res.alerts")),
+      bslib::card_header(i("res.alerts")),
       shiny::uiOutput(ns("alerts"))
     ),
     bslib::card(
-      bslib::card_header(t("res.group")),
+      bslib::card_header(i("res.group")),
       bslib::layout_columns(
-        shiny::textInput(ns("ID"), t("res.ID")),
-        shiny::textInput(ns("session_id"), t("res.session"), "1")
+        shiny::textInput(ns("ID"), i("res.ID")),
+        shiny::textInput(ns("session_id"), i("res.session"), "1")
       ),
-      shiny::actionButton(ns("add"), t("res.add")),
+      shiny::actionButton(ns("add"), i("res.add")),
       shiny::textOutput(ns("group_n"))
     )
   )
@@ -126,8 +126,9 @@
 
 
 .mod_results_server <- function(id, analysis, group, lang = "en") {
+  lang <- .app_lang_reactive(lang)
   shiny::moduleServer(id, function(input, output, session) {
-    t <- function(key) .tr(key, lang)
+    t <- function(key) .tr(key, lang())
 
     # Intervals computed for the current run; dropped when the analysis reruns
     ci_run <- shiny::reactiveVal(NULL)

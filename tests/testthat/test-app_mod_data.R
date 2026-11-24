@@ -154,3 +154,18 @@ test_that("the Data module reads the example and uploaded files", {
     expect_match(log()$error, "basal_end and/or MFO_end")
   })
 })
+
+
+test_that("the Data module redraws its outputs in a new language", {
+  skip_if_not_installed("shiny")
+  lang <- shiny::reactiveVal("en")
+  shiny::testServer(.mod_data_server, args = list(lang = lang), {
+    session$setInputs(source = "example", read = 1)
+    expect_match(output$summary, "Records")
+    cart <- result()$cart
+    lang("es")
+    session$flushReact()
+    expect_match(output$summary, "Registros")
+    expect_identical(result()$cart, cart)
+  })
+})

@@ -33,9 +33,10 @@ run_app <- function(lang = c("en", "es"), ...) {
 }
 
 
-# The app object; lang is the default language, changed with ?lang= in the URL
-.app <- function(lang = "en") {
-  shiny::shinyApp(ui = function(request) .app_ui(request, lang), server = function(input, output, session) {
-    .app_server(input, output, session, lang)
-  })
+# The app object; lang is the default language (?lang= in the URL wins)
+.app <- function(lang = "en", theme = NULL) {
+  shiny::shinyApp(ui = function(request) .app_ui(request, lang, theme),
+                  server = function(input, output, session) {
+                    .app_server(input, output, session, lang)
+                  })
 }

@@ -11,6 +11,8 @@
 "data.source.generic","csv/xlsx file (column mapping)","Fichero csv/xlsx (mapeo de columnas)"
 "data.source.device","Metabolic cart export (via spiro)","Export de un analizador (vía spiro)"
 "data.files","Files","Ficheros"
+"data.browse","Browse...","Examinar..."
+"data.no_file","No file selected","Ningún fichero seleccionado"
 "data.files.help","One or several files, or a zip. In an xlsx every sheet is a table.","Uno o varios ficheros, o un zip. En un xlsx cada hoja es una tabla."
 "data.device","Analyser","Analizador"
 "data.device.auto","Detect","Detectar"
