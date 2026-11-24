@@ -239,6 +239,15 @@
 #' \item mode: exercise mode of the protocol ("cycling", "running" or "walking").
 #' }}
 #'
+#' @section Warnings and messages:
+#' Every warning and message of this function is a classed condition:
+#' `mfo_warning_<id>` and `mfo_warning` (or `mfo_message_<id>` and
+#' `mfo_message`), with the numbers of the text as fields (for example
+#' `mfo_warning_negative_fat` has `n`, the number of steps). The text is
+#' English; the classes let a program, such as [run_app()], handle a given
+#' warning or word it in another language:
+#' `withCallingHandlers(expr, mfo_warning_negative_fat = function(w) w$n)`.
+#'
 #' @export
 #'
 #' @examples
@@ -362,7 +371,9 @@ MFO <- function(step_time,
   vo2 <- NULL
   if (!is.null(VO2max)) {
     if (!is.null(db_graded)) {
-      warning("Both VO2max and db_graded supplied; using VO2max and ignoring db_graded.")
+      .mfo_warning("both_vo2max",
+                   "Both VO2max and db_graded supplied; using VO2max and ignoring db_graded.",
+                   call. = TRUE)
     }
     if (inherits(VO2max, "MFO_VO2max")) vo2 <- VO2max
   } else if (!is.null(db_graded)) {
@@ -443,7 +454,9 @@ MFO <- function(step_time,
   # Handle negative FAT values
   n_negative <- sum(MFO_db$FAT < 0)
   if (n_negative > 0) {
-    warning(sprintf("%d step(s) with negative fat oxidation detected (RER > 1.0 artifact).", n_negative))
+    .mfo_warning("negative_fat",
+                 sprintf("%d step(s) with negative fat oxidation detected (RER > 1.0 artifact).",
+                         n_negative), n = n_negative, call. = TRUE)
     if (negative_FAT == "truncate") {
       MFO_db$FAT[MFO_db$FAT < 0] <- 0
     } else if (negative_FAT == "exclude") {
@@ -473,10 +486,11 @@ MFO <- function(step_time,
   p2_outside <- result$method == "P2" &&
     (result$FAT_MAX < ex_range[1] || result$FAT_MAX > ex_range[2])
   if (p2_outside) {
-    warning(sprintf(paste0("P2: the vertex (Fatmax %.1f %%VO2max) lies outside the measured ",
-                           "range (%.1f-%.1f); Fatmax, MFO and their interval are ",
-                           "extrapolated."), result$FAT_MAX, ex_range[1], ex_range[2]),
-            call. = FALSE)
+    .mfo_warning("p2_extrapolated",
+                 sprintf(paste0("P2: the vertex (Fatmax %.1f %%VO2max) lies outside the measured ",
+                                "range (%.1f-%.1f); Fatmax, MFO and their interval are ",
+                                "extrapolated."), result$FAT_MAX, ex_range[1], ex_range[2]),
+                 fatmax = result$FAT_MAX, lower = ex_range[1], upper = ex_range[2])
   }
 
   # Quality: Fatmax at the first or last exercise step (SPEC 14)
@@ -524,13 +538,15 @@ MFO <- function(step_time,
   bootstrap <- NULL
   if (ci != "none") {
     if (result$method != method) {
-      warning(sprintf("The %s fit fell back to %s; no bootstrap CI.", method, result$method),
-              call. = FALSE)
+      .mfo_warning("ci_fallback",
+                   sprintf("The %s fit fell back to %s; no bootstrap CI.", method, result$method),
+                   method = method, fallback = result$method)
     } else {
       reps <- .with_seed(seed, .bootstrap_fit(MFO_db, method, B, type = ci))
       if (nrow(reps) < B) {
-        warning(sprintf("%d of %d bootstrap replicates fell back to another method and were dropped.",
-                        B - nrow(reps), B), call. = FALSE)
+        .mfo_warning("boot_dropped",
+                     sprintf("%d of %d bootstrap replicates fell back to another method and were dropped.",
+                             B - nrow(reps), B), dropped = B - nrow(reps), B = B)
       }
       bounds <- .percentile_ci(reps, conf)
       ci_table <- data.frame(
@@ -601,8 +617,8 @@ MFO <- function(step_time,
     source <- "file"
     if (protocol$type == "relative") {
       if (is.null(body_mass)) {
-        warning("Relative protocol without body_mass: the Load column is kept in W, ",
-                "not W/kg.", call. = FALSE)
+        .mfo_warning("relative_no_mass",
+                     "Relative protocol without body_mass: the Load column is kept in W, not W/kg.")
         unit <- "W"
       } else {
         load <- load / body_mass
@@ -651,10 +667,12 @@ MFO <- function(step_time,
 .warn_min_steps <- function(n_steps, min_steps, ramp = FALSE) {
   if (n_steps < min_steps) {
     what <- if (ramp) "non-overlapping ramp window(s)" else "exercise step(s)"
-    warning(sprintf(paste0("The curve is fitted with %d %s; at least %s ",
-                           "are recommended (min_steps). A low RER_cutoff or ",
-                           "negative_FAT = \"exclude\" removes steps."),
-                    n_steps, what, format(min_steps)), call. = FALSE)
+    .mfo_warning(if (ramp) "min_windows" else "min_steps",
+                 sprintf(paste0("The curve is fitted with %d %s; at least %s ",
+                                "are recommended (min_steps). A low RER_cutoff or ",
+                                "negative_FAT = \"exclude\" removes steps."),
+                         n_steps, what, format(min_steps)),
+                 n = n_steps, min_steps = min_steps)
   }
   invisible(n_steps < min_steps)
 }
@@ -670,9 +688,11 @@ MFO <- function(step_time,
   if (!is.na(edge)) {
     hint <- if (edge == "first") "the test may have started at too high an intensity"
             else "the test may have stopped too early"
-    warning(sprintf(paste0("Fatmax (%.1f %%VO2max) is at the %s exercise step (%.1f %%VO2max): ",
-                           "the maximum is at the edge of the measured range; %s."),
-                    FAT_MAX, edge, x[nearest], hint), call. = FALSE)
+    .mfo_warning(paste0("fatmax_", edge, "_step"),
+                 sprintf(paste0("Fatmax (%.1f %%VO2max) is at the %s exercise step (%.1f %%VO2max): ",
+                                "the maximum is at the edge of the measured range; %s."),
+                         FAT_MAX, edge, x[nearest], hint),
+                 fatmax = FAT_MAX, step = x[nearest])
   }
   invisible(edge)
 }
@@ -683,14 +703,15 @@ MFO <- function(step_time,
 .warn_missing_HR <- function(HR, porc_VO2) {
   missing_hr <- which(is.na(HR))
   if (length(missing_hr) == length(HR)) {
-    warning("No HR data in db_MFO: FAT_MAX_HR and FAT_MAX_porcHRmax are NA. ",
-            "MFO and Fatmax are not affected.", call. = FALSE)
+    .mfo_warning("no_hr", paste0("No HR data in db_MFO: FAT_MAX_HR and FAT_MAX_porcHRmax are NA. ",
+                                 "MFO and Fatmax are not affected."))
   } else if (length(missing_hr) > 0) {
-    warning(sprintf(paste0("%d exercise step(s) without HR (at %s %%VO2max): kept in ",
-                           "the fit; FAT_MAX_HR is interpolated from the steps with HR."),
-                    length(missing_hr),
-                    paste(sprintf("%.1f", porc_VO2[missing_hr]), collapse = ", ")),
-            call. = FALSE)
+    at <- paste(sprintf("%.1f", porc_VO2[missing_hr]), collapse = ", ")
+    .mfo_warning("missing_hr",
+                 sprintf(paste0("%d exercise step(s) without HR (at %s %%VO2max): kept in ",
+                                "the fit; FAT_MAX_HR is interpolated from the steps with HR."),
+                         length(missing_hr), at),
+                 n = length(missing_hr), at = at)
   }
   invisible(missing_hr)
 }
@@ -706,7 +727,8 @@ MFO <- function(step_time,
 
   # Check for NA coefficients (can happen with insufficient data)
   if (any(is.na(c(a, b, c, d)))) {
-    warning("P3 model has NA coefficients. Falling back to P2.")
+    .mfo_warning("p3_na_coefficients", "P3 model has NA coefficients. Falling back to P2.",
+                 call. = TRUE)
     return(.fit_P2(MFO_db))
   }
 
@@ -716,7 +738,8 @@ MFO <- function(step_time,
 
   if (is.na(discriminant) || discriminant < 0) {
     # No real roots - fall back to P2
-    warning("P3 model has no real critical points. Falling back to P2.")
+    .mfo_warning("p3_no_critical_points",
+                 "P3 model has no real critical points. Falling back to P2.", call. = TRUE)
     return(.fit_P2(MFO_db))
   }
 
@@ -732,7 +755,9 @@ MFO <- function(step_time,
   candidates <- candidates[candidates$x >= x_range[1] & candidates$x <= x_range[2], ]
 
   if (nrow(candidates) == 0) {
-    warning("P3 critical points outside data range. Using point with highest observed FAT.")
+    .mfo_warning("p3_outside_range",
+                 "P3 critical points outside data range. Using point with highest observed FAT.",
+                 call. = TRUE)
     VO2_MFO <- MFO_db$porc_VO2[which.max(MFO_db$FAT)]
     VAR_MFO <- max(MFO_db$FAT)
   } else {
@@ -781,8 +806,8 @@ MFO <- function(step_time,
   # No maximum: NA coefficients or c >= 0 (the vertex would be a minimum,
   # returned as Fatmax up to v0.2.1, #38). Use MV, as MRER does
   if (any(is.na(c(a, b, c))) || c >= 0) {
-    warning("P2: the fitted parabola has no maximum (curvature >= 0). Using MV.",
-            call. = FALSE)
+    .mfo_warning("p2_no_maximum",
+                 "P2: the fitted parabola has no maximum (curvature >= 0). Using MV.")
     return(.fit_MV(MFO_db))
   }
   # Vertex of parabola: x = -b/(2c)
@@ -847,15 +872,16 @@ MFO <- function(step_time,
   fat_predict_fn <- function(x) 1.7 * (a1 + b1 * x) * (a2 + b2 * x) / 1000
 
   if (any(is.na(c(a1, b1, a2, b2))) || b1 * b2 >= 0) {
-    warning("MRER: the product of the (1 - RER) and VO2 lines has no maximum. Using MV.",
-            call. = FALSE)
+    .mfo_warning("mrer_no_maximum",
+                 "MRER: the product of the (1 - RER) and VO2 lines has no maximum. Using MV.")
     return(.fit_MV(MFO_db))
   }
   VO2_MFO <- -(a1 * b2 + a2 * b1) / (2 * b1 * b2)
   if (VO2_MFO < min(x) || VO2_MFO > max(x)) {
-    warning(sprintf(paste0("MRER: vertex at %.1f %%VO2max is outside the measured ",
-                           "range (%.1f-%.1f). Using MV."), VO2_MFO, min(x), max(x)),
-            call. = FALSE)
+    .mfo_warning("mrer_outside_range",
+                 sprintf(paste0("MRER: vertex at %.1f %%VO2max is outside the measured ",
+                                "range (%.1f-%.1f). Using MV."), VO2_MFO, min(x), max(x)),
+                 fatmax = VO2_MFO, lower = min(x), upper = max(x))
     return(.fit_MV(MFO_db))
   }
 

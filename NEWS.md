@@ -14,6 +14,12 @@
 
 ## New features
 
+* Warnings and messages of `MFO()`, `read_cart()`, `MFO_zones()`,
+  `MFO_kinetics()`, `MFO_protocol()` and `MFO_reliability()` are classed
+  conditions (`mfo_warning_<id>`, `mfo_message_<id>`) with their numbers as
+  fields, e.g. `mfo_warning_negative_fat` with `n`. Their English text does
+  not change; the app words them in the interface language (SPEC 10).
+
 * `run_app()` opens the Shiny app of the package (SPEC 10, #24), which only
   calls the package's functions and runs locally. `shiny` and `bslib` are
   in Suggests. Interface in English and Spanish (selector in the navbar; all
@@ -30,8 +36,9 @@
   and references tab shows `MFO_zones()`: the Fatmax zone in bpm and
   % HRmax with its HRmax source, the range for obesity, and the percentiles
   of `reference_MFO` with their group, N and the differences from the
-  reference test. Tables and labels follow the interface language; the
-  package's own messages stay in English. The Report and downloads tab
+  reference test. Tables, labels and the package's warnings follow the
+  interface language, which can be changed at any moment without losing the
+  data or the results. The Report and downloads tab
   writes one self-contained HTML report (curve, results, intervals, SIN,
   zones and references, alerts, a methods paragraph with its references,
   and a footer with version, commit, dates, phase cuts and seed) and the

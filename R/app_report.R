@@ -54,8 +54,15 @@ img { max-width: 100%; height: auto; }
   results <- .app_results_names(.app_results_table(res))
   if (is.null(ci)) results <- results[setdiff(names(results), c("Lower", "Upper"))]
 
-  alerts <- c(a$log$warnings, if (!is.null(a$ci_log)) a$ci_log$warnings)
-  notes <- a$log$messages
+  # conditions worded with the English templates of the app (as on screen)
+  words <- function(l, type) {
+    if (is.null(l)) return(character(0))
+    if (is.null(l$conditions)) return(l[[paste0(type, "s")]])
+    unname(vapply(Filter(function(x) inherits(x, type), l$conditions),
+                  .app_condition_text, character(1)))
+  }
+  alerts <- c(words(a$log, "warning"), words(a$ci_log, "warning"))
+  notes <- words(a$log, "message")
 
   zones_part <- NULL
   zn <- zones$zones

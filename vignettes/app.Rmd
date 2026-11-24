@@ -29,8 +29,8 @@ MFO::run_app("es")      # interface in Spanish
 
 The language can also be changed in the navigation bar, at any moment: the
 data read, the results and the group table are kept. The interface is
-translated; the messages and warnings of the package's functions stay in
-English.
+translated, and so are the warnings and messages of the package shown in the
+alerts; error messages stay in English.
 
 ## Your data stay on your computer
 

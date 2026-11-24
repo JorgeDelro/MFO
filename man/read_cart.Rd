@@ -129,6 +129,17 @@ columns are mapped with `columns`, as `col_name_*` in [MFO()] (SPEC 16):
 No personal data from the file are kept: the result holds only the
 measured variables and technical information.
 }
+\section{Warnings and messages}{
+
+Every warning and message of this function is a classed condition:
+`mfo_warning_<id>` and `mfo_warning` (or `mfo_message_<id>` and
+`mfo_message`), with the numbers of the text as fields (for example
+`mfo_warning_negative_fat` has `n`, the number of steps). The text is
+English; the classes let a program, such as [run_app()], handle a given
+warning or word it in another language:
+`withCallingHandlers(expr, mfo_warning_negative_fat = function(w) w$n)`.
+}
+
 \examples{
 # A generic csv: metadata line, header, units row, decimal comma, records
 # already averaged every 20 s (the example MFO test, VO2 in L/min)

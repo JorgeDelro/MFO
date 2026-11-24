@@ -26,9 +26,10 @@
   effective_window <- n_records * step_time
 
   if (!isTRUE(all.equal(effective_window, window))) {
-    message(sprintf(
+    .mfo_message("vo2max_window", sprintf(
       "VO2max: a %g-s window is not a multiple of step_time (%g s); using %d record(s) = %g s.",
-      window, step_time, n_records, effective_window))
+      window, step_time, n_records, effective_window),
+      window = window, step_time = step_time, n = n_records, used = effective_window)
   }
 
   if (sum(!is.na(VO2)) < n_records) {

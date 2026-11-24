@@ -304,6 +304,17 @@ Up to v0.2.0, `"MRER"` returned the step with the highest observed
 behaviour (same step; MFO from the `author` equation). SPEC 19, finding 4.
 }
 
+\section{Warnings and messages}{
+
+Every warning and message of this function is a classed condition:
+`mfo_warning_<id>` and `mfo_warning` (or `mfo_message_<id>` and
+`mfo_message`), with the numbers of the text as fields (for example
+`mfo_warning_negative_fat` has `n`, the number of steps). The text is
+English; the classes let a program, such as [run_app()], handle a given
+warning or word it in another language:
+`withCallingHandlers(expr, mfo_warning_negative_fat = function(w) w$n)`.
+}
+
 \examples{
 
 \dontrun{

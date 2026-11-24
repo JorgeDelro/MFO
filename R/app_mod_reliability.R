@@ -76,7 +76,7 @@
     output$alerts <- shiny::renderUI({
       l <- log()
       if (is.null(l)) return(shiny::div(class = "alert alert-secondary", t("rel.none")))
-      .app_alerts(l)
+      .app_alerts(l, lang = lang())
     })
     output$table <- shiny::renderTable({
       shiny::req(out())

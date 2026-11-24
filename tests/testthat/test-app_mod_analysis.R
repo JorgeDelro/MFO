@@ -53,7 +53,7 @@ test_that("the Analysis module runs on the data and reports a missing input", {
   shiny::testServer(.mod_analysis_server, args = list(data = data, lang = "en"), {
     session$setInputs(run = 1)
     expect_null(out())
-    expect_match(log()$error, "Read the data first")
+    expect_equal(log()$error_key, "an.no_data")
     data(list(cart = cart))
     session$setInputs(author = "Frayn", method = "P2", age = 30, run = 2)
     expect_equal(out()$res$method_used, "P2")

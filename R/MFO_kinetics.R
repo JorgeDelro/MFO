@@ -139,6 +139,15 @@
 #'   `replicates`; otherwise `NULL`.
 #' }}
 #'
+#' @section Warnings and messages:
+#' Every warning and message of this function is a classed condition:
+#' `mfo_warning_<id>` and `mfo_warning` (or `mfo_message_<id>` and
+#' `mfo_message`), with the numbers of the text as fields (for example
+#' `mfo_warning_negative_fat` has `n`, the number of steps). The text is
+#' English; the classes let a program, such as [run_app()], handle a given
+#' warning or word it in another language:
+#' `withCallingHandlers(expr, mfo_warning_negative_fat = function(w) w$n)`.
+#'
 #' @export
 #'
 #' @examples
@@ -219,13 +228,17 @@ MFO_kinetics <- function(MFO_data, fatmin_threshold = NULL,
   mod_nls <- NULL
 
   if (nrow(data_nls) < n_par + 1) {
-    warning("SIN model needs at least ", n_par + 1, " steps to fit ", n_par,
-            " parameters; ", nrow(data_nls), " available.")
+    .mfo_warning("sin_too_few_steps",
+                 paste0("SIN model needs at least ", n_par + 1, " steps to fit ", n_par,
+                        " parameters; ", nrow(data_nls), " available."),
+                 needed = n_par + 1, parameters = n_par, n = nrow(data_nls), call. = TRUE)
     convergence <- FALSE
   } else {
     if (nrow(data_nls) < 6) {
-      warning("SIN model fitted to ", nrow(data_nls), " steps: the fit is possible ",
-              "but unreliable; at least 6 steps are recommended (SPEC 6.5).")
+      .mfo_warning("sin_few_steps",
+                   paste0("SIN model fitted to ", nrow(data_nls), " steps: the fit is possible ",
+                          "but unreliable; at least 6 steps are recommended (SPEC 6.5)."),
+                   n = nrow(data_nls), call. = TRUE)
     }
     tryCatch({
       mod_nls <- .fit_sin(data_nls, fit)
@@ -252,7 +265,8 @@ MFO_kinetics <- function(MFO_data, fatmin_threshold = NULL,
       RMSE_sin <- sqrt(mean(resid_sin^2))
 
     }, error = function(e) {
-      warning(paste("SIN model did not converge:", e$message))
+      .mfo_warning("sin_no_convergence", paste("SIN model did not converge:", e$message),
+                   error = e$message, call. = TRUE)
       convergence <<- FALSE
     })
   }
@@ -263,9 +277,11 @@ MFO_kinetics <- function(MFO_data, fatmin_threshold = NULL,
     at_initial <- (abs(d) < 1e-6 && abs(s - 1) < 1e-6 && abs(t_param) < 1e-6)
     poor_fit <- !is.na(R_squared_sin) && R_squared_sin < 0
     if (at_initial || poor_fit) {
-      warning("SIN model converged to trivial solution (parameters at initial values or R-squared < 0). ",
-              "This typically occurs with insufficient data points (< 6 stages) ",
-              "or monotonically decreasing fat oxidation patterns.")
+      .mfo_warning("sin_trivial",
+                   paste0("SIN model converged to trivial solution (parameters at initial ",
+                          "values or R-squared < 0). ",
+                          "This typically occurs with insufficient data points (< 6 stages) ",
+                          "or monotonically decreasing fat oxidation patterns."), call. = TRUE)
       convergence <- FALSE
     }
   }
@@ -290,8 +306,9 @@ MFO_kinetics <- function(MFO_data, fatmin_threshold = NULL,
   if (ci != "none" && convergence) {
     reps <- .with_seed(seed, .sin_bootstrap(mod_nls, data_nls, fit, ci, B, fatmin_threshold))
     if (nrow(reps) < B) {
-      warning(sprintf("%d of %d bootstrap replicates of the SIN did not converge and were dropped.",
-                      B - nrow(reps), B), call. = FALSE)
+      .mfo_warning("sin_boot_dropped",
+                   sprintf("%d of %d bootstrap replicates of the SIN did not converge and were dropped.",
+                           B - nrow(reps), B), dropped = B - nrow(reps), B = B)
     }
     if (nrow(reps) > 0) {
       bounds <- .percentile_ci(reps, conf)

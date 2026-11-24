@@ -174,7 +174,7 @@
     shiny::observeEvent(input$run, {
       d <- data()
       if (is.null(d)) {
-        log(list(error = t("an.no_data"), warnings = character(0), messages = character(0)))
+        log(list(error_key = "an.no_data"))
         out(NULL)
         return()
       }
@@ -191,7 +191,7 @@
     output$alerts <- shiny::renderUI({
       l <- log()
       if (is.null(l)) return(NULL)
-      .app_alerts(l, if (is.null(l$error)) t("an.ok"))
+      .app_alerts(l, if (is.null(l$error)) t("an.ok"), lang())
     })
 
     out
@@ -199,13 +199,21 @@
 }
 
 
-# Alert boxes for a captured run: error, warnings, messages, then success
-.app_alerts <- function(l, ok = NULL) {
+# Alert boxes for a captured run: error, warnings, messages, then success.
+# Warnings and messages are worded in the interface language from their
+# conditions; error_key is an app string translated when drawn
+.app_alerts <- function(l, ok = NULL, lang = "en") {
   box <- function(x, cls) {
     if (length(x) == 0) return(NULL)
     shiny::div(class = paste("alert", cls), lapply(x, shiny::p))
   }
-  shiny::tagList(box(l$error, "alert-danger"), box(l$warnings, "alert-warning"),
-                 box(l$messages, "alert-info"),
+  conds <- l$conditions
+  is_warning <- vapply(conds, inherits, logical(1), what = "warning")
+  words <- function(x) vapply(x, .app_condition_text, character(1), lang = lang)
+  warnings <- if (is.null(conds)) l$warnings else words(conds[is_warning])
+  messages <- if (is.null(conds)) l$messages else words(conds[!is_warning])
+  error <- if (!is.null(l$error_key)) .tr(l$error_key, lang) else l$error
+  shiny::tagList(box(error, "alert-danger"), box(unname(warnings), "alert-warning"),
+                 box(unname(messages), "alert-info"),
                  if (!is.null(ok)) shiny::div(class = "alert alert-success", ok))
 }

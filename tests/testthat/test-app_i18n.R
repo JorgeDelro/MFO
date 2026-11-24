@@ -15,7 +15,9 @@ test_that("every key used by the app is in i18n.csv, in English and Spanish", {
     code, gregexpr("\"(app|tab|data|an|res|zo|tbl|rep|rel)\\.[A-Za-z0-9_.]+\"", code)))))
   expect_true(length(used) > 20)
   expect_equal(setdiff(used, s$key), character(0))
-  expect_equal(setdiff(s$key, used), character(0))
+  # cond.* keys word the conditions of the package (test-utils-conditions.R)
+  expect_equal(setdiff(grep("^cond\\.", s$key, value = TRUE, invert = TRUE), used),
+               character(0))
 })
 
 test_that(".tr() falls back to English and then to the key", {

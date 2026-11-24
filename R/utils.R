@@ -29,7 +29,8 @@ met_basal <- function(step_time, db, cv_var, window_duration = 300,
   stabilization_records <- as.integer(window_duration / step_time)
 
   if (nrow(db) < (stabilization_records + window_size)) {
-    warning("Basal database has fewer rows than expected for stabilization + window. Using all data.")
+    .mfo_warning("basal_short", paste0("Basal database has fewer rows than expected for ",
+                                       "stabilization + window. Using all data."), call. = TRUE)
     stabilization_records <- 0
   }
 
@@ -41,7 +42,9 @@ met_basal <- function(step_time, db, cv_var, window_duration = 300,
   n_windows <- nrow(db_stable) - window_size + 1
 
   if (n_windows < 1) {
-    warning("Not enough data after stabilization. Using all post-stabilization data.")
+    .mfo_warning("basal_unstable",
+                 "Not enough data after stabilization. Using all post-stabilization data.",
+                 call. = TRUE)
     db_5min <- db_stable
   } else {
     cv_values <- numeric(n_windows)
@@ -225,19 +228,21 @@ substrate_oxidation <- function(VO2, VCO2, author, VO2max = NULL,
 .age_default_message <- function() {
   if (isTRUE(.mfo_state$age_message_shown)) return(invisible(FALSE))
   .mfo_state$age_message_shown <- TRUE
-  message("VO2max_type: age not given, so the heart-rate criterion of VO2max is not ",
-          "evaluated and VO2max is labelled from the plateau only. Set age to ",
-          "evaluate it (shown once per session).")
+  .mfo_message("age_default",
+               paste0("VO2max_type: age not given, so the heart-rate criterion of VO2max is not ",
+                      "evaluated and VO2max is labelled from the plateau only. Set age to ",
+                      "evaluate it (shown once per session)."))
   invisible(TRUE)
 }
 
 .energy_default_message <- function() {
   if (isTRUE(.mfo_state$energy_message_shown)) return(invisible(FALSE))
   .mfo_state$energy_message_shown <- TRUE
-  message("Kcal uses energy_equivalents = \"classic\" (4 kcal/g CHO, 9 kcal/g FAT). ",
-          "The default will change to \"source\" (values of the equation's source) ",
-          "in MFO 0.3.0. Set energy_equivalents explicitly to silence this message ",
-          "(shown once per session).")
+  .mfo_message("energy_default",
+               paste0("Kcal uses energy_equivalents = \"classic\" (4 kcal/g CHO, 9 kcal/g FAT). ",
+                      "The default will change to \"source\" (values of the equation's source) ",
+                      "in MFO 0.3.0. Set energy_equivalents explicitly to silence this message ",
+                      "(shown once per session)."))
   invisible(TRUE)
 }
 
@@ -372,8 +377,9 @@ calculate_vars <- function(step_time,
     db_vars <- db_vars[db_vars$RER <= RER_cutoff, , drop = FALSE]
     n_removed <- n_before - nrow(db_vars)
     if (n_removed > 0) {
-      message(sprintf("RER cutoff (%.2f): removed %d step(s) with RER above threshold.",
-                      RER_cutoff, n_removed))
+      .mfo_message("rer_cutoff",
+                   sprintf("RER cutoff (%.2f): removed %d step(s) with RER above threshold.",
+                           RER_cutoff, n_removed), cutoff = RER_cutoff, n = n_removed)
     }
   }
 
@@ -393,19 +399,23 @@ calculate_vars <- function(step_time,
                   format(available * step_time), format(records * step_time))
   steady_s <- format(steady_records * step_time)
   usable <- available >= steady_records
+  warn <- function(id, tail) {
+    .mfo_warning(id, paste0(head, tail), available = available * step_time,
+                 step = records * step_time, steady = steady_records * step_time)
+  }
   if (isTRUE(use_incomplete_step) && usable) {
-    warning(head, sprintf("used, averaging its last %s s (use_incomplete_step = TRUE).",
-                          steady_s), call. = FALSE)
+    warn("incomplete_step_used",
+         sprintf("used, averaging its last %s s (use_incomplete_step = TRUE).", steady_s))
     return(TRUE)
   }
   if (usable) {
-    warning(head, sprintf(paste0("dropped. It holds the %s-s steady-state segment; ",
-                                 "set use_incomplete_step = TRUE to use it."),
-                          steady_s), call. = FALSE)
+    warn("incomplete_step_dropped",
+         sprintf(paste0("dropped. It holds the %s-s steady-state segment; ",
+                        "set use_incomplete_step = TRUE to use it."), steady_s))
   } else {
-    warning(head, sprintf(paste0("dropped. It is shorter than steady_state_duration ",
-                                 "(%s s) and cannot be used."),
-                          steady_s), call. = FALSE)
+    warn("incomplete_step_short",
+         sprintf(paste0("dropped. It is shorter than steady_state_duration ",
+                        "(%s s) and cannot be used."), steady_s))
   }
   FALSE
 }
@@ -443,11 +453,11 @@ calculate_vars <- function(step_time,
 .warn_jeukendrup_range <- function(pct_vo2) {
   out <- which(pct_vo2 < 40 | pct_vo2 > 75)
   if (length(out) > 0) {
-    warning(sprintf(paste0(
+    at <- paste(sprintf("%.1f", pct_vo2[out]), collapse = ", ")
+    .mfo_warning("jeukendrup_range", sprintf(paste0(
       "Jeukendrup & Wallis (2005) equations cover 40-75 %%VO2max; %d step(s) ",
       "outside this range (%s %%VO2max) use the nearest set, extrapolated."),
-      length(out), paste(sprintf("%.1f", pct_vo2[out]), collapse = ", ")),
-      call. = FALSE)
+      length(out), at), n = length(out), at = at)
   }
   invisible(out)
 }

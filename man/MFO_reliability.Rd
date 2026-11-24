@@ -89,6 +89,17 @@ At least 3 participants are needed; with fewer than 30 a warning recalls
 the rule of thumb of Koo & Li (2016): at least 30 heterogeneous
 participants and, whenever possible, 3 sessions.
 }
+\section{Warnings and messages}{
+
+Every warning and message of this function is a classed condition:
+`mfo_warning_<id>` and `mfo_warning` (or `mfo_message_<id>` and
+`mfo_message`), with the numbers of the text as fields (for example
+`mfo_warning_negative_fat` has `n`, the number of steps). The text is
+English; the classes let a program, such as [run_app()], handle a given
+warning or word it in another language:
+`withCallingHandlers(expr, mfo_warning_negative_fat = function(w) w$n)`.
+}
+
 \examples{
 sim <- simulate_MFO_sessions(n_participants = 12, n_sessions = 2,
                              population = list(VO2max = c(3000, 500)),

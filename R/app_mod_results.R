@@ -176,12 +176,14 @@
       ci <- ci_log()
       if (!is.null(ci)) {
         l$warnings <- c(l$warnings, ci$warnings)
+        l$conditions <- c(l$conditions, Filter(function(x) inherits(x, "warning"),
+                                               ci$conditions))
         l$error <- ci$error
       }
       if (length(l$warnings) + length(l$messages) + length(l$error) == 0) {
         return(shiny::div(class = "alert alert-success", t("res.no_alerts")))
       }
-      .app_alerts(l)
+      .app_alerts(l, lang = lang())
     })
 
     # Group table of the session: one row per participant and session, the

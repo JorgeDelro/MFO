@@ -112,23 +112,61 @@
 }
 
 
-# Run expr and keep its value, messages, warnings and error for the alerts
+# Run expr and keep its value, messages, warnings and error for the alerts.
+# The conditions are kept too, so the alerts can word the classed ones of
+# the package in the interface language (.app_condition_text())
 .app_capture <- function(expr) {
-  msgs <- character(0)
-  warns <- character(0)
+  msgs <- list()
+  warns <- list()
   value <- tryCatch(
     withCallingHandlers(expr,
       message = function(m) {
-        msgs <<- c(msgs, trimws(conditionMessage(m)))
+        msgs[[length(msgs) + 1]] <<- m
         invokeRestart("muffleMessage")
       },
       warning = function(w) {
-        warns <<- c(warns, conditionMessage(w))
+        warns[[length(warns) + 1]] <<- w
         invokeRestart("muffleWarning")
       }),
     error = function(e) structure(conditionMessage(e), class = "app_error"))
   error <- if (inherits(value, "app_error")) as.character(value) else NULL
-  list(value = if (is.null(error)) value, messages = msgs, warnings = warns, error = error)
+  text <- function(l) vapply(l, function(x) trimws(conditionMessage(x)), character(1))
+  list(value = if (is.null(error)) value, messages = text(msgs), warnings = text(warns),
+       error = error, conditions = c(warns, msgs))
+}
+
+
+# A condition in the interface language: the classed conditions of the
+# package (mfo_warning_<id>, mfo_message_<id>) have a template cond.<id> in
+# i18n.csv whose {field} or {field:format} are filled with the fields of
+# the condition; any other condition keeps its message (Jorge, 2026-11-24)
+.app_condition_text <- function(cond, lang = "en") {
+  if (is.character(cond)) return(cond)
+  id <- grep("^mfo_(warning|message)_", class(cond), value = TRUE)
+  key <- if (length(id) > 0) sub("^mfo_(warning|message)_", "cond.", id[1])
+  if (is.null(key) || !key %in% .app_strings()$key) return(trimws(conditionMessage(cond)))
+  .app_fill(.tr(key, lang), cond, lang)
+}
+
+# Fill {field} and {field:format} (a sprintf format); numbers take the
+# decimal mark of the language
+.app_fill <- function(template, fields, lang = "en") {
+  marks <- regmatches(template, gregexpr("\\{[A-Za-z_]+(:[^}]+)?\\}", template))[[1]]
+  for (m in unique(marks)) {
+    inner <- substr(m, 2, nchar(m) - 1)
+    name <- sub(":.*$", "", inner)
+    fmt <- if (grepl(":", inner)) sub("^[^:]*:", "", inner) else NULL
+    v <- fields[[name]]
+    txt <- if (is.null(v)) m else if (is.numeric(v)) {
+      out <- if (is.null(fmt)) format(v) else sprintf(fmt, v)
+      if (lang == "es") out <- chartr(".", ",", out)
+      paste(out, collapse = ", ")
+    } else {
+      paste(as.character(v), collapse = ", ")
+    }
+    template <- gsub(m, txt, template, fixed = TRUE)
+  }
+  template
 }
 
 
@@ -362,7 +400,7 @@
     output$alerts <- shiny::renderUI({
       l <- log()
       if (is.null(l)) return(NULL)
-      .app_alerts(l, if (is.null(l$error)) t("data.read.ok"))
+      .app_alerts(l, if (is.null(l$error)) t("data.read.ok"), lang())
     })
 
     output$plot <- shiny::renderPlot({

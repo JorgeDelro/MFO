@@ -57,7 +57,8 @@ test_that("the Zones module uses the analysis HRmax and shows errors", {
   results <- shiny::reactiveVal(NULL)
   shiny::testServer(.mod_zones_server, args = list(results = results, lang = "en"), {
     session$setInputs(run = 1)
-    expect_match(log()$error, "Run the analysis first")
+    expect_equal(log()$error_key, "res.none")
+    expect_match(as.character(.app_alerts(log())), "Run the analysis first")
     results(a)
     session$setInputs(HRmax = 190, predicted_HRmax = FALSE, age = 30,
                       HRmax_formula = "tanaka", obesity = TRUE, body_fat = 35,

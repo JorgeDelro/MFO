@@ -150,7 +150,7 @@
     shiny::observeEvent(input$run, {
       a <- tryCatch(results(), error = function(e) NULL)
       if (is.null(a)) {
-        log(list(error = t("res.none"), warnings = character(0), messages = character(0)))
+        log(list(error_key = "res.none"))
         out(NULL)
         return()
       }
@@ -200,7 +200,7 @@
     output$alerts <- shiny::renderUI({
       l <- log()
       if (is.null(l)) return(NULL)
-      .app_alerts(l)
+      .app_alerts(l, lang = lang())
     })
 
     out

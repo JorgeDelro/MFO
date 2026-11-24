@@ -94,6 +94,15 @@
 #'
 #' @seealso [MFO()], [MFOs()], [reference_MFO]
 #'
+#' @section Warnings and messages:
+#' Every warning and message of this function is a classed condition:
+#' `mfo_warning_<id>` and `mfo_warning` (or `mfo_message_<id>` and
+#' `mfo_message`), with the numbers of the text as fields (for example
+#' `mfo_warning_negative_fat` has `n`, the number of steps). The text is
+#' English; the classes let a program, such as [run_app()], handle a given
+#' warning or word it in another language:
+#' `withCallingHandlers(expr, mfo_warning_negative_fat = function(w) w$n)`.
+#'
 #' @export
 #'
 #' @examples
@@ -146,16 +155,18 @@ MFO_zones <- function(x,
       stop("predicted_HRmax = TRUE needs age.", call. = FALSE)
     }
     if (!all(need)) {
-      message("An HRmax was given or measured for ", sum(!need), " result(s); it ",
-              "takes precedence over the predicted HRmax.")
+      .mfo_message("hrmax_precedence",
+                   paste0("An HRmax was given or measured for ", sum(!need), " result(s); it ",
+                          "takes precedence over the predicted HRmax."), n = sum(!need))
     }
     pred <- switch(HRmax_formula, tanaka = 208 - 0.7 * age, fox = 220 - age)
     hrmax[need] <- pred[need]
     source[need] <- if (HRmax_formula == "tanaka") "predicted (Tanaka)" else "predicted (Fox)"
   }
   if (all(is.na(hrmax))) {
-    message("No HRmax given, measured or predicted: the zone is given in bpm only. ",
-            "Use HRmax, a db_graded with HR, or predicted_HRmax = TRUE with age.")
+    .mfo_message("no_hrmax",
+                 paste0("No HRmax given, measured or predicted: the zone is given in bpm only. ",
+                        "Use HRmax, a db_graded with HR, or predicted_HRmax = TRUE with age."))
   }
   pct <- function(hr) hr / hrmax * 100
 
@@ -188,18 +199,19 @@ MFO_zones <- function(x,
     high <- body_fat > 35
     covered <- body_fat != 35
     if (any(!covered)) {
-      message("Chavez-Guevara et al. (2023) define > 35 % and < 35 % body fat; ",
-              "35.0 % is not covered, so there is no range for ", sum(!covered),
-              " result(s).")
+      .mfo_message("obesity_35",
+                   paste0("Chavez-Guevara et al. (2023) define > 35 % and < 35 % body fat; ",
+                          "35.0 % is not covered, so there is no range for ", sum(!covered),
+                          " result(s)."), n = sum(!covered))
     }
     out$obesity_range_lower <- ifelse(covered, ifelse(high, 61, 57), NA_real_)
     out$obesity_range_upper <- ifelse(covered, ifelse(high, 66, 64), NA_real_)
     out$obesity_zone <- .zone_overlap(out$zone_lower_porcHRmax, out$zone_upper_porcHRmax,
                                       out$obesity_range_lower, out$obesity_range_upper)
     if (any(grepl("^predicted", source))) {
-      warning("The range of Chavez-Guevara et al. (2023) is in % of the measured ",
-              "HRpeak; with a predicted HRmax the comparison is approximate.",
-              call. = FALSE)
+      .mfo_warning("obesity_predicted_hrmax",
+                   paste0("The range of Chavez-Guevara et al. (2023) is in % of the measured ",
+                          "HRpeak; with a predicted HRmax the comparison is approximate."))
     }
   }
 
@@ -210,11 +222,14 @@ MFO_zones <- function(x,
   }, integer(1))
   comparable <- d$mode %in% c("walking", "running")
   if (any(!comparable)) {
-    message("No percentile for ", sum(!comparable), " result(s) with mode \"",
-            paste(unique(d$mode[!comparable]), collapse = "\", \""), "\": the ",
-            "reference (Amaro-Gahete et al. 2018) was measured walking on a treadmill, ",
-            "and the mode of exercise changes MFO and Fatmax. Set ",
-            "MFO_protocol(mode = ) if the test was walking or running.")
+    modes <- paste(unique(d$mode[!comparable]), collapse = "\", \"")
+    .mfo_message("no_percentile",
+                 paste0("No percentile for ", sum(!comparable), " result(s) with mode \"",
+                        modes, "\": the ",
+                        "reference (Amaro-Gahete et al. 2018) was measured walking on a treadmill, ",
+                        "and the mode of exercise changes MFO and Fatmax. Set ",
+                        "MFO_protocol(mode = ) if the test was walking or running."),
+                 n = sum(!comparable), mode = modes)
   }
   mfo <- .reference_percentile(d$MFO, ref[rows, paste0("MFO_p", c(20, 40, 60, 80))])
   fmx <- .reference_percentile(d$FAT_MAX, ref[rows, paste0("Fatmax_p", c(20, 40, 60, 80))])

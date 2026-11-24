@@ -112,6 +112,17 @@ reference), protocol (3-min steps averaged over the last 60 s), method
 unconstrained `"P3"` of [MFO()]) and fasting (5-6 h, not overnight).
 }
 
+\section{Warnings and messages}{
+
+Every warning and message of this function is a classed condition:
+`mfo_warning_<id>` and `mfo_warning` (or `mfo_message_<id>` and
+`mfo_message`), with the numbers of the text as fields (for example
+`mfo_warning_negative_fat` has `n`, the number of steps). The text is
+English; the classes let a program, such as [run_app()], handle a given
+warning or word it in another language:
+`withCallingHandlers(expr, mfo_warning_negative_fat = function(w) w$n)`.
+}
+
 \examples{
 data(list = c("MFO_df", "basal_df", "VO2max_df"), package = "MFO")
 res <- suppressWarnings(MFO(step_time = 20, db_MFO = MFO_df,
