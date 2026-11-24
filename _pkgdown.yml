@@ -22,6 +22,8 @@ articles:
   navbar: Using the app
   contents:
   - app
+  - articles/app-manual-en
+  - articles/app-manual-es
 - title: Bayesian fit
   navbar: Bayesian fit
   contents:
@@ -41,7 +43,7 @@ reference:
 - title: Describe the test
   desc: >
     Protocol of the MFO test (step durations, averaged segment, load and
-    exercise mode) and VO2max of the graded test with maximality criteria.
+    exercise mode) and VO₂max of the graded test with maximality criteria.
   contents:
   - MFO_protocol
   - VO2max_from_test

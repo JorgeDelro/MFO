@@ -10,3 +10,4 @@
 ^MFO\.Rproj$
 ^\.Rproj\.user$
 ^tools$
+^vignettes/articles$

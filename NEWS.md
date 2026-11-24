@@ -44,7 +44,9 @@
   and a footer with version, commit, dates, phase cuts and seed) and the
   group table as xlsx or csv. The Reliability tab runs `MFO_reliability()`
   on the group table of the session or on a downloaded one. See
-  `vignette("app")` and the section "Using the app" of the README.
+  `vignette("app")`, the section "Using the app" of the README, and the app
+  manual on the website, in English and Spanish (every option, output and
+  warning).
 
 * `MFO_protocol()` describes the test (SPEC 14): `"step"` (fixed
   durations, as before), `"step_variable"` (a vector of durations whose last

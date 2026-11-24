@@ -102,7 +102,6 @@ for (lang in c("en", "es")) {
   tab("analysis"); top(); shot(f("analysis"))
   tab("results"); top(); hover_plot(); shot(f("results"))
   scroll_to("#results-sin_plot"); shot(f("results-sin"))
-  scroll_to("#results-alerts"); shot(f("results-alerts"), 700)
   tab("zones"); top(); shot(f("zones"))
   tab("report"); top(); shot(f("report"), 700)
   tab("reliability"); top(); shot(f("reliability"))
