@@ -175,7 +175,8 @@
   rows <- lapply(c("basal", "MFO", "graded"), function(p) {
     db <- cart[[paste0("db_", p)]]
     if (is.null(db)) return(NULL)
-    data.frame(phase = p, records = nrow(db),
+    data.frame(phase = t(c(basal = "data.phase.basal", MFO = "data.phase.MFO",
+                           graded = "data.phase.graded")[[p]]), records = nrow(db),
                duration_s = nrow(db) * cart$step_time,
                columns = paste(names(db), collapse = ", "), stringsAsFactors = FALSE)
   })
