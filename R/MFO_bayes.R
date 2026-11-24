@@ -9,7 +9,7 @@
 #' steps that [MFO()] returns. \pkg{brms} and \pkg{rstan} are in Suggests.
 #'
 #' **SIN model.** FAT_i ~ Normal(M sin(min(max(u_i, 0)^s, pi)), sigma), with
-#' u = pi^(1/s) / (pi + 2d) (K x + d + t), K = pi / 100 and x in \% VO2max.
+#' u = pi^(1/s) / (pi + 2d) (K x + d + t), K = pi / 100 and x in \% \VOmax{}.
 #' MFO (M) is a parameter, so there is no normalisation by the highest step.
 #' Outside the two zeros of the curve u^s is set to 0 or pi, so fat
 #' oxidation is 0 there (as in [simulate_MFO_sessions()]); this also keeps
@@ -24,7 +24,7 @@
 #' priors first proposed in SPEC 13.2 (d ~ N(0, 0.3), s ~ LogNormal(0, 0.3),
 #' t ~ N(0, 0.2)) the 95 \% intervals of s covered the true value in 7-10 \%
 #' of simulated tests where t is far from 0 (see `vignette("bayes")`). Fatmin is constrained to lie
-#' between Fatmax and 100 \% VO2max. The Fatmax zone (FAT >= 90 \% of M)
+#' between Fatmax and 100 \% \VOmax{}. The Fatmax zone (FAT >= 90 \% of M)
 #' also comes from closed forms of each draw.
 #'
 #' **P3 model.** FAT ~ b0 + b1 z + b2 z^2 + b3 z^3 with z = (x - 50) / 25;
@@ -39,11 +39,11 @@
 #'   Sanchez-Delgado & Ruiz 2018, Front Physiol 9: 1460, Table 1,
 #'   \doi{10.3389/fphys.2018.01460}) with an inflated SD to cover trained
 #'   people;
-#' \item Fatmax ~ Normal(50, 15) truncated to (10, 90) \% VO2max, centred
+#' \item Fatmax ~ Normal(50, 15) truncated to (10, 90) \% \VOmax{}, centred
 #'   between the normative value of sedentary adults (44.2 +/- 12.4; same
 #'   table) and that of trained men (64 \%; Achten, Gleeson & Jeukendrup 2002,
 #'   \doi{10.1097/00005768-200201000-00015}) with an inflated SD;
-#' \item Fatmin ~ Normal(90, 14) truncated to (Fatmax, 100) \% VO2max
+#' \item Fatmin ~ Normal(90, 14) truncated to (Fatmax, 100) \% \VOmax{}
 #'   (90.1 +/- 14.1 in Cheneviere et al. 2009), set with `fatmin_prior`;
 #' \item s ~ LogNormal(0, 0.3).
 #' }
@@ -55,15 +55,15 @@
 #'
 #' **Limitation: Fatmax is slightly underestimated.** In simulated tests
 #' with s = 1.52 (8 steps, FAT error 5-10 \% of MFO) the posterior median of
-#' Fatmax was below the truth by a median of 1.1-1.6 \% VO2max, and the 95
+#' Fatmax was below the truth by a median of 1.1-1.6 \% \VOmax{}, and the 95
 #' \% interval missed it in 8-12 of 100 tests, nearly always by
 #' underestimation. Part of it comes from the prior of s, centred on a
 #' symmetric curve: with s ~ LogNormal(0, 0.5) the bias fell to 0.7-0.9
-#' \% VO2max, but 9-14 \% of the fits had divergent transitions, so the
+#' \% \VOmax{}, but 9-14 \% of the fits had divergent transitions, so the
 #' default stays LogNormal(0, 0.3). For scale, the typical error of Fatmax
 #' with the classical fits in the same tests was 1.6 (5 \% noise) and 2.6
-#' (10 \%) \% VO2max for the absolute SIN of [MFO_kinetics()] (median
-#' absolute error) and 2.5-3.1 and 4.1-5.0 \% VO2max for P3 (RMSE); see
+#' (10 \%) \% \VOmax{} for the absolute SIN of [MFO_kinetics()] (median
+#' absolute error) and 2.5-3.1 and 4.1-5.0 \% \VOmax{} for P3 (RMSE); see
 #' `vignette("bayes")` and `vignette("validation")`.
 #'
 #' **What to interpret.** `contraction` = 1 - Var(posterior) / Var(prior)
@@ -82,7 +82,7 @@
 #'   to (Fatmax, 100) (default `c(90, 14)`, SIN only).
 #' @param chains,iter number of chains and iterations per chain (defaults 4
 #'   and 2000, half of them warm-up). With a high Fatmax (trained people) use
-#'   `iter = 4000`: in simulated tests with Fatmax 64 +/- 8 \% VO2max, 5 of
+#'   `iter = 4000`: in simulated tests with Fatmax 64 +/- 8 \% \VOmax{}, 5 of
 #'   100 fits had an R-hat above 1.01 with 2000 iterations and none with
 #'   4000.
 #' @param conf level of the credible intervals (default 0.95).
@@ -157,7 +157,7 @@ MFO_bayes <- function(MFO_data, model = c("SIN", "P3"), priors = NULL,
 #'
 #' @return An object of class `MFO_prior_check`: a list with `draws` (prior
 #'   draws of the parameters and derived quantities), `summary` (quantiles 5,
-#'   50 and 95 \%), `curves` (ndraws curves on 0-100 \% VO2max), `data` and
+#'   50 and 95 \%), `curves` (ndraws curves on 0-100 \% \VOmax{}), `data` and
 #'   `model`. `plot()` draws the curves.
 #'
 #' @seealso [MFO_bayes()]
@@ -239,7 +239,7 @@ plot.MFO_bayes <- function(x, ndraws = 100, ...) {
   s <- x$summary
   ci <- function(q, fmt) sprintf(fmt, s[q, "median"], s[q, "lower"], s[q, "upper"])
   subtitle <- paste0(ci("MFO", "MFO = %.3f (%.3f-%.3f) g/min"), " \u00b7 ",
-                     ci("Fatmax", "FATmax = %.1f (%.1f-%.1f) %% VO2max"),
+                     ci("Fatmax", "Fatmax = %.1f (%.1f-%.1f) %% VO2max"),
                      if (x$model == "SIN") paste0(" \u00b7 ", ci("Fatmin", "Fatmin = %.1f (%.1f-%.1f)")),
                      sprintf(" \u00b7 %s, %g %% CrI", x$model, 100 * x$conf))
   ggplot() +
