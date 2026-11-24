@@ -40,10 +40,10 @@
     f(c(zn$FAT_MAX_HR, zn$zone_lower_HR, zn$zone_upper_HR), 0),
     f(c(zn$FAT_MAX_porcHRmax, zn$zone_lower_porcHRmax, zn$zone_upper_porcHRmax)),
     stringsAsFactors = FALSE)
-  names(zones) <- c(t("tbl.quantity"), "% VO2max", t("tbl.bpm"), "% HRmax")
+  names(zones) <- c(t("tbl.quantity"), "% VO\u2082max", t("tbl.bpm"), t("tbl.pct_hrmax"))
   pct <- function(lab) if (is.na(lab)) t("zo.no_percentile") else lab
   reference <- data.frame(
-    c("MFO (g/min)", "Fatmax (% VO2max)"),
+    c("MFO (g/min)", "Fatmax (% VO\u2082max)"),
     c(f(zn$MFO, 3), f(zn$FAT_MAX)),
     c(pct(zn$MFO_percentile_label), pct(zn$Fatmax_percentile_label)),
     stringsAsFactors = FALSE)

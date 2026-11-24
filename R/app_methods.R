@@ -95,17 +95,17 @@
       "coefficient of variation of ", o$cv_var, ".")
 
   if (identical(o$type, "ramp")) {
-    add("VO2 and VCO2 were averaged in ", o$ramp_window, "-s windows every ", o$ramp_step,
+    add("VO\u2082 and VCO\u2082 were averaged in ", o$ramp_window, "-s windows every ", o$ramp_step,
         " s of the ramp.")
   } else {
     steps <- .app_numbers(o$step_duration)
     steady <- .app_numbers(o$steady_state_duration)
     if (length(steps) > 1) {
-      add("VO2 and VCO2 were averaged over the last ", paste(steady, collapse = "/"),
+      add("VO\u2082 and VCO\u2082 were averaged over the last ", paste(steady, collapse = "/"),
           " s of each step (step durations: ", paste(steps, collapse = ", "), " s, the last ",
           "one repeated).")
     } else {
-      add("VO2 and VCO2 were averaged over the last ", paste(steady, collapse = "/"),
+      add("VO\u2082 and VCO\u2082 were averaged over the last ", paste(steady, collapse = "/"),
           " s of each ", steps, "-s step", if (identical(o$type, "relative"))
             " (loads relative to body mass)", ".")
     }
@@ -123,7 +123,7 @@
       Frayn = paste0("Energy expenditure was calculated with the energy equivalents of ",
                      cite("peronnet1991", "P\u00e9ronnet and Massicotte (1991)"),
                      " (3.8683 kcal/g for carbohydrate and 9.7460 kcal/g for fat), as Frayn (1983) gives none."),
-      Jeukendrup = "Energy expenditure was calculated with the energy equivalents of the same source (carbohydrate 3.95 kcal/g below and 4.07 kcal/g from 50 % VO2max; fat 9.75 kcal/g)."))
+      Jeukendrup = "Energy expenditure was calculated with the energy equivalents of the same source (carbohydrate 3.95 kcal/g below and 4.07 kcal/g from 50 % VO\u2082max; fat 9.75 kcal/g)."))
   }
 
   if (!identical(o$RER_cutoff, "none")) {
@@ -143,19 +143,19 @@
              keep = "Negative fat oxidation values were kept."))
 
   if (identical(o$vo2max_source, "graded")) {
-    add("VO2max was the highest ", format(res$VO2max_window), "-s rolling mean of VO2 in ",
-        "the graded test and was labelled ", res$VO2max_type, " according to ",
+    add("VO\u2082max was the highest ", format(res$VO2max_window), "-s rolling mean of VO\u2082 in ",
+        "the graded test and was labelled ", sub("VO2", "VO\u2082", res$VO2max_type), " according to ",
         cite("howley1995", "Howley et al. (1995)"), ".")
   } else {
-    add("VO2max (", format(round(res$VO2max)), " mL/min) was measured in a separate test.")
+    add("VO\u2082max (", format(round(res$VO2max)), " mL/min) was measured in a separate test.")
   }
 
   basal <- if (isTRUE(o$include_basal)) ", including the resting value as the first point" else ""
   add("MFO and Fatmax were ", switch(o$method,
     P3 = paste0("determined from a third-degree polynomial fitted to fat oxidation against ",
-                "% VO2max", basal),
+                "% VO\u2082max", basal),
     P2 = paste0("determined from a second-degree polynomial fitted to fat oxidation against ",
-                "% VO2max", basal),
+                "% VO\u2082max", basal),
     MV = "determined as the step with the highest measured fat oxidation",
     MRER = paste0("determined with the MRER method (",
                   cite("cheneviere2009", "Chenevi\u00e8re et al., 2009"), ")")), ".")

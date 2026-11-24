@@ -6,20 +6,21 @@
 # computed, the interval
 .app_results_table <- function(res, t = function(key) .tr(key, "en")) {
   num <- function(x) if (is.null(x) || length(x) == 0) NA_real_ else as.numeric(x)
+  pct_vo2 <- "% VO\u2082max"
   rows <- data.frame(
     key = c("MFO", "MFO_relative", "MFO_FFM", "FAT_MAX", "FAT_MAX_HR", "FAT_MAX_porcHRmax",
             "FAT_MAX_load", "FatMax_zone_lower", "FatMax_zone_upper", "crossover_point",
             "VO2max", "R_squared", "RMSE"),
     quantity = c("MFO", t("tbl.mfo_bm"), t("tbl.mfo_ffm"), "Fatmax", t("tbl.hr_fatmax"),
                  "Fatmax", "Fatmax", t("tbl.zone_lower"), t("tbl.zone_upper"),
-                 t("tbl.crossover"), "VO2max", "R\u00b2", "RMSE"),
+                 t("tbl.crossover"), "VO\u2082max", "R\u00b2", "RMSE"),
     value = c(num(res$MFO), num(res$MFO_relative), num(res$MFO_FFM), num(res$FAT_MAX),
               num(res$FAT_MAX_HR), num(res$FAT_MAX_porcHRmax), num(res$FAT_MAX_load),
               num(res$FatMax_zone_lower), num(res$FatMax_zone_upper),
               num(res$crossover_point), num(res$VO2max), num(res$R_squared), num(res$RMSE)),
-    unit = c("g/min", "mg/kg/min", "mg/kgFFM/min", "% VO2max", "bpm", "% HRmax",
-             if (is.na(res$load_unit)) "" else res$load_unit, "% VO2max", "% VO2max",
-             "% VO2max", paste0("mL/min (", res$VO2max_type, ")"), "", "g/min"),
+    unit = c("g/min", "mg/kg/min", "mg/kgFFM/min", pct_vo2, t("tbl.bpm"), t("tbl.pct_hrmax"),
+             if (is.na(res$load_unit)) "" else res$load_unit, pct_vo2, pct_vo2, pct_vo2,
+             paste0("mL/min (", sub("VO2", "VO\u2082", res$VO2max_type), ")"), "", "g/min"),
     stringsAsFactors = FALSE
   )
   rows$lower <- NA_real_
@@ -36,7 +37,7 @@
 
 # SIN parameters as a table
 .app_sin_table <- function(kin, t = function(key) .tr(key, "en")) {
-  out <- data.frame(c("d", "s", "t", "Fatmax (SIN, % VO2max)", "Fatmin (% VO2max)",
+  out <- data.frame(c("d", "s", "t", "Fatmax (SIN, % VO\u2082max)", "Fatmin (% VO\u2082max)",
                       "R\u00b2", t("tbl.fit")),
                     c(format(round(c(kin$d, kin$s, kin$t), 3)),
                       format(round(c(kin$FatMax_SIN, kin$Fatmin), 1)),

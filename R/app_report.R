@@ -125,7 +125,7 @@ img { max-width: 100%; height: auto; }
   body <- tags$body(
     tags$h1(title),
     tags$h2("Fat oxidation curve"),
-    .app_plot_tag(res$MFO_plot, "Fat and carbohydrate oxidation against % VO2max"),
+    .app_plot_tag(res$MFO_plot, "Fat and carbohydrate oxidation against % VO\u2082max"),
     tags$h2("Results"),
     .app_html_table(results),
     sin_part,
