@@ -29,7 +29,7 @@ run_app <- function(lang = c("en", "es"), ...) {
          "install.packages(c(", paste0("\"", missing_pkgs, "\"", collapse = ", "), ")).",
          call. = FALSE)
   }
-  shiny::runApp(.app(lang), ...)
+  shiny::runApp(.app(lang, theme = .app_theme_offline_safe()), ...)
 }
 
 

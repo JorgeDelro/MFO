@@ -340,6 +340,7 @@ Cada punto de la hoja de ruta responde a una limitación identificada en §4–�
 - Shiny puro con módulos en `R/` (`app_*.R`): golem convierte el paquete en una app con dependencia en ejecución y rhino es para apps independientes; los módulos se prueban con `shiny::testServer()` y entran en `covr`.
 - La app no contiene ciencia: solo llama a las funciones del paquete, así que no puede dar un resultado distinto del paquete.
 - `shiny` y `bslib` en `Suggests` con `requireNamespace()` en `run_app()`; gráficos con ggplot y la interacción de Shiny (hover, brush), sin plotly.
+- Tema (decisión de Jorge, 24 nov 2026): `bslib::bs_theme(version = 5, bootswatch = "minty")` con primary #6C63FF, secondary #A8A4CE, success #57CC99, info #80B3FF, warning #FFD166, danger #EF476F y la barra en primary; fuente Inter con `font_collection(font_google("Inter", local = TRUE), "system-ui", "sans-serif")`, que se descarga una vez a la caché de sass y después se sirve en local; si la primera vez no hay red, la app arranca con la fuente del sistema y lo dice. El tema se construye solo dentro de `run_app()`. Las gráficas de la app (y del informe) usan la misma paleta: FAT primary, CHO info, banda del IC warning, zona Fatmax primary, línea de Fatmax danger; la gráfica guardada en el resultado de `MFO()` no se modifica.
 - El informe HTML se construye con `htmltools` (dependencia de `shiny`) y las gráficas van incrustadas como imágenes: un único fichero que no necesita pandoc.
 
 ## 11. Interpretación práctica: deporte, salud y errores frecuentes

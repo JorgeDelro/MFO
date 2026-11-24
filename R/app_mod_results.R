@@ -163,13 +163,13 @@
     output$status <- shiny::renderUI({
       if (is.null(analysis())) shiny::div(class = "alert alert-secondary", t("res.none"))
     })
-    output$plot <- shiny::renderPlot(current()$res$MFO_plot)
+    output$plot <- shiny::renderPlot(.app_style_plot(current()$res$MFO_plot))
     output$hover_step <- shiny::renderTable(.app_hover_step(current()$res$MFO_db, input$hover),
                                             digits = 2)
     output$values <- shiny::renderTable({
       .app_results_names(.app_results_table(current()$res, t), t)
     }, digits = 3, na = "")
-    output$sin_plot <- shiny::renderPlot(current()$kin$MFO_kinetics_plot)
+    output$sin_plot <- shiny::renderPlot(.app_style_plot(current()$kin$MFO_kinetics_plot))
     output$sin_values <- shiny::renderTable(.app_sin_table(current()$kin, t))
     output$alerts <- shiny::renderUI({
       a <- current()

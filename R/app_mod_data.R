@@ -410,7 +410,7 @@
         result()$cart
       }
       shiny::req(cart)
-      .app_recording_plot(cart, c(input$basal_end, input$MFO_end))
+      .app_recording_plot(cart, c(input$basal_end, input$MFO_end), t)
     })
 
     output$summary <- shiny::renderTable({
@@ -426,7 +426,7 @@
 # VO2 against time of the phases in a cart, with the cuts as vertical lines.
 # One phase: its own Time (the cuts refer to it); several: records one after
 # another
-.app_recording_plot <- function(cart, cuts = NULL) {
+.app_recording_plot <- function(cart, cuts = NULL, t = function(key) .tr(key, "en")) {
   rows <- lapply(c("basal", "MFO", "graded"), function(p) {
     db <- cart[[paste0("db_", p)]]
     if (is.null(db)) return(NULL)
@@ -442,9 +442,14 @@
   }
   d <- do.call(rbind, rows)
   d$phase <- factor(d$phase, levels = c("basal", "MFO", "graded"))
+  col <- .app_colours
   p <- ggplot2::ggplot(d, ggplot2::aes(x = Time, y = VO2, colour = phase)) +
     ggplot2::geom_line() +
-    ggplot2::labs(x = "Time (s)", y = "VO2 (mL/min)", colour = NULL) +
+    ggplot2::scale_colour_manual(
+      values = c(basal = col[["secondary"]], MFO = col[["primary"]], graded = col[["info"]]),
+      labels = c(basal = t("data.phase.basal"), MFO = t("data.phase.MFO"),
+                 graded = t("data.phase.graded"))) +
+    ggplot2::labs(x = t("data.plot.time"), y = "VO\u2082 (mL/min)", colour = NULL) +
     ggplot2::theme_minimal()
   cuts <- cuts[!is.na(cuts)]
   if (length(cuts) > 0) p <- p + ggplot2::geom_vline(xintercept = cuts, linetype = "dashed")

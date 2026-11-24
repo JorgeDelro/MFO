@@ -96,7 +96,7 @@ img { max-width: 100%; height: auto; }
   sin_part <- NULL
   if (isTRUE(kin$convergence)) {
     sin_part <- tags$section(tags$h2("SIN kinetics"),
-                             .app_plot_tag(kin$MFO_kinetics_plot, "SIN kinetics of fat oxidation"),
+                             .app_plot_tag(.app_style_plot(kin$MFO_kinetics_plot), "SIN kinetics of fat oxidation"),
                              .app_html_table(.app_sin_table(kin)))
   }
 
@@ -125,7 +125,7 @@ img { max-width: 100%; height: auto; }
   body <- tags$body(
     tags$h1(title),
     tags$h2("Fat oxidation curve"),
-    .app_plot_tag(res$MFO_plot, "Fat and carbohydrate oxidation against % VO\u2082max"),
+    .app_plot_tag(.app_style_plot(res$MFO_plot), "Fat and carbohydrate oxidation against % VO\u2082max"),
     tags$h2("Results"),
     .app_html_table(results),
     sin_part,

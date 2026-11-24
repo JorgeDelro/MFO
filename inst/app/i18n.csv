@@ -45,6 +45,7 @@
 "data.mapping.device","The analyser's columns are read by spiro.","spiro lee las columnas del analizador."
 "data.read","Read data","Leer datos"
 "data.recording.plot","VO₂ over time","VO₂ frente al tiempo"
+"data.plot.time","Time (s)","Tiempo (s)"
 "data.summary","Phases read","Fases leídas"
 "data.none","(none)","(ninguna)"
 "data.read.ok","Data read. Go on to Protocol and analysis.","Datos leídos. Sigue en Protocolo y análisis."
