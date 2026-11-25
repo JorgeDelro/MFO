@@ -69,9 +69,10 @@ The three ways to bring data into the app:
    `Fatmax` (% VO₂max); any other column of `MFOs()` (e.g.
    `FatMax_zone_lower`, `FatMax_zone_upper`, `FAT_MAX_porcHRmax`, `d`, `s`,
    `t`) is optional and analysed too. *Results template* downloads a csv
-   with 2 participants × 2 sessions of simulated tests (made with
+   with 3 participants × 2 sessions of simulated tests (made with
    `simulate_MFO_sessions()`, written with `write_MFO_sessions()` and
-   analysed with `MFOs()`), to show the format.
+   analysed with `MFOs()`), which shows the format and can be uploaded as it
+   is in Reliability as a demonstration.
 
 ![The Data tab after reading the example data: Loaded data.](figures/manual-data.png)
 

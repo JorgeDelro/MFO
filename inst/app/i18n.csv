@@ -64,7 +64,7 @@
 "prep.c","3. A results table for Reliability"
 "prep.c.when","If the tests were analysed elsewhere (for instance with MFOs()), upload the results in Reliability, one row per test."
 "prep.c.columns","Required columns: id (participant code), session, MFO (g/min) and Fatmax (% VO₂max). Optional: other columns of MFOs(), e.g. FatMax_zone_lower, FatMax_zone_upper, FAT_MAX_porcHRmax, d, s, t."
-"prep.c.n","Two or more sessions per participant and at least 3 participants. The template shows the format with 2 participants and 2 sessions."
+"prep.c.n","Two or more sessions per participant and at least 3 participants. The template, 3 participants and 2 sessions, can be uploaded as it is to try the tab."
 "data.summary","Phases read"
 "data.none","(none)"
 "data.read.ok","Data read. Go on to Protocol and analysis."

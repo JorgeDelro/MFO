@@ -18,11 +18,11 @@ openxlsx::write.xlsx(list(Rest = sheet(basal_df), MFO = sheet(MFO_df, TRUE),
                           Graded = sheet(VO2max_df, TRUE)),
                      file.path(out, "MFO_test_template.xlsx"), overwrite = TRUE)
 
-# 2. Results table for Reliability: 2 participants x 2 sessions of simulated
+# 2. Results table for Reliability: 3 participants x 2 sessions of simulated
 # tests, written with write_MFO_sessions() and analysed with MFOs(). The
 # required columns are id (participant), session, MFO (g/min) and Fatmax
 # (% VO2max); the other columns of MFOs() are optional
-sim <- simulate_MFO_sessions(n_participants = 2, n_sessions = 2,
+sim <- simulate_MFO_sessions(n_participants = 3, n_sessions = 2,
                              population = list(VO2max = c(3000, 500)), seed = 1)
 dir <- file.path(tempdir(), "mfo_template_sessions")
 unlink(dir, recursive = TRUE)

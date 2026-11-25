@@ -39,10 +39,12 @@ test_that("an uploaded results table with only id, session, MFO and Fatmax works
   tpl <- utils::read.csv(system.file("app", "templates", "MFO_results_template.csv",
                                      package = "MFO"))
   expect_equal(names(tpl)[1:4], c("id", "session", "MFO", "Fatmax"))
-  expect_equal(nrow(tpl), 4)
+  # 3 participants x 2 sessions, so it runs as a demonstration (Jorge,
+  # 2026-11-25)
+  expect_equal(nrow(tpl), 6)
   expect_true(all(table(tpl$id) == 2))
-  more <- rbind(tpl, transform(tpl[1:2, ], id = "P03", MFO = MFO * 1.1))
-  r <- suppressWarnings(MFO_reliability(.app_reliability_input(more)))
+  r <- suppressWarnings(MFO_reliability(.app_reliability_input(tpl)))
+  expect_equal(unique(r$table$n), 3)
   expect_true(all(c("MFO_g_min", "FAT_MAX_perVO2max", "FatMax_zone_lower") %in%
                     r$table$variable))
 })
