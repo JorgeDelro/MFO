@@ -30,7 +30,8 @@ write_MFO_sessions(sim, dir)
 res <- suppressWarnings(suppressMessages(
   MFOs(from = "folder", path = dir, db_basal_name = "basal_df", db_MFO_name = "MFO_df",
        db_graded_name = "VO2max_df", step_time = sim$settings$step_time, cv_var = "RER",
-       author = "Frayn", energy_equivalents = "classic")))
+       author = "Frayn", energy_equivalents = "classic", save_plot = FALSE,
+       save_result = FALSE)))
 idx <- utils::read.csv(file.path(dir, "sessions.csv"), stringsAsFactors = FALSE)
 m <- match(res$ID, idx$id)
 optional <- c("FatMax_zone_lower", "FatMax_zone_upper", "FAT_MAX_porcHRmax")
