@@ -39,6 +39,18 @@
 }
 
 
+# Secondary buttons (Jorge, 2026-11-25): outline in primary, text and border
+# #6C63FF, instead of the filled secondary colour of the theme (light purple
+# with white text, low contrast). The main action of each tab stays a filled
+# btn-primary. Shiny gives buttons btn-default, which bslib draws in
+# secondary, so it is replaced
+.app_outline <- function(button, small = FALSE) {
+  q <- htmltools::tagQuery(button)
+  q$removeClass("btn-default")$addClass("btn-outline-primary")
+  if (small) q$addClass("btn-sm")
+  q$allTags()
+}
+
 # Plot theme of the app, as in the ACWR app (Jorge, 2026-11-25): text and
 # grid colours for light or dark mode and a transparent background, so the
 # plot takes the background of its card. muted is for black and grey lines

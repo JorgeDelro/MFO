@@ -100,3 +100,21 @@ test_that("the theme keeps the blank legend title of the SIN plot", {
   p <- .app_style_plot(a$kin$MFO_kinetics_plot, .app_plot_theme(TRUE))
   expect_s3_class(p$theme$legend.title, "element_blank")
 })
+
+test_that("secondary buttons are outlined in primary; main actions are filled", {
+  # Jorge, 2026-11-25: outline buttons with #6C63FF text and border instead
+  # of the filled secondary colour
+  skip_if_not_installed("shiny")
+  skip_if_not_installed("bslib")
+  html <- as.character(.app_ui(list(QUERY_STRING = "")))
+  tags <- unlist(regmatches(html, gregexpr(
+    "<(button|a)[^>]*(action-button|shiny-download-link)[^>]*>", html)))
+  expect_true(length(tags) > 15)
+  id <- sub('.*id="([^"]+)".*', "\\1", tags)
+  main <- c("data-read", "analysis-run", "zones-run", "reliability-run")
+  expect_setequal(id[grepl("btn-primary", tags)], main)
+  # the link to the template in the text of Reliability is a link, not a button
+  others <- tags[!id %in% c(main, "reliability-template")]
+  expect_true(all(grepl("btn-outline-primary", others)))
+  expect_false(any(grepl("btn-default", others)))
+})

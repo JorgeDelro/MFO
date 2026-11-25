@@ -385,9 +385,10 @@ What does not change with the mode:
 - **The colours of the series** (FAT, CHO, Fatmax zone, interval band,
   Fatmax line) are the same in both modes; the shaded Fatmax zone looks
   darker on the dark background.
-- **The light purple buttons** (secondary colour of the theme, e.g.
-  *Download figure*, *Compute intervals*) keep their colour and white text in
-  both modes; their contrast is low in both.
+- **The buttons** keep their colours: the main action of each tab (*Read
+  data*, *Run analysis*, *Compute zones*, *Compute reliability*) is filled in
+  the primary colour, and the other buttons (downloads, *Compute intervals*,
+  *Add to the group table*...) are outlined in it.
 - **The progress bar of a file upload** ("Upload complete") is drawn by
   Shiny in the primary colour in both modes.
 - **The plots are images**: when the mode changes they are drawn again by

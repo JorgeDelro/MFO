@@ -93,8 +93,8 @@
         shiny::h6(t("res.steps")),
         .app_scroll_table(ns("steps"), "300px"),
         bslib::layout_columns(
-          shiny::downloadButton(ns("steps_xlsx"), t("rep.download_xlsx")),
-          shiny::downloadButton(ns("steps_csv"), t("rep.download_csv"))
+          .app_outline(shiny::downloadButton(ns("steps_xlsx"), t("rep.download_xlsx"))),
+          .app_outline(shiny::downloadButton(ns("steps_csv"), t("rep.download_csv")))
         )
       ),
       bslib::card(
@@ -111,7 +111,7 @@
                               step = 0.01),
           shiny::numericInput(ns("seed"), t("res.seed"), 1)
         ),
-        shiny::actionButton(ns("compute_ci"), t("res.compute_ci")),
+        .app_outline(shiny::actionButton(ns("compute_ci"), t("res.compute_ci"))),
         shiny::helpText(t("res.ci.help"))
       )
     ),
@@ -137,7 +137,7 @@
         shiny::textInput(ns("ID"), t("res.ID")),
         shiny::textInput(ns("session_id"), t("res.session"), "1")
       ),
-      shiny::actionButton(ns("add"), t("res.add")),
+      .app_outline(shiny::actionButton(ns("add"), t("res.add"))),
       shiny::textOutput(ns("group_n"))
     )
   )

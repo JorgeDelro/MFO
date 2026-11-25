@@ -317,12 +317,12 @@
     shiny::p(t("prep.intro")),
     case("prep.a", c("prep.a.example", "prep.a.file", "prep.a.device", "prep.a.phases",
                      "prep.a.records"),
-         shiny::downloadButton(ns("template_test"), t("prep.template.test"),
-                               class = "btn-outline-primary btn-sm")),
+         .app_outline(shiny::downloadButton(ns("template_test"), t("prep.template.test")),
+                      small = TRUE)),
     case("prep.b", c("prep.b.add", "prep.b.download")),
     case("prep.c", c("prep.c.when", "prep.c.columns", "prep.c.n"),
-         shiny::downloadButton(ns("template_results"), t("prep.template.results"),
-                               class = "btn-outline-primary btn-sm"))
+         .app_outline(shiny::downloadButton(ns("template_results"), t("prep.template.results")),
+                      small = TRUE))
   )
 }
 
