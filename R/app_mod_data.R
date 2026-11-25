@@ -277,7 +277,8 @@
         bslib::card_header(t("data.recording.plot")),
         shiny::plotOutput(ns("plot"), height = "360px", fill = FALSE,
                           brush = shiny::brushOpts(ns("brush"), direction = "x",
-                                                   resetOnNew = TRUE))
+                                                   resetOnNew = TRUE)),
+        .app_figure_controls(ns, "fig_recording", 90)
       ),
       # The tables as read, one per phase, before the analysis (Jorge,
       # 2026-11-25); each scrolls inside the card
@@ -422,11 +423,13 @@
       }
     })
 
-    output$plot <- shiny::renderPlot({
+    recording_plot <- shiny::reactive({
       cart <- shown()
       shiny::req(cart)
       .app_recording_plot(cart, c(input$basal_end, input$MFO_end), t)
     })
+    output$plot <- shiny::renderPlot(recording_plot())
+    .app_figure_download(input, output, "fig_recording", recording_plot, "recording")
     for (p in c("basal", "MFO", "graded")) local({
       phase <- p
       output[[paste0("view_", phase)]] <- shiny::renderTable({

@@ -89,6 +89,7 @@
       bslib::card(
         bslib::card_header(t("res.curve")),
         shiny::plotOutput(ns("plot"), height = "380px", fill = FALSE),
+        .app_figure_controls(ns, "fig_curve", 120),
         shiny::h6(t("res.steps")),
         .app_scroll_table(ns("steps"), "300px"),
         bslib::layout_columns(
@@ -118,7 +119,8 @@
       col_widths = c(7, 5),
       bslib::card(
         bslib::card_header(t("res.sin")),
-        shiny::plotOutput(ns("sin_plot"), height = "320px", fill = FALSE)
+        shiny::plotOutput(ns("sin_plot"), height = "320px", fill = FALSE),
+        .app_figure_controls(ns, "fig_sin", 110)
       ),
       bslib::card(
         bslib::card_header(t("res.sin.values")),
@@ -178,7 +180,11 @@
     output$status <- shiny::renderUI({
       if (is.null(analysis())) shiny::div(class = "alert alert-secondary", t("res.none"))
     })
-    output$plot <- shiny::renderPlot(.app_style_plot(current()$res$MFO_plot))
+    curve_plot <- shiny::reactive(.app_style_plot(current()$res$MFO_plot))
+    sin_plot <- shiny::reactive(.app_style_plot(current()$kin$MFO_kinetics_plot))
+    output$plot <- shiny::renderPlot(curve_plot())
+    .app_figure_download(input, output, "fig_curve", curve_plot, "curve")
+    .app_figure_download(input, output, "fig_sin", sin_plot, "SIN")
     output$steps <- shiny::renderTable(.app_step_table(current()$res), digits = 2, na = "")
     output$steps_xlsx <- shiny::downloadHandler(
       filename = function() "MFO_steps.xlsx",
@@ -189,7 +195,7 @@
     output$values <- shiny::renderTable({
       .app_results_names(.app_results_table(current()$res, t), t)
     }, digits = 3, na = "")
-    output$sin_plot <- shiny::renderPlot(.app_style_plot(current()$kin$MFO_kinetics_plot))
+    output$sin_plot <- shiny::renderPlot(sin_plot())
     output$sin_values <- shiny::renderTable(.app_sin_table(current()$kin, t))
     output$alerts <- shiny::renderUI({
       a <- current()

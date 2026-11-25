@@ -12,7 +12,7 @@ test_that("every key used by the app is in i18n.csv", {
   # keys are string literals "<area>.<name>" (t("...") or lists
   # of keys for the choices of an input)
   used <- unique(gsub("\"", "", unlist(regmatches(
-    code, gregexpr("\"(app|tab|data|an|res|zo|tbl|rep|rel)\\.[A-Za-z0-9_.]+\"", code)))))
+    code, gregexpr("\"(app|tab|data|an|res|zo|tbl|rep|rel|fig)\\.[A-Za-z0-9_.]+\"", code)))))
   expect_true(length(used) > 20)
   expect_equal(setdiff(used, s$key), character(0))
   # cond.* keys word the conditions of the package (test-utils-conditions.R)

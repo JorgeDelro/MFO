@@ -272,3 +272,7 @@
 "cond.rel_incomplete","{variable}: {n} participant(s) without a value in every session left out."
 "cond.rel_too_few","{variable}: fewer than 3 complete participants; not analysed."
 "cond.rel_heteroscedastic","Differences grow with the mean (Pearson |difference| vs mean, p < 0.05) for: {variables}. Consider CV_log."
+"fig.format","Figure format"
+"fig.width","Width (mm)"
+"fig.height","Height (mm)"
+"fig.download","Download figure"

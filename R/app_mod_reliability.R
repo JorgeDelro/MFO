@@ -47,7 +47,8 @@
     bslib::card(bslib::card_header(t("rel.pairs")), shiny::tableOutput(ns("pairs"))),
     bslib::card(bslib::card_header(t("rel.plot")),
                 shiny::numericInput(ns("pair"), t("rel.pair"), 1, min = 1, step = 1),
-                shiny::plotOutput(ns("plot"), height = "420px", fill = FALSE))
+                shiny::plotOutput(ns("plot"), height = "420px", fill = FALSE),
+                .app_figure_controls(ns, "fig_bland_altman", 120))
   )
 }
 
@@ -85,10 +86,12 @@
       shiny::req(out())
       out()$pairs
     }, digits = 3)
-    output$plot <- shiny::renderPlot({
+    ba_plot <- shiny::reactive({
       shiny::req(out())
       plot(out(), pair = input$pair)
     })
+    output$plot <- shiny::renderPlot(ba_plot())
+    .app_figure_download(input, output, "fig_bland_altman", ba_plot, "Bland_Altman")
     out
   })
 }

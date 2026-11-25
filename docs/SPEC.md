@@ -335,6 +335,8 @@ Cada punto de la hoja de ruta responde a una limitación identificada en §4–�
 
 **Resultados y nombres de columnas** (decisiones de Jorge, 25 nov 2026). La gráfica de Resultados no es interactiva y debajo aparece siempre la tabla de escalones (`MFO_db`), que se descarga en csv/xlsx y entra en el informe. En la app, el informe y las descargas, `porc_VO2` se muestra como «%VO₂max» (y `VO2`, `VCO2` como VO₂, VCO₂ con unidades); la columna del paquete no cambia por compatibilidad. **Candidato a renombrado en la 1.0:** `porc_VO2` → un nombre que diga % VO₂max (cambio incompatible, solo con versión mayor).
 
+**Figuras** (Jorge, 25 nov 2026). Cada gráfica de la app (registro de VO₂, curva de oxidación, SIN, Bland-Altman) se descarga en PNG a 300 ppp, PDF o SVG, con 180 mm de ancho por defecto (figura a ancho completo de revista) y ancho y alto configurables. Solo `grDevices`: `cairo_pdf` y `svg` imprimen el subíndice de VO₂, que `pdf()` no puede; sin cairo, el PDF usa `pdf()` y el SVG no está disponible.
+
 **Despliegue.** La beta.1 es solo local, con `MFO::run_app()`. Una demo pública, si se hace, solo con datos simulados o de ejemplo y sin subida de ficheros (los datos de participantes no se suben a servidores de terceros). Escritorio y Docker, en la 0.3.x.
 
 **Arquitectura de la app** (decisiones de Claude, una línea cada una):
