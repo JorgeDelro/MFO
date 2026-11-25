@@ -28,31 +28,33 @@ Shiny.addCustomMessageHandler('mfo-print', function(m) {
 .mod_report_ui <- function(id) {
   ns <- shiny::NS(id)
   t <- function(key) .tr(key)
-  bslib::layout_columns(
-    col_widths = c(4, 8),
-    bslib::card(
-      bslib::card_header(t("rep.report")),
-      shiny::uiOutput(ns("status")),
-      shiny::textInput(ns("ID"), t("res.ID")),
-      shiny::helpText(t("rep.report.help")),
-      bslib::layout_columns(
-        shiny::downloadButton(ns("report"), t("rep.download_report")),
-        shiny::actionButton(ns("print"), t("rep.print"), icon = shiny::icon("print"))
-      ),
-      shiny::helpText(t("rep.print.help"))
-    ),
+  shiny::tagList(
     # "Save as PDF": the report is written into a hidden frame and the print
     # dialog of the browser is opened on it (Jorge, 2026-11-25)
     shiny::tags$script(shiny::HTML(.app_print_js)),
-    bslib::card(
-      bslib::card_header(t("res.group")),
-      shiny::tableOutput(ns("group")),
-      bslib::layout_columns(
-        shiny::downloadButton(ns("group_xlsx"), t("rep.download_xlsx")),
-        shiny::downloadButton(ns("group_csv"), t("rep.download_csv")),
-        shiny::actionButton(ns("clear"), t("rep.clear"))
+    bslib::layout_columns(
+      col_widths = c(4, 8),
+      bslib::card(
+        bslib::card_header(t("rep.report")),
+        shiny::uiOutput(ns("status")),
+        shiny::textInput(ns("ID"), t("res.ID")),
+        shiny::helpText(t("rep.report.help")),
+        bslib::layout_columns(
+          shiny::downloadButton(ns("report"), t("rep.download_report")),
+          shiny::actionButton(ns("print"), t("rep.print"), icon = shiny::icon("print"))
+        ),
+        shiny::helpText(t("rep.print.help"))
       ),
-      shiny::helpText(t("rep.group.help"))
+      bslib::card(
+        bslib::card_header(t("res.group")),
+        shiny::tableOutput(ns("group")),
+        bslib::layout_columns(
+          shiny::downloadButton(ns("group_xlsx"), t("rep.download_xlsx")),
+          shiny::downloadButton(ns("group_csv"), t("rep.download_csv")),
+          shiny::actionButton(ns("clear"), t("rep.clear"))
+        ),
+        shiny::helpText(t("rep.group.help"))
+      )
     )
   )
 }

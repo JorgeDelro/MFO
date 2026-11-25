@@ -302,11 +302,16 @@
              shiny::tableOutput(id))
 }
 
-# One phase of a cart as shown in the Data tab: its records as read
+# One phase of a cart as shown in the Data tab: its records as read, with
+# times of day (xlsx exports) written as hh:mm:ss
 .app_phase_view <- function(cart, phase) {
   db <- cart[[paste0("db_", phase)]]
   if (is.null(db)) return(NULL)
-  as.data.frame(db)
+  db <- as.data.frame(db)
+  for (k in names(db)) {
+    if (inherits(db[[k]], "POSIXt")) db[[k]] <- format(db[[k]], "%H:%M:%S")
+  }
+  db
 }
 
 

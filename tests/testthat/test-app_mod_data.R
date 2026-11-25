@@ -159,7 +159,9 @@ test_that("the Data module reads the example and uploaded files", {
 test_that("the Data tab shows the tables of each phase before the analysis", {
   skip_if_not_installed("shiny")
   cart <- .app_example_data()
-  expect_identical(.app_phase_view(cart, "MFO"), as.data.frame(cart$db_MFO))
+  v <- .app_phase_view(cart, "MFO")
+  expect_equal(v$VO2, cart$db_MFO$VO2)
+  expect_equal(v$Time[1], "00:00:20")
   expect_null(.app_phase_view(cart["db_MFO"], "basal"))
   shiny::testServer(.mod_data_server, {
     session$setInputs(source = "example", assign = "phases", read = 1)
