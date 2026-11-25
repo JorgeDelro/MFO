@@ -160,7 +160,7 @@ test_that("the Data tab shows the tables of each phase before the analysis", {
   skip_if_not_installed("shiny")
   cart <- .app_example_data()
   v <- .app_phase_view(cart, "MFO")
-  expect_equal(v$VO2, cart$db_MFO$VO2)
+  expect_equal(v[["VO\u2082 (mL/min)"]], cart$db_MFO$VO2)
   expect_equal(v$Time[1], "00:00:20")
   expect_null(.app_phase_view(cart["db_MFO"], "basal"))
   shiny::testServer(.mod_data_server, {

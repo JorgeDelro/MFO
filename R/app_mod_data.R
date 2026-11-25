@@ -303,7 +303,8 @@
 }
 
 # One phase of a cart as shown in the Data tab: its records as read, with
-# times of day (xlsx exports) written as hh:mm:ss
+# times of day (xlsx exports) written as hh:mm:ss and the display names of
+# the columns
 .app_phase_view <- function(cart, phase) {
   db <- cart[[paste0("db_", phase)]]
   if (is.null(db)) return(NULL)
@@ -311,6 +312,7 @@
   for (k in names(db)) {
     if (inherits(db[[k]], "POSIXt")) db[[k]] <- format(db[[k]], "%H:%M:%S")
   }
+  names(db) <- .app_display_names(names(db))
   db
 }
 
