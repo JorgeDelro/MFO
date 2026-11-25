@@ -43,13 +43,13 @@ Shiny.addCustomMessageHandler('mfo-print', function(m) {
           shiny::downloadButton(ns("report"), t("rep.download_report")),
           shiny::actionButton(ns("print"), t("rep.print"), icon = shiny::icon("print"))
         ),
+        shiny::helpText(t("rep.print.help")),
         # Word, with officer in Suggests (Jorge, 2026-11-25)
         if (requireNamespace("officer", quietly = TRUE)) {
           shiny::downloadButton(ns("report_docx"), t("rep.download_docx"))
         } else {
           shiny::helpText(t("rep.docx.missing"))
-        },
-        shiny::helpText(t("rep.print.help"))
+        }
       ),
       bslib::card(
         bslib::card_header(t("res.group")),

@@ -88,13 +88,20 @@ b$DOM$setFileInputFiles(files = list(normalizePath(group_file)), nodeId = node$n
 Sys.sleep(3)
 js("document.getElementById('reliability-run').click()", 5)
 
-tab("data"); top(); shot(f("data"), 1000)
-tab("analysis"); top(); shot(f("analysis"))
-tab("results"); top(); shot(f("results"))
-scroll_to("#results-sin_plot"); shot(f("results-sin"))
-tab("zones"); top(); shot(f("zones"))
-tab("report"); top(); shot(f("report"), 700)
-tab("reliability"); top(); shot(f("reliability"))
+every_tab <- function(f) {
+  tab("data"); top(); shot(f("data"), 1000)
+  tab("analysis"); top(); shot(f("analysis"))
+  tab("results"); top(); shot(f("results"))
+  scroll_to("#results-sin_plot"); shot(f("results-sin"))
+  tab("zones"); top(); shot(f("zones"))
+  tab("report"); top(); shot(f("report"), 700)
+  tab("reliability"); top(); shot(f("reliability"))
+}
+every_tab(f)
+
+# The same in dark mode: the switch of the navbar is set to dark
+js("document.querySelector('bslib-input-dark-mode').setAttribute('mode', 'dark')", 4)
+every_tab(function(name) file.path(man, sprintf("manual-%s-dark.png", name)))
 
 # README and vignette("app")
 file.copy(file.path(man, "manual-results.png"), "man/figures/README-app-results.png",
