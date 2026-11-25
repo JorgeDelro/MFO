@@ -16,7 +16,7 @@ and printed output.
 ## The model and its parametrisation
 
 Fat oxidation of step *i* is Normal(M sin(u_(i)^(s)), sigma), with u =
-pi^(1/s) / (pi + 2d) (K x + d + t), K = pi / 100, x in %VO2max, and M
+pi^(1/s) / (pi + 2d) (K x + d + t), K = pi / 100, x in %VO₂max, and M
 the MFO in g/min, so there is no normalisation by the highest step.
 Outside the two zeros of the curve u^(s) is clamped to 0 or pi, so fat
 oxidation is 0 there.
@@ -33,10 +33,10 @@ Default priors, the authors’ weakly informative choices:
 - MFO ~ Normal(0.45, 0.25) truncated at 0, centred above the normative
   mean of sedentary adults (0.34 ± 0.10 g/min; Amaro-Gahete et al. 2018)
   with an inflated SD to cover trained people;
-- Fatmax ~ Normal(50, 15) truncated to (10, 90) %VO2max, between the
+- Fatmax ~ Normal(50, 15) truncated to (10, 90) %VO₂max, between the
   normative value of sedentary adults (44.2 ± 12.4; Amaro-Gahete et al.
   2018. and that of trained men (64 %; Achten et al. 2002);
-- Fatmin ~ Normal(90, 14) truncated to (Fatmax, 100) %VO2max (90.1 ±
+- Fatmin ~ Normal(90, 14) truncated to (Fatmax, 100) %VO₂max (90.1 ±
   14.1 in Chenevière et al. 2009);
 - s ~ LogNormal(0, 0.3); sigma ~ Exponential(10).
 
@@ -45,8 +45,8 @@ Default priors, the authors’ weakly informative choices:
 The first version of SPEC 13.2 put the priors on the SIN parameters: d ~
 Normal(0, 0.3), s ~ LogNormal(0, 0.3), t ~ Normal(0, 0.2). These priors
 are centred on the basic SIN curve (d = 0, s = 1, t = 0: symmetric, with
-its maximum at 50 %VO2max). A trained-like curve with Fatmax at 30-45
-%VO2max needs t between 0.63 and 1.10, 3 to 5.5 SD above the prior mean.
+its maximum at 50 %VO₂max). A trained-like curve with Fatmax at 30-45
+%VO₂max needs t between 0.63 and 1.10, 3 to 5.5 SD above the prior mean.
 Because s and t are strongly correlated in the posterior, the data fix
 the shape of the curve but not where the parameters sit along that
 ridge, and the prior decides it. In the simulation study below, in the
@@ -78,9 +78,9 @@ priors on Fatmax, Fatmin and s, with maxima spread over 25-70 %VO2max
 and zeros below 100 %.](figures/bayes-prior-predictive.png)
 
 Both priors allow Fatmax over a similar range (5th-95th percentile
-26.5-69.5 %VO2max with the SPEC priors, 24.7-70.9 with the current
+26.5-69.5 %VO₂max with the SPEC priors, 24.7-70.9 with the current
 ones). They differ in Fatmin: the SPEC priors put its median at 100.6
-%VO2max (79.1-122.9), so most of their curves reach zero beyond the
+%VO₂max (79.1-122.9), so most of their curves reach zero beyond the
 maximal test; the current priors keep it below 100 (median 85.3,
 69.4-97.4), as observed.
 
@@ -143,8 +143,8 @@ and Fatmin, not d, s and t**.
 ## Constant or proportional error
 
 The errors of fat oxidation grow with intensity (fat oxidation is about
-1.67 (VO2 - VCO2), which amplifies the error of VCO2).
-`sigma = "proportional"` lets sigma grow linearly with %VO2max.
+1.67 (VO₂ - VCO₂), which amplifies the error of VCO₂).
+`sigma = "proportional"` lets sigma grow linearly with %VO₂max.
 Leave-one-out cross-validation
 ([`brms::loo()`](https://mc-stan.org/loo/reference/loo.html)) on the
 example data:
@@ -164,9 +164,9 @@ data.
 
 Reduced study (Jorge, 2026-11-18): 100 simulated tests per cell, 8
 steps, noise on fat oxidation of 5 or 10 % of MFO (SD), MFO 0.4 g/min,
-in two populations: “sedentary” (Fatmax 45 ± 8 %VO2max, with the shape d
+in two populations: “sedentary” (Fatmax 45 ± 8 %VO₂max, with the shape d
 = 0.18, s = 1.52, so Fatmin about 86) and “trained”, defined by its
-Fatmax and Fatmin: Fatmax 64 ± 8 %VO2max (Achten et al. 2002) and Fatmin
+Fatmax and Fatmin: Fatmax 64 ± 8 %VO₂max (Achten et al. 2002) and Fatmin
 25 points above it, about 89 (s = 1.52, d set to give that width). Three
 options: the priors first proposed in SPEC 13.2 on d, s, t; t replaced
 by Fatmax (prior N(44.2, 12.4)); and the current Fatmax + Fatmin.
@@ -195,11 +195,11 @@ with a trained-like shape): the intervals of s covered the true s in
 both populations. Fatmax is short of 95 % in some cells (0.88), and its
 misses have a direction: in the sedentary population every miss, in all
 three options, was an underestimate (median error of the posterior
-median -1.1 to -1.8 %VO2max), and so were the 12 misses of Fatmax +
+median -1.1 to -1.8 %VO₂max), and so were the 12 misses of Fatmax +
 Fatmin in the trained population at 10 % noise. The prior of s, centred
 on a symmetric curve (s = 1) while the simulated curves have s = 1.52,
 explains part of it: with s ~ LogNormal(0, 0.5) or (0, 0.6) the median
-error fell from -1.15 to -0.74 and -0.45 %VO2max (sedentary, 5 %) and
+error fell from -1.15 to -0.74 and -0.45 %VO₂max (sedentary, 5 %) and
 from -1.58 to -0.87 and -0.72 (trained, 10 %), and coverage rose to
 0.93-0.94 and 0.91, but the misses were still nearly all underestimates
 and divergences increased. With s ~ LogNormal(0, 0.5) and 4000
@@ -208,12 +208,12 @@ divergent transitions, so the default prior stays LogNormal(0, 0.3)
 (`inst/validation/bayes_s_prior.R`).
 
 **Limitation.** With the default priors, Fatmax is slightly
-underestimated: by a median of 1.1-1.6 %VO2max in these simulations. For
+underestimated: by a median of 1.1-1.6 %VO₂max in these simulations. For
 scale, the typical error of Fatmax with the classical fits of the same
-kind of tests (8 steps) was 1.6 (5 % noise) and 2.6 %VO2max (10 %) for
+kind of tests (8 steps) was 1.6 (5 % noise) and 2.6 %VO₂max (10 %) for
 the absolute SIN of
 [`MFO_kinetics()`](https://jorgedelro.github.io/MFO/reference/MFO_kinetics.md)
-(median absolute error) and 2.5-3.1 and 4.1-5.0 %VO2max for P3 (RMSE;
+(median absolute error) and 2.5-3.1 and 4.1-5.0 %VO₂max for P3 (RMSE;
 [`vignette("validation")`](https://jorgedelro.github.io/MFO/articles/validation.md)):
 the bias is smaller than the error of a single test, but it is
 systematic. In the trained population 1-8 of 100 tests had an R-hat

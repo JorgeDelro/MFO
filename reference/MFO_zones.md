@@ -78,7 +78,7 @@ A data frame of class \`MFO_zones\`, one row per result, with \`ID\`
 (results of \[MFOs()\]), \`HRmax\`, \`HRmax_source\` (\`"given"\`,
 \`"measured"\`, \`"predicted (Tanaka)"\`, \`"predicted (Fox)"\` or
 \`NA\`), \`FAT_MAX\` and the zone (\`zone_lower\`, \`zone_upper\`; %
-VO2max), \`FAT_MAX_HR\`, \`zone_lower_HR\`, \`zone_upper_HR\` (bpm),
+VO₂max), \`FAT_MAX_HR\`, \`zone_lower_HR\`, \`zone_upper_HR\` (bpm),
 \`FAT_MAX_porcHRmax\`, \`zone_lower_porcHRmax\`,
 \`zone_upper_porcHRmax\`, \`obesity_range_lower\`,
 \`obesity_range_upper\` and \`obesity_zone\` (\`NA\` unless \`population
@@ -90,7 +90,7 @@ VO2max), \`FAT_MAX_HR\`, \`zone_lower_HR\`, \`zone_upper_HR\` (bpm),
 
 The HRmax used for the percentages is, in this order: \`HRmax\` given
 here or in \[MFO()\]/\[MFOs()\]; the peak HR measured in the graded test
-(\`HR_peak\`, the highest mean HR over the same window as VO2max); and,
+(\`HR_peak\`, the highest mean HR over the same window as VO₂max); and,
 only when \`predicted_HRmax = TRUE\`, the predicted HRmax for \`age\`:
 \`"tanaka"\` 208 - 0.7 x age (default; Tanaka, Monahan and Seals 2001,
 [doi:10.1016/s0735-1097(00)01054-8](https://doi.org/10.1016/s0735-1097%2800%2901054-8)
@@ -112,7 +112,7 @@ HRpeak: with a predicted HRmax it is still shown, with a warning.
 
 ## Reference values
 
-MFO (g/min) and Fatmax (% VO2max) are placed among the empirical
+MFO (g/min) and Fatmax (% VO₂max) are placed among the empirical
 percentiles P20, P40, P60 and P80 of Table 1 of Amaro-Gahete,
 Sanchez-Delgado and Ruiz (2018,
 [doi:10.3389/fphys.2018.01460](https://doi.org/10.3389/fphys.2018.01460)
@@ -137,6 +137,17 @@ protein in the reference), protocol (3-min steps averaged over the last
 60 s), method (third-degree polynomial through the origin in the
 reference, unlike the unconstrained \`"P3"\` of \[MFO()\]) and fasting
 (5-6 h, not overnight).
+
+## Warnings and messages
+
+Every warning and message of this function is a classed condition:
+\`mfo_warning\_\<id\>\` and \`mfo_warning\` (or \`mfo_message\_\<id\>\`
+and \`mfo_message\`), with the numbers of the text as fields (for
+example \`mfo_warning_negative_fat\` has \`n\`, the number of steps).
+The text is English; the classes let a program, such as \[run_app()\],
+handle a given warning or word it in another language:
+\`withCallingHandlers(expr, mfo_warning_negative_fat = function(w)
+w\$n)\`.
 
 ## References
 
@@ -180,7 +191,7 @@ MFO_zones(res, sex = "male", age_group = "young")
 #>   Reference:   Amaro-Gahete 2018: Sedentary young adult men (n = 41)
 #>     MFO 0.32 g/min: no percentile
 #>     Fatmax 36.2 % VO2max: no percentile
-#>     Differences: mode: cycling (reference: treadmill walking; no percentile); method: P3 (reference: third-degree polynomial through (0;0), Croci et al. 2014); fasting: reference 5-6 h, not overnight
+#>     Differences: mode: cycling (reference: treadmill walking, no percentile); method: P3 (reference: third-degree polynomial through (0;0), Croci et al. 2014); fasting: reference 5-6 h, not overnight
 # Range for obesity of Chavez-Guevara et al. (2023)
 MFO_zones(res, population = "obesity", body_fat = 38)
 #> No percentile for 1 result(s) with mode "cycling": the reference (Amaro-Gahete et al. 2018) was measured walking on a treadmill, and the mode of exercise changes MFO and Fatmax. Set MFO_protocol(mode = ) if the test was walking or running.
@@ -192,5 +203,5 @@ MFO_zones(res, population = "obesity", body_fat = 38)
 #>   Reference:   Amaro-Gahete 2018: Sedentary adults (n = 167)
 #>     MFO 0.32 g/min: no percentile
 #>     Fatmax 36.2 % VO2max: no percentile
-#>     Differences: mode: cycling (reference: treadmill walking; no percentile); method: P3 (reference: third-degree polynomial through (0;0), Croci et al. 2014); fasting: reference 5-6 h, not overnight
+#>     Differences: mode: cycling (reference: treadmill walking, no percentile); method: P3 (reference: third-degree polynomial through (0;0), Croci et al. 2014); fasting: reference 5-6 h, not overnight
 ```

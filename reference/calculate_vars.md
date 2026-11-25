@@ -74,5 +74,5 @@ Kcal (one row per step kept)
 ## Details
 
 With \`author = "Jeukendrup"\`, a single warning lists the steps (after
-\`RER_cutoff\`) whose intensity is outside 40-75 % VO2max, the range of
+\`RER_cutoff\`) whose intensity is outside 40-75 % VO₂max, the range of
 the Jeukendrup & Wallis (2005, Table 5) equations (SPEC 3, 9.5).

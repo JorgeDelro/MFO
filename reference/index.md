@@ -12,12 +12,12 @@ Read a metabolic cart export into the tables that
 ## Describe the test
 
 Protocol of the MFO test (step durations, averaged segment, load and
-exercise mode) and VO2max of the graded test with maximality criteria.
+exercise mode) and VO₂max of the graded test with maximality criteria.
 
 - [`MFO_protocol()`](https://jorgedelro.github.io/MFO/reference/MFO_protocol.md)
   : Describe the protocol of an MFO test
 - [`VO2max_from_test()`](https://jorgedelro.github.io/MFO/reference/VO2max_from_test.md)
-  : VO2max of a graded test, with maximality criteria
+  : VO₂max of a graded test, with maximality criteria
 
 ## Compute MFO and Fatmax
 
@@ -25,7 +25,14 @@ One participant: basal window, step averaging, stoichiometric equation,
 curve fit (P3, P2, MV, MRER), Fatmax zone and crossover point.
 
 - [`MFO()`](https://jorgedelro.github.io/MFO/reference/MFO.md) : Maximal
-  Fat Oxidation & FatMax Function
+  Fat Oxidation & Fatmax Function
+
+## App
+
+Shiny app that runs the workflow locally.
+
+- [`run_app()`](https://jorgedelro.github.io/MFO/reference/run_app.md) :
+  Run the MFO Shiny app
 
 ## Zones and reference values
 

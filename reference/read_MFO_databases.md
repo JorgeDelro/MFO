@@ -44,11 +44,11 @@ read_MFO_databases(
 
 - col_name_VO2:
 
-  name given to the variable VO2 in the databases. Default "VO2"
+  name given to the variable VO₂ in the databases. Default "VO2"
 
 - col_name_VCO2:
 
-  name given to the variable VCO2 in the databases. Default "VCO2"
+  name given to the variable VCO₂ in the databases. Default "VCO2"
 
 - col_name_RER:
 

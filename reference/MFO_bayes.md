@@ -57,7 +57,7 @@ MFO_bayes(
 
   number of chains and iterations per chain (defaults 4 and 2000, half
   of them warm-up). With a high Fatmax (trained people) use \`iter =
-  4000\`: in simulated tests with Fatmax 64 +/- 8 % VO2max, 5 of 100
+  4000\`: in simulated tests with Fatmax 64 +/- 8 % VO₂max, 5 of 100
   fits had an R-hat above 1.01 with 2000 iterations and none with 4000.
 
 - conf:
@@ -96,7 +96,7 @@ transitions, largest posterior correlation among d, s and t), \`model\`,
 
 \*\*SIN model.\*\* FAT_i ~ Normal(M sin(min(max(u_i, 0)^s, pi)), sigma),
 with u = pi^(1/s) / (pi + 2d) (K x + d + t), K = pi / 100 and x in %
-VO2max. MFO (M) is a parameter, so there is no normalisation by the
+VO₂max. MFO (M) is a parameter, so there is no normalisation by the
 highest step. Outside the two zeros of the curve u^s is set to 0 or pi,
 so fat oxidation is 0 there (as in \[simulate_MFO_sessions()\]); this
 also keeps non-integer powers of negative numbers out of Stan (SPEC
@@ -112,7 +112,7 @@ priors first proposed in SPEC 13.2 (d ~ N(0, 0.3), s ~ LogNormal(0,
 0.3), t ~ N(0, 0.2)) the 95 % intervals of s covered the true value in
 7-10 % of simulated tests where t is far from 0 (see
 \`vignette("bayes")\`). Fatmin is constrained to lie between Fatmax and
-100 % VO2max. The Fatmax zone (FAT \>= 90 % of M) also comes from closed
+100 % VO₂max. The Fatmax zone (FAT \>= 90 % of M) also comes from closed
 forms of each draw.
 
 \*\*P3 model.\*\* FAT ~ b0 + b1 z + b2 z^2 + b3 z^3 with z = (x - 50) /
@@ -128,14 +128,14 @@ choices, not estimates from the literature. SIN:
   [doi:10.3389/fphys.2018.01460](https://doi.org/10.3389/fphys.2018.01460)
   ) with an inflated SD to cover trained people;
 
-- Fatmax ~ Normal(50, 15) truncated to (10, 90) % VO2max, centred
+- Fatmax ~ Normal(50, 15) truncated to (10, 90) % VO₂max, centred
   between the normative value of sedentary adults (44.2 +/- 12.4; same
   table) and that of trained men (64 %; Achten, Gleeson & Jeukendrup
   2002,
   [doi:10.1097/00005768-200201000-00015](https://doi.org/10.1097/00005768-200201000-00015)
   ) with an inflated SD;
 
-- Fatmin ~ Normal(90, 14) truncated to (Fatmax, 100) % VO2max (90.1 +/-
+- Fatmin ~ Normal(90, 14) truncated to (Fatmax, 100) % VO₂max (90.1 +/-
   14.1 in Cheneviere et al. 2009), set with \`fatmin_prior\`;
 
 - s ~ LogNormal(0, 0.3).
@@ -148,15 +148,15 @@ them with \`priors\` (a \`brmsprior\` object, e.g. from
 
 \*\*Limitation: Fatmax is slightly underestimated.\*\* In simulated
 tests with s = 1.52 (8 steps, FAT error 5-10 % of MFO) the posterior
-median of Fatmax was below the truth by a median of 1.1-1.6 % VO2max,
+median of Fatmax was below the truth by a median of 1.1-1.6 % VO₂max,
 and the 95 % interval missed it in 8-12 of 100 tests, nearly always by
 underestimation. Part of it comes from the prior of s, centred on a
 symmetric curve: with s ~ LogNormal(0, 0.5) the bias fell to 0.7-0.9 %
-VO2max, but 9-14 % of the fits had divergent transitions, so the default
+VO₂max, but 9-14 % of the fits had divergent transitions, so the default
 stays LogNormal(0, 0.3). For scale, the typical error of Fatmax with the
 classical fits in the same tests was 1.6 (5 % noise) and 2.6 (10 %) %
-VO2max for the absolute SIN of \[MFO_kinetics()\] (median absolute
-error) and 2.5-3.1 and 4.1-5.0 % VO2max for P3 (RMSE); see
+VO₂max for the absolute SIN of \[MFO_kinetics()\] (median absolute
+error) and 2.5-3.1 and 4.1-5.0 % VO₂max for P3 (RMSE); see
 \`vignette("bayes")\` and \`vignette("validation")\`.
 
 \*\*What to interpret.\*\* \`contraction\` = 1 - Var(posterior) /

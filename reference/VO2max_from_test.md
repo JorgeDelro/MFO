@@ -1,11 +1,11 @@
-# VO2max of a graded test, with maximality criteria
+# VO₂max of a graded test, with maximality criteria
 
-Computes VO2max as the highest mean VO2 over \`window\` seconds of
+Computes VO₂max as the highest mean VO₂ over \`window\` seconds of
 consecutive records (as \`MFO()\` does from \`db_graded\`) and checks
 whether the test was maximal, following the criteria reviewed by Howley,
 Bassett and Welch (1995, Med Sci Sports Exerc 27(9): 1292-1301,
 [doi:10.1249/00005768-199509000-00009](https://doi.org/10.1249/00005768-199509000-00009)
-). The value is labelled \`"VO2max"\` when VO2 reached a plateau, or,
+). The value is labelled \`"VO2max"\` when VO₂ reached a plateau, or,
 without a plateau, when both the RER and the heart-rate criteria are
 met; otherwise it is labelled \`"VO2peak"\` (SPEC 14).
 
@@ -51,7 +51,7 @@ VO2max_from_test(
 
 - plateau_threshold:
 
-  VO2 increase between the last two stages below which there is a
+  VO₂ increase between the last two stages below which there is a
   plateau, ml/min (default 150).
 
 - RER_threshold:
@@ -70,14 +70,14 @@ An object of class \`MFO_VO2max\`: a list with \`VO2max\` (ml/min),
 \`window_requested\`, \`n_records\`, \`criteria\` (a data frame with one
 row per criterion: \`criterion\`, \`value\`, \`threshold\`, \`met\`,
 \`NA\` when not evaluated), \`HRmax_predicted\`, \`HRmax_formula\`,
-\`age\` and \`HR_peak\` (highest mean HR over the same window as VO2max,
+\`age\` and \`HR_peak\` (highest mean HR over the same window as VO₂max,
 bpm; \`NA\` without HR). It can be passed to \[MFO()\] as \`VO2max\`.
 
 ## Details
 
 Criteria (thresholds are arguments):
 
-- plateau: the mean VO2 of the final stage is less than
+- plateau: the mean VO₂ of the final stage is less than
   \`plateau_threshold\` ml/min above that of the previous stage (150
   ml/min, from Taylor et al. 1955 as reported by Howley et al. 1995).
   Stages are runs of equal \`Load\` above 0, each averaged over its last

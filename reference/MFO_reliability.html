@@ -27,6 +27,10 @@ coefficients of variation, systematic bias and limits of agreement."></head><bod
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/mfo-workflow.html">From gas exchange to Fatmax</a></li>
     <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Using the app</h6></li>
+    <li><a class="dropdown-item" href="../articles/app.html">Using the app</a></li>
+    <li><a class="dropdown-item" href="../articles/app-manual.html">App manual</a></li>
+    <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Bayesian fit</h6></li>
     <li><a class="dropdown-item" href="../articles/bayes.html">Bayesian fit of the fat oxidation curve</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -144,6 +148,18 @@ participants and k sessions:</p><ul><li><p>ICC(2,1), two-way random effects, abs
 </ul><p>At least 3 participants are needed; with fewer than 30 a warning recalls
 the rule of thumb of Koo &amp; Li (2016): at least 30 heterogeneous
 participants and, whenever possible, 3 sessions.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="warnings-and-messages">Warnings and messages<a class="anchor" aria-label="anchor" href="#warnings-and-messages"></a></h2>
+
+
+<p>Every warning and message of this function is a classed condition:
+`mfo_warning_&lt;id&gt;` and `mfo_warning` (or `mfo_message_&lt;id&gt;` and
+`mfo_message`), with the numbers of the text as fields (for example
+`mfo_warning_negative_fat` has `n`, the number of steps). The text is
+English; the classes let a program, such as [run_app()], handle a given
+warning or word it in another language:
+`withCallingHandlers(expr, mfo_warning_negative_fat = function(w) w$n)`.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>

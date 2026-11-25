@@ -37,6 +37,10 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="articles/mfo-workflow.html">From gas exchange to Fatmax</a></li>
     <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Using the app</h6></li>
+    <li><a class="dropdown-item" href="articles/app.html">Using the app</a></li>
+    <li><a class="dropdown-item" href="articles/app-manual.html">App manual</a></li>
+    <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Bayesian fit</h6></li>
     <li><a class="dropdown-item" href="articles/bayes.html">Bayesian fit of the fat oxidation curve</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -95,7 +99,7 @@
 <tr>
 <td>Resting metabolism (15–30 min)</td>
 <td><code>db_basal</code></td>
-<td>Most stable 5-min window → resting VO2, RER, CHO, FAT, kcal</td>
+<td>Most stable 5-min window → resting VO₂, RER, CHO, FAT, kcal</td>
 </tr>
 <tr>
 <td>Incremental MFO test</td>
@@ -105,7 +109,7 @@
 <tr>
 <td>Maximal graded test</td>
 <td><code>db_graded</code></td>
-<td>VO2max = highest mean over <code>vo2max_window</code> s (default 30), to express intensity as %VO2max (or pass <code>VO2max</code> directly)</td>
+<td>VO₂max = highest mean over <code>vo2max_window</code> s (default 30), to express intensity as %VO₂max (or pass <code>VO2max</code> directly)</td>
 </tr>
 </tbody>
 </table>
@@ -159,12 +163,24 @@
 <p>To process a whole folder of participants and write a summary table, see <code><a href="reference/MFOs.html">?MFOs</a></code>.</p>
 </div>
 <div class="section level2">
+<h2 id="using-the-app">Using the app<a class="anchor" aria-label="anchor" href="#using-the-app"></a>
+</h2>
+<p>The same analysis can be run in a point-and-click app that ships with the package. It needs two suggested packages:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"shiny"</span>, <span class="st">"bslib"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu">MFO</span><span class="fu">::</span><span class="fu"><a href="reference/run_app.html">run_app</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>The app runs on your computer and does not send your data anywhere. It follows the workflow tab by tab: read the data (example data, a csv/xlsx file with column mapping, or a metabolic cart export), describe the protocol and the calculation, look at the curve, the intervals and the SIN kinetics, express the Fatmax zone in heart rate and compare it with published reference values, download an HTML report with a methods paragraph, and compute the test-retest reliability of your lab from the group table. It only calls the functions of the package, so its results are those of <code><a href="reference/MFO.html">MFO()</a></code>. See <code><a href="articles/app.html">vignette("app", package = "MFO")</a></code>.</p>
+<figure><img src="reference/figures/README-app-results.png" alt="The Results tab of the app with the example data: fat and carbohydrate oxidation against %VO₂max with the Fatmax zone, and the table of results."><figcaption aria-hidden="true">
+The Results tab of the app with the example data: fat and carbohydrate oxidation against %VO₂max with the Fatmax zone, and the table of results.
+</figcaption></figure>
+</div>
+<div class="section level2">
 <h2 id="methods">Methods<a class="anchor" aria-label="anchor" href="#methods"></a>
 </h2>
 <div class="section level3">
 <h3 id="substrate-oxidation">Substrate oxidation<a class="anchor" aria-label="anchor" href="#substrate-oxidation"></a>
 </h3>
-<p>Fat (FAT) and carbohydrate (CHO) oxidation in g/min are computed from VO2 and VCO2 in L/min, assuming negligible protein oxidation during exercise. Choose the equation set with <code>author</code>:</p>
+<p>Fat (FAT) and carbohydrate (CHO) oxidation in g/min are computed from VO₂ and VCO₂ in L/min, assuming negligible protein oxidation during exercise. Choose the equation set with <code>author</code>:</p>
 <table class="table">
 <colgroup>
 <col width="8%">
@@ -181,33 +197,33 @@
 <tbody>
 <tr>
 <td><code>"Frayn"</code></td>
-<td>4.55 VCO2 − 3.21 VO2</td>
-<td>1.67 VO2 − 1.67 VCO2</td>
+<td>4.55 VCO₂ − 3.21 VO₂</td>
+<td>1.67 VO₂ − 1.67 VCO₂</td>
 <td>Frayn (1983)</td>
 </tr>
 <tr>
 <td><code>"Peronnet"</code></td>
-<td>4.58519 VCO2 − 3.22597 VO2</td>
-<td>1.69469 VO2 − 1.70130 VCO2</td>
+<td>4.58519 VCO₂ − 3.22597 VO₂</td>
+<td>1.69469 VO₂ − 1.70130 VCO₂</td>
 <td>Péronnet &amp; Massicotte (1991), derived from Table 1</td>
 </tr>
 <tr>
 <td><code>"Jeukendrup"</code></td>
-<td>4.344 VCO2 − 3.061 VO2 (40–50 %VO2max)<br>4.210 VCO2 − 2.962 VO2 (50–75 %VO2max)</td>
-<td>1.695 VO2 − 1.701 VCO2</td>
+<td>4.344 VCO₂ − 3.061 VO₂ (40–50 %VO₂max)<br>4.210 VCO₂ − 2.962 VO₂ (50–75 %VO₂max)</td>
+<td>1.695 VO₂ − 1.701 VCO₂</td>
 <td>Jeukendrup &amp; Wallis (2005)</td>
 </tr>
 </tbody>
 </table>
-<p><code>"Jeukendrup"</code> needs VO2max to pick the CHO equation for each step. Energy expenditure (<code>Kcal</code>) is CHO × 4 + FAT × 9 kcal/min with <code>energy_equivalents = "classic"</code>, the default in 0.2.x; <code>"source"</code> uses the values of each equation’s source (Péronnet &amp; Massicotte 3.8683/9.7460 kcal/g, also for Frayn, who gives none; Jeukendrup &amp; Wallis 3.95 or 4.07/9.75 kcal/g). The default will change to <code>"source"</code> in 0.3.0. Always report which equation you used: differences are small for FAT but grow for CHO and the crossover point.</p>
+<p><code>"Jeukendrup"</code> needs VO₂max to pick the CHO equation for each step. Energy expenditure (<code>Kcal</code>) is CHO × 4 + FAT × 9 kcal/min with <code>energy_equivalents = "classic"</code>, the default in 0.2.x; <code>"source"</code> uses the values of each equation’s source (Péronnet &amp; Massicotte 3.8683/9.7460 kcal/g, also for Frayn, who gives none; Jeukendrup &amp; Wallis 3.95 or 4.07/9.75 kcal/g). The default will change to <code>"source"</code> in 0.3.0. Always report which equation you used: differences are small for FAT but grow for CHO and the crossover point.</p>
 </div>
 <div class="section level3">
 <h3 id="locating-mfo-and-fatmax">Locating MFO and Fatmax<a class="anchor" aria-label="anchor" href="#locating-mfo-and-fatmax"></a>
 </h3>
-<p>Each step contributes one point (FAT, %VO2max). <code>method</code> chooses how the maximum is located:</p>
+<p>Each step contributes one point (FAT, %VO₂max). <code>method</code> chooses how the maximum is located:</p>
 <ul>
 <li>
-<strong><code>"P3"</code></strong> (default): third-degree polynomial <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">F</mi><mi mathvariant="normal">A</mi><mi mathvariant="normal">T</mi></mrow><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>a</mi><mo>+</mo><mi>b</mi><mi>x</mi><mo>+</mo><mi>c</mi><msup><mi>x</mi><mn>2</mn></msup><mo>+</mo><mi>d</mi><msup><mi>x</mi><mn>3</mn></msup></mrow><annotation encoding="application/x-tex">\mathrm{FAT}(x) = a + bx + cx^2 + dx^3</annotation></semantics></math>, with <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math> = %VO2max. Fatmax is the root of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mo>+</mo><mn>2</mn><mi>c</mi><mi>x</mi><mo>+</mo><mn>3</mn><mi>d</mi><msup><mi>x</mi><mn>2</mn></msup><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">b + 2cx + 3dx^2 = 0</annotation></semantics></math> that lies within the measured range and gives the highest FAT. Falls back to P2 with a warning if the cubic cannot be fitted.</li>
+<strong><code>"P3"</code></strong> (default): third-degree polynomial <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">F</mi><mi mathvariant="normal">A</mi><mi mathvariant="normal">T</mi></mrow><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>a</mi><mo>+</mo><mi>b</mi><mi>x</mi><mo>+</mo><mi>c</mi><msup><mi>x</mi><mn>2</mn></msup><mo>+</mo><mi>d</mi><msup><mi>x</mi><mn>3</mn></msup></mrow><annotation encoding="application/x-tex">\mathrm{FAT}(x) = a + bx + cx^2 + dx^3</annotation></semantics></math>, with <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math> = %VO₂max. Fatmax is the root of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>b</mi><mo>+</mo><mn>2</mn><mi>c</mi><mi>x</mi><mo>+</mo><mn>3</mn><mi>d</mi><msup><mi>x</mi><mn>2</mn></msup><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">b + 2cx + 3dx^2 = 0</annotation></semantics></math> that lies within the measured range and gives the highest FAT. Falls back to P2 with a warning if the cubic cannot be fitted.</li>
 <li>
 <strong><code>"P2"</code></strong>: parabola, Fatmax <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>=</mo><mi>−</mi><mi>b</mi><mi>/</mi><mn>2</mn><mi>c</mi></mrow><annotation encoding="application/x-tex">= -b / 2c</annotation></semantics></math>. More stable with few steps, but forces a symmetric curve.</li>
 <li>
@@ -233,7 +249,7 @@
 <li>
 <strong>t (translation)</strong>: t &gt; 0 shifts the whole curve to the left.</li>
 </ul>
-<p>With d = 0, s = 1 and t = 0 the curve is a half sine wave peaking at 50 %VO2max.</p>
+<p>With d = 0, s = 1 and t = 0 the curve is a half sine wave peaking at 50 %VO₂max.</p>
 <p>Fatmax and Fatmin follow in closed form from the equation: Fatmax = [(π + 2d)·2^(−1/s) − d − t]/K and Fatmin, the second zero of the curve, = (π + d − t)/K (<code>fatmin_threshold</code> gives a threshold instead, e.g. 0.05 of MFO). Chenevière et al. fitted only exercise steps with RER ≤ 1.0: <code>RER_cutoff = 1</code> reproduces that selection, and <code>include_basal = TRUE</code> departs from it. The SIN is sensitive to how the last step is handled (<code>negative_FAT</code>); see <code><a href="reference/MFO_kinetics.html">?MFO_kinetics</a></code>.</p>
 </div>
 <div class="section level3">
@@ -279,7 +295,7 @@
 </tr>
 <tr>
 <td><code>FAT_MAX</code></td>
-<td>%VO2max</td>
+<td>%VO₂max</td>
 <td>Intensity eliciting MFO</td>
 </tr>
 <tr>
@@ -296,12 +312,12 @@
 <td>
 <code>FatMax_zone_lower</code>, <code>FatMax_zone_upper</code>
 </td>
-<td>%VO2max</td>
+<td>%VO₂max</td>
 <td>Fatmax zone</td>
 </tr>
 <tr>
 <td><code>crossover_point</code></td>
-<td>%VO2max</td>
+<td>%VO₂max</td>
 <td>Intensity where CHO &gt; FAT</td>
 </tr>
 <tr>
@@ -337,7 +353,7 @@
 <li>
 <strong>SIN parameters from v0.2.0 and earlier</strong> are not comparable with Chenevière et al. or with the development version: the old code computed <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><msup><mi>π</mi><mrow><mn>1</mn><mi>/</mi><mi>s</mi></mrow></msup><mi>/</mi><mi>π</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mn>2</mn><mi>d</mi></mrow><annotation encoding="application/x-tex">(\pi^{1/s}/\pi) + 2d</annotation></semantics></math> instead of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>π</mi><mrow><mn>1</mn><mi>/</mi><mi>s</mi></mrow></msup><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mi>π</mi><mo>+</mo><mn>2</mn><mi>d</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\pi^{1/s}/(\pi + 2d)</annotation></semantics></math>, fitted a P3-smoothed grid and used a 5 % threshold for <code>Fatmin</code>. Fixed in the development version.</li>
 <li>
-<strong><code>method = "MRER"</code> in v0.2.0</strong> took the observed maximum of 1.7 (1 − RER) VO2, a measured-values method. The development version implements the two-regression MRER of Chenevière et al. (2009) and adds <code>method = "MV"</code>.</li>
+<strong><code>method = "MRER"</code> in v0.2.0</strong> took the observed maximum of 1.7 (1 − RER) VO₂, a measured-values method. The development version implements the two-regression MRER of Chenevière et al. (2009) and adds <code>method = "MV"</code>.</li>
 <li>The <strong>resting row</strong> is not used in the curve fit unless <code>include_basal = TRUE</code> (development version).</li>
 </ul>
 </div>

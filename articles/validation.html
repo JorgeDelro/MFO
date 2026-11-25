@@ -35,6 +35,10 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/mfo-workflow.html">From gas exchange to Fatmax</a></li>
     <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Using the app</h6></li>
+    <li><a class="dropdown-item" href="../articles/app.html">Using the app</a></li>
+    <li><a class="dropdown-item" href="../articles/app-manual.html">App manual</a></li>
+    <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Bayesian fit</h6></li>
     <li><a class="dropdown-item" href="../articles/bayes.html">Bayesian fit of the fat oxidation curve</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -82,7 +86,7 @@ hour, so it is not run when the article is built.</p>
 </h2>
 <p>Each simulated test comes from <code><a href="../reference/simulate_MFO_sessions.html">simulate_MFO_sessions()</a></code>:
 one participant from the default population (sedentary adults,
-Amaro-Gahete et al. 2018), VO2max 3000 ± 400 mL/min, fat oxidation
+Amaro-Gahete et al. 2018), VO₂max 3000 ± 400 mL/min, fat oxidation
 following a SIN curve (Chenevière et al. 2009) and an error on the fat
 oxidation of each step with standard deviation equal to a proportion of
 MFO (the noise CV, SPEC 17). The grid crosses the method (P3, P2, MRER),
@@ -191,21 +195,21 @@ parabola with 8 steps and independent normal errors (500 tests, B =
 <code>"bootstrap"</code> (modified residuals)</td>
 <td>0.882</td>
 <td>0.892</td>
-<td>1.93 %VO2max</td>
+<td>1.93 %VO₂max</td>
 </tr>
 <tr class="even">
 <td>
 <code>"parametric"</code>, fixed sigma (first version)</td>
 <td>0.892</td>
 <td>0.896</td>
-<td>1.95 %VO2max</td>
+<td>1.95 %VO₂max</td>
 </tr>
 <tr class="odd">
 <td>
 <code>"parametric"</code>, sigma drawn (current)</td>
 <td>0.944</td>
 <td>0.954</td>
-<td>2.54 %VO2max</td>
+<td>2.54 %VO₂max</td>
 </tr>
 </tbody>
 </table>
@@ -825,7 +829,7 @@ the P2 warning on a vertex outside the measured range.</p>
 </table>
 <p>Tests counts below 200 are tests in which the fit fell back to
 another method (P3 to P2, MRER to MV), which gives no interval. The bias
-is the mean estimate minus the truth (%VO2max for Fatmax, % of MFO for
+is the mean estimate minus the truth (%VO₂max for Fatmax, % of MFO for
 MFO).</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">ggplot</span><span class="op">(</span><span class="va">cov</span><span class="op">[</span><span class="va">cov</span><span class="op">$</span><span class="va">ci</span> <span class="op">==</span> <span class="st">"bootstrap"</span>, <span class="op">]</span>, <span class="fu">aes</span><span class="op">(</span><span class="va">steps</span>, <span class="va">bias_fatmax</span>, colour <span class="op">=</span> <span class="va">method</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -844,7 +848,7 @@ MFO).</p>
 highest observed step (Chenevière et al. 2009) or in g/min with MFO as a
 fourth parameter (<code>fit = "absolute"</code>). Same simulated
 participants for both tables: 8 steps, trained shape (d 0.18, s 1.52),
-MFO 0.4 g/min, Fatmax 45 ± 8 %VO2max.</p>
+MFO 0.4 g/min, Fatmax 45 ± 8 %VO₂max.</p>
 <p><strong>Bias and typical error</strong>
 (<code>inst/validation/sin_noise.R</code>; 200 tests per noise level;
 bias = median error, typical error = median absolute error; for the
@@ -877,7 +881,7 @@ normalised fit MFO is the highest observed step):</p>
 </tr>
 <tr class="even">
 <td>5 %</td>
-<td>Fatmax (%VO2max)</td>
+<td>Fatmax (%VO₂max)</td>
 <td>−0.05</td>
 <td>1.56</td>
 <td>−0.01</td>
@@ -885,7 +889,7 @@ normalised fit MFO is the highest observed step):</p>
 </tr>
 <tr class="odd">
 <td>5 %</td>
-<td>Fatmin (%VO2max)</td>
+<td>Fatmin (%VO₂max)</td>
 <td>−0.39</td>
 <td>2.72</td>
 <td>+0.01</td>
@@ -909,7 +913,7 @@ normalised fit MFO is the highest observed step):</p>
 </tr>
 <tr class="even">
 <td>10 %</td>
-<td>Fatmax (%VO2max)</td>
+<td>Fatmax (%VO₂max)</td>
 <td>+0.36</td>
 <td>2.82</td>
 <td>+0.44</td>
@@ -917,7 +921,7 @@ normalised fit MFO is the highest observed step):</p>
 </tr>
 <tr class="odd">
 <td>10 %</td>
-<td>Fatmin (%VO2max)</td>
+<td>Fatmin (%VO₂max)</td>
 <td>−1.18</td>
 <td>4.09</td>
 <td>−0.19</td>
@@ -940,7 +944,7 @@ and t are not interpreted one by one with real data; Fatmax, Fatmin and
 MFO are.</strong></p>
 <p><strong>Coverage of the parametric intervals</strong>
 (<code>inst/validation/sin_coverage.R</code>; B = 1000; 200 tests per
-cell; median width in brackets, %VO2max for Fatmax and Fatmin, g/min for
+cell; median width in brackets, %VO₂max for Fatmax and Fatmin, g/min for
 MFO_SIN):</p>
 <table class="table">
 <thead><tr class="header">
@@ -999,7 +1003,7 @@ MFO_SIN):</p>
 covers close to 95 %; the normalised one falls short and gets worse with
 noise, because its intervals are centred on the bias of the
 normalisation. The intervals are wide: even at 5 % noise the SIN locates
-Fatmax within about ± 5 %VO2max.</p>
+Fatmax within about ± 5 %VO₂max.</p>
 </div>
 <div class="section level2">
 <h2 id="what-to-use">What to use<a class="anchor" aria-label="anchor" href="#what-to-use"></a>
@@ -1016,7 +1020,7 @@ curvature is close to 0 and can fall far outside the measured
 intensities. The warning of a vertex outside the measured range is the
 signal; <code><a href="../reference/MFO.html">MFO()</a></code> also flags the interval then.</li>
 <li>
-<strong>MRER</strong> overestimates Fatmax by 3-4 %VO2max and MFO by
+<strong>MRER</strong> overestimates Fatmax by 3-4 %VO₂max and MFO by
 3-7 % against SIN curves, and its interval is centred on that bias. It
 is kept for comparability with published studies, not as the main
 method.</li>

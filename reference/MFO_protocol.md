@@ -43,7 +43,7 @@ MFO_protocol(
     5-min first step followed by 3-min steps.
 
   - \`"relative"\`: fixed-duration steps whose load is prescribed
-    relative to body mass (W/kg), as in the relative power FATmax test
+    relative to body mass (W/kg), as in the relative power Fatmax test
     of postmenopausal females (2026,
     <https://pmc.ncbi.nlm.nih.gov/articles/PMC13315815/>). Steps are cut
     as in \`"step"\`; the load unit is \`"W/kg"\`.
@@ -64,7 +64,7 @@ MFO_protocol(
     Sports Med Health Sci 8(3): 327-334,
     [doi:10.1016/j.smhs.2025.02.004](https://doi.org/10.1016/j.smhs.2025.02.004)
     ). Steps are cut as in \`"step"\` up to \`cut_time\`; the records
-    after it are the graded test, used for VO2max when \`db_graded\` and
+    after it are the graded test, used for VO₂max when \`db_graded\` and
     \`VO2max\` are not given. Automatic detection of the phases belongs
     to the importers (SPEC 16).
 
@@ -112,6 +112,17 @@ MFO_protocol(
 ## Value
 
 An object of class \`MFO_protocol\`: a list with the arguments above.
+
+## Warnings and messages
+
+Every warning and message of this function is a classed condition:
+\`mfo_warning\_\<id\>\` and \`mfo_warning\` (or \`mfo_message\_\<id\>\`
+and \`mfo_message\`), with the numbers of the text as fields (for
+example \`mfo_warning_negative_fat\` has \`n\`, the number of steps).
+The text is English; the classes let a program, such as \[run_app()\],
+handle a given warning or word it in another language:
+\`withCallingHandlers(expr, mfo_warning_negative_fat = function(w)
+w\$n)\`.
 
 ## See also
 

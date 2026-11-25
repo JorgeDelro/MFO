@@ -1,7 +1,7 @@
 # Basal test dataframe
 
 Synthetic breath-by-breath data from a 15-minute resting metabolic
-assessment. Simulates a moderately trained male cyclist (VO2max ~3200
+assessment. Simulates a moderately trained male cyclist (VO₂max ~3200
 mL/min) with an initial stabilization period followed by steady-state
 resting metabolism.
 

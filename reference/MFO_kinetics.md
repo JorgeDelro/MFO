@@ -76,10 +76,10 @@ Returns a list which contains:
 - s: symmetry parameter (controls curve shape asymmetry; \<1 left-skew,
   \>1 right-skew).
 
-- Fatmin: exercise intensity (% VO2max) at the second zero of the curve,
+- Fatmin: exercise intensity (% VO₂max) at the second zero of the curve,
   or at \`fatmin_threshold\` of MFO if given.
 
-- FatMax_SIN: exercise intensity (% VO2max) at peak fat oxidation from
+- FatMax_SIN: exercise intensity (% VO₂max) at peak fat oxidation from
   SIN model.
 
 - R_squared: R-squared of the SIN model fit (on the fitted scale:
@@ -112,7 +112,7 @@ The model is equation \\14\\ of Cheneviere et al. (2009, Med Sci Sports
 Exerc 41: 1615-1625, p. 1618,
 [doi:10.1249/MSS.0b013e31819e2f91](https://doi.org/10.1249/MSS.0b013e31819e2f91)
 ): \$\$\\MFO = \sin\\\[\pi^{1/s} / (\pi + 2d) \cdot (Kx + d + t)\]^s\\,
-\quad K = \pi/100,\$\$ x in % VO2max. Up to v0.2.0 the package computed
+\quad K = \pi/100,\$\$ x in % VO₂max. Up to v0.2.0 the package computed
 (pi^(1/s)/pi) + 2d, so its \`d\` (and \`t\`) are not comparable with
 published values (SPEC 6.5, 19).
 
@@ -150,15 +150,15 @@ fitted exercise steps only, and averaged only steps with RER \<= 1.0:
 
 The SIN is sensitive to the last steps because the curve must reach
 zero: in the example data (\`author = "Frayn"\`) the last step (74.7 %
-VO2max, RER 1.03) has negative fat oxidation.
+VO₂max, RER 1.03) has negative fat oxidation.
 
 - \`negative_FAT = "truncate"\` (default) sets it to 0 and that point
   anchors the second zero: d = -0.385, s = 0.910, t = 0.355, FatMax_SIN
-  = 36.2, Fatmin = 76.4 % VO2max.
+  = 36.2, Fatmin = 76.4 % VO₂max.
 
 - \`negative_FAT = "exclude"\` or \`RER_cutoff = 1\` drops it: d =
   -0.440, s = 0.539, t = 0.023, FatMax_SIN = 33.2, Fatmin = 85.3 %
-  VO2max.
+  VO₂max.
 
 Report which option was used when publishing SIN parameters.
 
@@ -186,7 +186,7 @@ Fatmax. It needs at least 5 steps. With noise it removes most of the
 bias but not the spread of d, Fatmax and Fatmin; MFO improves in both.
 With a FAT error of 5 % of MFO (200 simulated tests, trained shape) the
 median error of d went from -0.12 (normalised) to -0.02 (absolute) and
-that of Fatmin from -0.39 to +0.01 % VO2max, with similar median
+that of Fatmin from -0.39 to +0.01 % VO₂max, with similar median
 absolute errors (d 0.40 and 0.37); MFO (highest observed step vs
 \`MFO_SIN\`) from +0.010 to +0.002 g/min, median absolute error 0.013
 and 0.008. Full table in \`vignette("validation")\`. It is started from
@@ -203,6 +203,17 @@ errors (Gelman et al. 2013, ch. 14); \`"bootstrap"\` resamples modified
 residuals r / sqrt(1 - h), with h the leverage from the gradient J of
 the fit, diag(J (J'J)^-1 J') (Davison & Hinkley 1997, 7.4). Replicates
 that do not converge are dropped and counted.
+
+## Warnings and messages
+
+Every warning and message of this function is a classed condition:
+\`mfo_warning\_\<id\>\` and \`mfo_warning\` (or \`mfo_message\_\<id\>\`
+and \`mfo_message\`), with the numbers of the text as fields (for
+example \`mfo_warning_negative_fat\` has \`n\`, the number of steps).
+The text is English; the classes let a program, such as \[run_app()\],
+handle a given warning or word it in another language:
+\`withCallingHandlers(expr, mfo_warning_negative_fat = function(w)
+w\$n)\`.
 
 ## Examples
 

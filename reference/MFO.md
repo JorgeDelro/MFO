@@ -1,7 +1,7 @@
-# Maximal Fat Oxidation & FatMax Function
+# Maximal Fat Oxidation & Fatmax Function
 
 Calculate Maximal Fat Oxidation (MFO), the exercise intensity that
-elicits MFO (FatMax), the FatMax zone, and the crossover point. Supports
+elicits MFO (Fatmax), the Fatmax zone, and the crossover point. Supports
 multiple methods to locate MFO (P3, P2, MV, MRER) and stoichiometric
 equations (Frayn, Jeukendrup, Peronnet).
 
@@ -48,7 +48,7 @@ MFO(
 - db_MFO:
 
   database containing MFO test. An optional \`Load\` column (W or km/h,
-  in the unit of \`protocol\`) is averaged per step like VO2 and gives
+  in the unit of \`protocol\`) is averaged per step like VO₂ and gives
   Fatmax and the Fatmax zone in load units.
 
 - db_basal:
@@ -57,8 +57,8 @@ MFO(
 
 - db_graded:
 
-  database containing incremental exercise test (optional if VO2max
-  provided). VO2max is the highest mean VO2 over \`vo2max_window\`
+  database containing incremental exercise test (optional if VO₂max
+  provided). VO₂max is the highest mean VO₂ over \`vo2max_window\`
   seconds of consecutive records.
 
 - cv_var:
@@ -69,13 +69,13 @@ MFO(
 - author:
 
   author to estimate MFO. Can be: "Frayn", "Jeukendrup" or "Peronnet".
-  "Jeukendrup" warns when an exercise step is outside 40-75 % VO2max,
+  "Jeukendrup" warns when an exercise step is outside 40-75 % VO₂max,
   the range of Jeukendrup & Wallis (2005, Table 5); the resting row
   never warns.
 
 - VO2max:
 
-  VO2max can be passed directly (ml/min) instead of using db_graded, or
+  VO₂max can be passed directly (ml/min) instead of using db_graded, or
   as the result of \[VO2max_from_test()\] (to set its thresholds or
   HRmax equation). If both are given, \`VO2max\` is used as is and
   \`db_graded\` is ignored with a warning.
@@ -123,11 +123,11 @@ MFO(
 
 - HRmax:
 
-  maximum heart rate in bpm (optional, for FatMax as %HRmax).
+  maximum heart rate in bpm (optional, for Fatmax as %HRmax).
 
 - vo2max_window:
 
-  averaging window in seconds for VO2max from \`db_graded\` (default
+  averaging window in seconds for VO₂max from \`db_graded\` (default
   30). If it is not a multiple of \`step_time\`, the number of records
   is rounded up (30 s with 20-s records uses 2 records = 40 s). See SPEC
   9.5 and 14.
@@ -161,7 +161,7 @@ MFO(
   \`FALSE\` (default, as in v0.2.0) they are dropped. With \`TRUE\` that
   incomplete step is used only if it lasts at least
   \`steady_state_duration\`; its last \`steady_state_duration\` s are
-  averaged, as for complete steps, although VO2 may not have reached its
+  averaged, as for complete steps, although VO₂ may not have reached its
   plateau. See SPEC 9.5.
 
 - min_steps:
@@ -183,7 +183,7 @@ MFO(
 - age:
 
   age in years (optional), for the heart-rate criterion of
-  \[VO2max_from_test()\] when VO2max comes from \`db_graded\`. Without
+  \[VO2max_from_test()\] when VO₂max comes from \`db_graded\`. Without
   it that criterion is not evaluated and a message says so once per
   session.
 
@@ -235,15 +235,15 @@ Returns a list which contains:
 - MFO_FFM: MFO relative to fat-free mass (mg/kgFFM/min), if
   fat_free_mass provided.
 
-- FAT_MAX: Intensity that elicits MFO (% VO2max).
+- FAT_MAX: Intensity that elicits MFO (% VO₂max).
 
-- FAT_MAX_HR: Heart rate at FatMax (bpm), interpolated from data.
+- FAT_MAX_HR: Heart rate at Fatmax (bpm), interpolated from data.
 
-- FAT_MAX_porcHRmax: FatMax as % HRmax, if HRmax provided.
+- FAT_MAX_porcHRmax: Fatmax as % HRmax, if HRmax provided.
 
-- FatMax_zone_lower: Lower bound of FatMax zone (% VO2max).
+- FatMax_zone_lower: Lower bound of Fatmax zone (% VO₂max).
 
-- FatMax_zone_upper: Upper bound of FatMax zone (% VO2max).
+- FatMax_zone_upper: Upper bound of Fatmax zone (% VO₂max).
 
 - FatMax_zone_method: "fitted curve", or "linear interpolation" for
   \`method = "MV"\`.
@@ -253,7 +253,7 @@ Returns a list which contains:
 
 - HRmax: \`HRmax\` as given (\`NA\` if not given).
 
-- HR_peak: highest mean HR in \`db_graded\` over the VO2max window (bpm;
+- HR_peak: highest mean HR in \`db_graded\` over the VO₂max window (bpm;
   \`NA\` without \`db_graded\`, without HR, or with a numeric
   \`VO2max\`). Used by \[MFO_zones()\].
 
@@ -264,7 +264,7 @@ Returns a list which contains:
 
 - load_source: "file", "protocol" or "none".
 
-- crossover_point: Intensity at which CHO \> FAT (% VO2max).
+- crossover_point: Intensity at which CHO \> FAT (% VO₂max).
 
 - R_squared: R-squared of the fitted model (\`NA\` for "MV").
 
@@ -280,16 +280,16 @@ Returns a list which contains:
 
 - author: stoichiometric equation used.
 
-- VO2max: VO2max used to express intensity (ml/min).
+- VO2max: VO₂max used to express intensity (ml/min).
 
-- VO2max_window: effective averaging window for VO2max (s); NA if VO2max
+- VO2max_window: effective averaging window for VO₂max (s); NA if VO₂max
   was supplied.
 
 - VO2max_window_requested: \`vo2max_window\` as requested (s); NA if
-  VO2max was supplied.
+  VO₂max was supplied.
 
 - VO2max_type: "VO2max" or "VO2peak" from the maximality criteria of
-  \[VO2max_from_test()\]; NA if a number was supplied as VO2max.
+  \[VO2max_from_test()\]; NA if a number was supplied as VO₂max.
 
 - VO2max_criteria: data frame of those criteria (NULL if a number was
   supplied).
@@ -331,7 +331,7 @@ errors (SPEC 13.1), and the interval is the percentile one.
   (X'X)^-1 X'), and centred (Davison & Hinkley 1997, Bootstrap Methods
   and their Application, ch. 6).
 
-For \`"MRER"\` its two regressions, 1 - RER and VO2 on % VO2max, are
+For \`"MRER"\` its two regressions, 1 - RER and VO₂ on % VO₂max, are
 handled separately. Replicates in which the fit falls back to another
 method (e.g. P3 to P2) are dropped and counted.
 
@@ -344,7 +344,7 @@ tests, B = 500) the 95 % intervals covered Fatmax 94.4 %
 P(\|t_5\| \< 1.96) = 0.893.
 
 \*\*MRER.\*\* Against SIN-shaped curves (the truth of the simulation
-study), MRER overestimated Fatmax by 3-4 % VO2max and MFO by 3-7 %, and
+study), MRER overestimated Fatmax by 3-4 % VO₂max and MFO by 3-7 %, and
 its interval is centred on that bias, so it covered the true Fatmax in
 only 48-74 % of tests. It is kept for comparability with the literature
 and is not recommended as the main method. The study takes SIN curves as
@@ -359,8 +359,8 @@ that warning is the signal.
 
 This is the uncertainty of the fit within one test, not the day-to-day
 error (see \[MFO_reliability()\]). It assumes exchangeable residuals;
-fat oxidation errors grow with intensity (FAT is about 1.67 (VO2 -
-VCO2), which amplifies the error of VCO2), so the interval is
+fat oxidation errors grow with intensity (FAT is about 1.67 (VO₂ -
+VCO₂), which amplifies the error of VCO₂), so the interval is
 approximate. A wild bootstrap (Wu 1986, Ann Stat 14(4): 1261-1295,
 [doi:10.1214/aos/1176350142](https://doi.org/10.1214/aos/1176350142) )
 would allow for it, but with 6-10 steps and two-point weights it can
@@ -373,7 +373,7 @@ over the averaged segment) when \`db_MFO\` has a \`Load\` column;
 otherwise the load schedule of \`protocol\` (\`load_start + (Step - 1)
 \* load_increment\`); otherwise \`NA\` (\`load_source\` says which).
 Fatmax and the Fatmax zone are converted to load units by linear
-interpolation of Load against % VO2max between steps, as HR at Fatmax.
+interpolation of Load against % VO₂max between steps, as HR at Fatmax.
 With \`MFO_protocol("relative")\` a \`Load\` column is taken as W and
 divided by \`body_mass\` to give W/kg; without \`body_mass\` it stays in
 W with a warning. Up to v0.2.1 \`Load\` was a synthetic step label. See
@@ -398,7 +398,7 @@ checking (SPEC 9.5, 14):
 
 ## Methods
 
-- \`"P3"\`, \`"P2"\`: least-squares polynomial of FAT on % VO2max;
+- \`"P3"\`, \`"P2"\`: least-squares polynomial of FAT on % VO₂max;
   Fatmax is the maximum of the fitted curve within the measured range
   (SPEC 6.2, 6.3).
 
@@ -410,19 +410,30 @@ checking (SPEC 9.5, 14):
 
 - \`"MRER"\`: procedure of Cheneviere et al. (2009, p. 1617,
   [doi:10.1249/MSS.0b013e31819e2f91](https://doi.org/10.1249/MSS.0b013e31819e2f91)
-  ), after Perez-Martin et al. (2001). (1 - RER) and VO2 are fitted as
-  straight lines of % VO2max, 1 - RER = a1 + b1 x and VO2 = a2 + b2 x,
-  so fat oxidation 1.7 (1 - RER) VO2 is a parabola whose vertex, x =
+  ), after Perez-Martin et al. (2001). (1 - RER) and VO₂ are fitted as
+  straight lines of % VO₂max, 1 - RER = a1 + b1 x and VO₂ = a2 + b2 x,
+  so fat oxidation 1.7 (1 - RER) VO₂ is a parabola whose vertex, x =
   -(a1 b2 + a2 b1) / (2 b1 b2), gives Fatmax, and its value MFO (g/min).
-  This uses the 1.7 (1 - RER) VO2 simplification of Peronnet &
+  This uses the 1.7 (1 - RER) VO₂ simplification of Peronnet &
   Massicotte whatever \`author\` is. If the parabola has no maximum or
   the vertex lies outside the measured range, \`"MV"\` is used with a
   warning. SPEC 3, 6.1.
 
 Up to v0.2.0, \`"MRER"\` returned the step with the highest observed 1.7
-(1 - RER) VO2, which is a measured-values method: use \`"MV"\` for that
+(1 - RER) VO₂, which is a measured-values method: use \`"MV"\` for that
 behaviour (same step; MFO from the \`author\` equation). SPEC 19,
 finding 4.
+
+## Warnings and messages
+
+Every warning and message of this function is a classed condition:
+\`mfo_warning\_\<id\>\` and \`mfo_warning\` (or \`mfo_message\_\<id\>\`
+and \`mfo_message\`), with the numbers of the text as fields (for
+example \`mfo_warning_negative_fat\` has \`n\`, the number of steps).
+The text is English; the classes let a program, such as \[run_app()\],
+handle a given warning or word it in another language:
+\`withCallingHandlers(expr, mfo_warning_negative_fat = function(w)
+w\$n)\`.
 
 ## Examples
 

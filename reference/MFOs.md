@@ -98,7 +98,7 @@ MFOs(
 
 - VO2max:
 
-  VO2max can be passed directly (ml/min). Default NULL. If given, it is
+  VO₂max can be passed directly (ml/min). Default NULL. If given, it is
   used for every participant and the graded databases are ignored.
 
 - step_duration:
@@ -138,11 +138,11 @@ MFOs(
 
 - col_name_VO2:
 
-  column name for VO2 in databases. Default "VO2".
+  column name for VO₂ in databases. Default "VO2".
 
 - col_name_VCO2:
 
-  column name for VCO2 in databases. Default "VCO2".
+  column name for VCO₂ in databases. Default "VCO2".
 
 - col_name_RER:
 
@@ -168,7 +168,7 @@ MFOs(
 
 - vo2max_window:
 
-  averaging window in seconds for VO2max from the graded database
+  averaging window in seconds for VO₂max from the graded database
   (default 30). See \[MFO()\].
 
 - include_basal:
@@ -204,7 +204,7 @@ MFOs(
 - age:
 
   age in years (optional), the same for every participant, for the
-  heart-rate criterion of VO2max. See \[MFO()\] and
+  heart-rate criterion of VO₂max. See \[MFO()\] and
   \[VO2max_from_test()\].
 
 - col_name_Load:
@@ -249,26 +249,26 @@ Data frame with one row per participant containing:
 - MFO_FFM: MFO relative to fat-free mass (mg/kgFFM/min), if
   fat_free_mass provided.
 
-- VO2max: VO2max used (ml/min).
+- VO2max: VO₂max used (ml/min).
 
-- VO2max_window: effective averaging window for VO2max (s); NA if VO2max
+- VO2max_window: effective averaging window for VO₂max (s); NA if VO₂max
   was supplied.
 
 - VO2max_type: "VO2max" or "VO2peak" (see \[VO2max_from_test()\]); NA if
-  VO2max was supplied.
+  VO₂max was supplied.
 
-- FAT_MAX_perVO2max: FatMax as % VO2max.
+- FAT_MAX_perVO2max: Fatmax as % VO₂max.
 
 - FAT_MAX_lower, FAT_MAX_upper, MFO_lower, MFO_upper: bootstrap
   confidence limits with \`ci = "bootstrap"\`, otherwise \`NA\`.
 
-- FAT_MAX_HR: Heart rate at FatMax (bpm).
+- FAT_MAX_HR: Heart rate at Fatmax (bpm).
 
-- FAT_MAX_porcHRmax: FatMax as % HRmax, if HRmax provided.
+- FAT_MAX_porcHRmax: Fatmax as % HRmax, if HRmax provided.
 
-- FatMax_zone_lower: Lower bound of FatMax zone (% VO2max).
+- FatMax_zone_lower: Lower bound of Fatmax zone (% VO₂max).
 
-- FatMax_zone_upper: Upper bound of FatMax zone (% VO2max).
+- FatMax_zone_upper: Upper bound of Fatmax zone (% VO₂max).
 
 - FatMax_zone_method: "fitted curve", or "linear interpolation" for
   "MV".
@@ -278,14 +278,14 @@ Data frame with one row per participant containing:
 
 - HRmax: \`HRmax\` as given (\`NA\` if not given).
 
-- HR_peak: highest mean HR of the graded test over the VO2max window
+- HR_peak: highest mean HR of the graded test over the VO₂max window
   (bpm); \`NA\` with a numeric \`VO2max\`. See \[MFO_zones()\].
 
 - FAT_MAX_load, FatMax_zone_lower_load, FatMax_zone_upper_load: Fatmax
   and Fatmax zone in load units; load_unit and load_source as in
   \[MFO()\].
 
-- crossover_point: Crossover intensity (% VO2max).
+- crossover_point: Crossover intensity (% VO₂max).
 
 - R_squared: R-squared of the curve fit.
 
@@ -307,9 +307,9 @@ Data frame with one row per participant containing:
 
 - s: SIN symmetry parameter.
 
-- Fatmin: Fatmin from SIN model (% VO2max).
+- Fatmin: Fatmin from SIN model (% VO₂max).
 
-- FatMax_SIN: FatMax from SIN model (% VO2max).
+- FatMax_SIN: Fatmax from SIN model (% VO₂max).
 
 - FatMax_SIN_lower, FatMax_SIN_upper, Fatmin_lower, Fatmin_upper:
   confidence limits of the SIN fit with \`ci\`, otherwise \`NA\`.

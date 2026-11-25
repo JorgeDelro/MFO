@@ -68,7 +68,7 @@ MFO_prior_check(
 
 An object of class \`MFO_prior_check\`: a list with \`draws\` (prior
 draws of the parameters and derived quantities), \`summary\` (quantiles
-5, 50 and 95 %), \`curves\` (ndraws curves on 0-100 % VO2max), \`data\`
+5, 50 and 95 %), \`curves\` (ndraws curves on 0-100 % VO₂max), \`data\`
 and \`model\`. \`plot()\` draws the curves.
 
 ## See also

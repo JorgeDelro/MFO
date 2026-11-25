@@ -15,12 +15,12 @@ Every number in the text is computed when the vignette is built.
 ## 1. What the test measures
 
 Fat oxidation is not measured directly; it is inferred from oxygen
-uptake (VO2) and carbon dioxide output (VCO2). Oxidising 1 g of glucose
+uptake (VO₂) and carbon dioxide output (VCO₂). Oxidising 1 g of glucose
 consumes 0.746 L of O2 and produces 0.746 L of CO2, a respiratory
 exchange ratio (RER) of 1.00; oxidising 1 g of fat consumes 2.03 L of O2
 and produces 1.43 L of CO2, an RER of about 0.70 ([Frayn
 1983](#ref-frayn1983), Table 1). Solving these two balances for the two
-unknowns gives the stoichiometric equations that turn VO2 and VCO2 into
+unknowns gives the stoichiometric equations that turn VO₂ and VCO₂ into
 grams of carbohydrate (CHO) and fat (FAT) oxidised per minute ([Frayn
 1983](#ref-frayn1983)). The package uses them with urinary nitrogen set
 to zero, i.e. it ignores protein oxidation. The inference fails at high
@@ -34,21 +34,21 @@ intensity, classically 3 min with 35 W increments ([Achten et al.
 used 3 min with 20 W. Plotted against intensity, fat oxidation rises,
 reaches a peak, the **maximal fat oxidation** rate (MFO, g/min), and
 falls towards zero. The intensity at the peak is **Fatmax**, expressed
-as %VO2max. In the sample of Achten et al. ([2002](#ref-achten2002))
-Fatmax was 64 %VO2max (74 %HRmax), and Fatmax usually lies between 45
-and 65 %VO2max ([Achten et al. 2002](#ref-achten2002); [Maunder et al.
+as %VO₂max. In the sample of Achten et al. ([2002](#ref-achten2002))
+Fatmax was 64 %VO₂max (74 %HRmax), and Fatmax usually lies between 45
+and 65 %VO₂max ([Achten et al. 2002](#ref-achten2002); [Maunder et al.
 2018](#ref-maunder2018)). The intensity at which fat oxidation becomes
-negligible is **Fatmin**: 89 ± 3 %VO2max in Achten et al.
-([2002](#ref-achten2002)) and 90.1 ± 14.1 %VO2max in Chenevière et al.
+negligible is **Fatmin**: 89 ± 3 %VO₂max in Achten et al.
+([2002](#ref-achten2002)) and 90.1 ± 14.1 %VO₂max in Chenevière et al.
 ([2009](#ref-cheneviere2009)), who defined it as the second zero of
 their SIN model.
 
 Achten et al. ([2002](#ref-achten2002)) also defined the **Fatmax
 zone**, the range of intensities at which fat oxidation is within 10 %
-of the peak rate (mean zone 55–72 %VO2max in their sample). The package
+of the peak rate (mean zone 55–72 %VO₂max in their sample). The package
 therefore needs three recordings per participant: a resting measurement
 (the basal state), the graded MFO test, and a maximal test (or a known
-VO2max) to express every step as %VO2max.
+VO₂max) to express every step as %VO₂max.
 
 ## 2. Input data
 
@@ -88,9 +88,9 @@ columns
 
 | Column | Unit         | Used for                        |
 |--------|--------------|---------------------------------|
-| `VO2`  | mL/min       | substrate oxidation, %VO2max    |
+| `VO2`  | mL/min       | substrate oxidation, %VO₂max    |
 | `VCO2` | mL/min       | substrate oxidation             |
-| `RER`  | — (VCO2/VO2) | basal window, `RER_cutoff`      |
+| `RER`  | — (VCO₂/VO2) | basal window, `RER_cutoff`      |
 | `HR`   | beats/min    | heart rate at Fatmax (optional) |
 
 An optional `Load` column (W or km/h) gives Fatmax and the Fatmax zone
@@ -109,9 +109,9 @@ whole pipeline in one call. Here each step is rebuilt by hand, with the
 same defaults: Frayn equations, 3-min steps, the last 60 s of each step,
 P3 fit.
 
-### 3.1 VO2max
+### 3.1 VO₂max
 
-VO2max is the highest rolling mean of VO2 in the maximal test over
+VO₂max is the highest rolling mean of VO₂ in the maximal test over
 `vo2max_window` seconds (default 30). With 20-s records a 30-s window is
 rounded up to 2 records (40 s). This averaging is a rule of the package.
 
@@ -184,7 +184,7 @@ the length of that incomplete step and drops it, unless
 
 ### 3.4 Stoichiometric equation
 
-With VO2 and VCO2 in L/min, the equations of Frayn
+With VO₂ and VCO₂ in L/min, the equations of Frayn
 ([1983](#ref-frayn1983)) (the default, `author = "Frayn"`) are
 
 ``` math
@@ -197,8 +197,8 @@ Péronnet and Massicotte ([1991](#ref-peronnet1991)) (4.58519 / 3.22597
 and 1.69469 / 1.70130), because the article prints no equation.
 `author = "Jeukendrup"` uses the exercise equations printed by
 Jeukendrup and Wallis ([2005](#ref-jeukendrup2005)) (Table 5), one CHO
-equation for 40–50 % and one for 50–75 %VO2max; it needs VO2max and
-warns for steps outside 40–75 %VO2max. The same equation is applied to
+equation for 40–50 % and one for 50–75 %VO₂max; it needs VO₂max and
+warns for steps outside 40–75 %VO₂max. The same equation is applied to
 the basal window.
 
 ``` r
@@ -228,13 +228,13 @@ Energy expenditure (`Kcal` in the output) uses 4 kcal/g CHO and 9 kcal/g
 fat with `energy_equivalents = "classic"`, the default in 0.2.x. With
 `"source"` it uses the values of the equation’s source: 3.8683 / 9.7460
 kcal/g ([Péronnet and Massicotte 1991](#ref-peronnet1991)), also for
-Frayn, who gives none, or 3.95 (40–50 %VO2max) / 4.07 (50–75 %VO2max)
+Frayn, who gives none, or 3.95 (40–50 %VO₂max) / 4.07 (50–75 %VO₂max)
 and 9.75 kcal/g ([Jeukendrup and Wallis 2005](#ref-jeukendrup2005),
 Table 5). MFO and Fatmax do not depend on this choice.
 
 ### 3.5 RER cutoff and negative fat oxidation
 
-With Frayn’s coefficients FAT = 1.67 VO2 (1 − RER), so any step with RER
+With Frayn’s coefficients FAT = 1.67 VO₂ (1 − RER), so any step with RER
 \> 1 gives a negative fat oxidation, which is an artefact. Two arguments
 handle it. `RER_cutoff` removes the steps above a threshold before
 anything else (section 6). `negative_FAT` decides what happens to the
@@ -255,7 +255,7 @@ By default the basal point is not part of the fit
 ### 3.6 Curve fit
 
 The default method, P3, fits a third-degree polynomial of FAT on
-%VO2max. Fatmax is the root of its derivative that gives the highest FAT
+%VO₂max. Fatmax is the root of its derivative that gives the highest FAT
 within the measured range, and MFO is the fitted FAT at that root.
 
 ``` r
@@ -318,7 +318,7 @@ all.equal(unname(hand), unname(package))
 ```
 
 The warning reports the step with RER \> 1 that was truncated (3.5); the
-message reports the effective VO2max window (3.1). `res$MFO_db` is the
+message reports the effective VO₂max window (3.1). `res$MFO_db` is the
 step table that entered the fit: `Step` numbers the steps of the test
 and `Load` is the measured load of each step (W). `res$FAT_MAX_load`
 gives Fatmax in W, interpolated linearly between steps.
@@ -364,9 +364,9 @@ point.](mfo-workflow_files/figure-html/mfo-db-1.png)
   linearly between steps.
 - **MRER**: following Pérez-Martín et al.
   ([2001](#ref-perezmartin2001)), as described by Chenevière et al.
-  ([2009](#ref-cheneviere2009)), (1 − RER) and VO2 are fitted as
+  ([2009](#ref-cheneviere2009)), (1 − RER) and VO₂ are fitted as
   straight lines of intensity and Fatmax is the vertex of FAT = 1.7 (1 −
-  RER) VO2, whatever `author` says. It falls back to MV with a warning
+  RER) VO₂, whatever `author` says. It falls back to MV with a warning
   if the vertex is not a maximum inside the measured range. Until v0.2.0
   the method called `"MRER"` was in fact MV.
 
@@ -433,7 +433,7 @@ curve, normalised to %MFO, with a sine function of three parameters
 ```
 
 With d = 0, s = 1 and t = 0 it is a half sine wave with its peak at 50
-%VO2max and zeros at 0 and 100 %VO2max. **d** (dilatation) widens (d \>
+%VO₂max and zeros at 0 and 100 %VO₂max. **d** (dilatation) widens (d \>
 0) or narrows (d \< 0) the curve; **s** (symmetry) skews it: s \> 1 is a
 rightward asymmetry and 0 \< s \< 1 a leftward one ([Chenevière et al.
 2009](#ref-cheneviere2009)); **t** (translation) shifts the whole curve
@@ -584,7 +584,7 @@ knitr::kable(data.frame(
 | FALSE         |    8 | 0.317 | 36.170 | 0.971 |     36.182 |
 | TRUE          |    9 | 0.322 | 36.112 | 0.975 |     35.851 |
 
-## 7. Protocols, load and VO2max
+## 7. Protocols, load and VO₂max
 
 ### 7.1 Describing the protocol
 
@@ -621,8 +621,8 @@ all.equal(r_var$MFO_db$VO2, res$MFO_db$VO2[2:8])
 ### 7.2 Load and Fatmax in watts
 
 The example test has a `Load` column (25 W in the first stage, +25 W per
-stage), averaged per step like VO2. Fatmax and the Fatmax zone are
-converted to watts by linear interpolation of load against %VO2max
+stage), averaged per step like VO₂. Fatmax and the Fatmax zone are
+converted to watts by linear interpolation of load against %VO₂max
 between steps, as heart rate at Fatmax:
 
 ``` r
@@ -662,13 +662,13 @@ c(r_sched$load_source, round(r_sched$FAT_MAX_load, 1))
 With `MFO_protocol("relative")` a `Load` column in W is divided by
 `body_mass` and the results are in W/kg.
 
-### 7.3 VO2max or VO2peak
+### 7.3 VO₂max or VO₂peak
 
 [`VO2max_from_test()`](https://jorgedelro.github.io/MFO/reference/VO2max_from_test.md)
-takes the same rolling-mean VO2max as
+takes the same rolling-mean VO₂max as
 [`MFO()`](https://jorgedelro.github.io/MFO/reference/MFO.md) and checks
 whether the graded test was maximal with the criteria reviewed by Howley
-et al. ([1995](#ref-howley1995)): a plateau of VO2 between the last two
+et al. ([1995](#ref-howley1995)): a plateau of VO₂ between the last two
 stages (an increase below 150 mL/min, the threshold of Taylor et
 al. 1955 as reported by Howley et al. ([1995](#ref-howley1995))), the
 peak RER and the peak heart rate relative to the predicted HRmax (208 −
@@ -775,8 +775,8 @@ the same analysis to many participants and returns one row per
 participant. With `from = "folder"` each participant has a subfolder
 with three xlsx files; with `from = "files"` each participant has one
 xlsx file with three sheets. The example builds two participants in a
-temporary folder: P01 is the example data and P02 the same data with VO2
-and VCO2 scaled by 1.1 (same RER), so that the two rows differ.
+temporary folder: P01 is the example data and P02 the same data with VO₂
+and VCO₂ scaled by 1.1 (same RER), so that the two rows differ.
 
 ``` r
 
@@ -849,15 +849,15 @@ zones
 #>   Reference:   Amaro-Gahete 2018: Sedentary adults (n = 167)
 #>     MFO 0.32 g/min: no percentile
 #>     Fatmax 36.2 % VO2max: no percentile
-#>     Differences: mode: cycling (reference: treadmill walking; no percentile); method: P3 (reference: third-degree polynomial through (0;0), Croci et al. 2014); fasting: reference 5-6 h, not overnight
+#>     Differences: mode: cycling (reference: treadmill walking, no percentile); method: P3 (reference: third-degree polynomial through (0;0), Croci et al. 2014); fasting: reference 5-6 h, not overnight
 ```
 
-Fatmax and the limits of the Fatmax zone are given in % VO2max, in bpm
+Fatmax and the limits of the Fatmax zone are given in % VO₂max, in bpm
 (interpolated linearly between steps, as `FAT_MAX_HR`) and in % HRmax.
 The HRmax is, in this order, the `HRmax` you give (here or in
 [`MFO()`](https://jorgedelro.github.io/MFO/reference/MFO.md)), the peak
 HR measured in the graded test (`HR_peak`: the highest mean HR over the
-same window as VO2max, 40 s here) or, only if you ask with
+same window as VO₂max, 40 s here) or, only if you ask with
 `predicted_HRmax = TRUE` and `age`, the predicted HRmax of Tanaka et al.
 ([2001](#ref-tanaka2001)) (208 − 0.7 × age; `HRmax_formula = "fox"` for
 220 − age). `HRmax_source` says which one was used. Here it is the
@@ -879,9 +879,9 @@ example data: one participant walking (`MFO_protocol(mode = "walking")`)
 from
 [`simulate_MFO_sessions()`](https://jorgedelro.github.io/MFO/reference/simulate_MFO_sessions.md),
 whose MFO and Fatmax are drawn from its sedentary defaults, the mean and
-SD of the same Table 1 (0.34 ± 0.10 g/min, 44.2 ± 12.4 % VO2max). VO2max
+SD of the same Table 1 (0.34 ± 0.10 g/min, 44.2 ± 12.4 % VO₂max). VO₂max
 has no default and must be given; its value (2500 ml/min here) is
-arbitrary and does not change MFO in g/min or Fatmax in % VO2max. The
+arbitrary and does not change MFO in g/min or Fatmax in % VO₂max. The
 protocol is passed on to
 [`MFO()`](https://jorgedelro.github.io/MFO/reference/MFO.md), which is
 where the mode comes from.
@@ -909,7 +909,7 @@ knitr::kable(z[, c("MFO", "MFO_percentile_label", "FAT_MAX",
 |---:|:---|---:|:---|:---|---:|
 | 0.41 | P66 | 41.92 | P64 | Amaro-Gahete 2018: Sedentary young adult men | 41 |
 
-The simulated truth was MFO = 0.409 g/min and Fatmax = 42.2 % VO2max.
+The simulated truth was MFO = 0.409 g/min and Fatmax = 42.2 % VO₂max.
 The seed was chosen for a clean example. With other seeds (for example
 `seed = 15`) the simulated Fatmax lands on the last step, and
 [`MFO()`](https://jorgedelro.github.io/MFO/reference/MFO.md) warns that
@@ -978,8 +978,8 @@ knitr::kable(zo[, c("zone_lower_porcHRmax", "zone_upper_porcHRmax",
 range, `"partly overlaps"` or `"outside"`; read it with the numbers in %
 HRpeak next to it. The range refers to the **measured** HRpeak: with a
 predicted HRmax it is still shown, with a warning. % HRpeak is preferred
-to % VO2max in obesity because the HR–VO2 relation is more stable than a
-measured VO2max, which is often submaximal in these patients. The
+to % VO₂max in obesity because the HR–VO₂ relation is more stable than a
+measured VO₂max, which is often submaximal in these patients. The
 recommendation is only given when you ask for it with
 `population = "obesity"`; `body_fat` alone does not trigger it.
 

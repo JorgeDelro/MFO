@@ -29,6 +29,10 @@ physiology."></head><body>
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/mfo-workflow.html">From gas exchange to Fatmax</a></li>
     <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Using the app</h6></li>
+    <li><a class="dropdown-item" href="../articles/app.html">Using the app</a></li>
+    <li><a class="dropdown-item" href="../articles/app-manual.html">App manual</a></li>
+    <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Bayesian fit</h6></li>
     <li><a class="dropdown-item" href="../articles/bayes.html">Bayesian fit of the fat oxidation curve</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -98,7 +102,7 @@ physiology.</p>
 
 <dt id="arg-population">population<a class="anchor" aria-label="anchor" href="#arg-population"></a></dt>
 <dd><p>list with `VO2max` (mean and SD, mL/min; required) and
-optionally `MFO` (g/min) and `Fatmax` (% VO2max), each `c(mean, sd)`. An
+optionally `MFO` (g/min) and `Fatmax` (% VO₂max), each `c(mean, sd)`. An
 SD of 0 gives the same value to every participant.</p></dd>
 
 
@@ -120,7 +124,7 @@ Fatmax or `c(MFO = , Fatmax = )` (default 0).</p></dd>
 
 <dt id="arg-noise-cv-noise-cor">noise_cv, noise_cor<a class="anchor" aria-label="anchor" href="#arg-noise-cv-noise-cor"></a></dt>
 <dd><p>analyser noise per record: coefficient of
-variation of VO2 and VCO2 and their correlation (defaults 0).</p></dd>
+variation of VO₂ and VCO₂ and their correlation (defaults 0).</p></dd>
 
 
 <dt id="arg-fat-noise-cv">fat_noise_cv<a class="anchor" aria-label="anchor" href="#arg-fat-noise-cv"></a></dt>
@@ -138,7 +142,7 @@ as a proportion of MFO (default 0).</p></dd>
 
 
 <dt id="arg-intensity">intensity<a class="anchor" aria-label="anchor" href="#arg-intensity"></a></dt>
-<dd><p>% VO2max of the first and last step (default 20 and 75).</p></dd>
+<dd><p>% VO₂max of the first and last step (default 20 and 75).</p></dd>
 
 
 <dt id="arg-step-time">step_time<a class="anchor" aria-label="anchor" href="#arg-step-time"></a></dt>
@@ -147,7 +151,7 @@ and the averaged segment must be multiples of it.</p></dd>
 
 
 <dt id="arg-author">author<a class="anchor" aria-label="anchor" href="#arg-author"></a></dt>
-<dd><p>equation whose inverse gives VCO2: "Frayn" (default),
+<dd><p>equation whose inverse gives VCO₂: "Frayn" (default),
 "Jeukendrup" or "Peronnet". Analyse the data with the same `author` to
 recover the truth.</p></dd>
 
@@ -175,20 +179,20 @@ of the session is restored afterwards.</p></dd>
 </ul></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>**How a test is built.** Each participant has a true VO2max, MFO and curve
+    <p>**How a test is built.** Each participant has a true VO₂max, MFO and curve
 shape. Fat oxidation follows the SIN model of Cheneviere et al. (2009,
 <a href="https://doi.org/10.1249/MSS.0b013e31819e2f91" class="external-link">doi:10.1249/MSS.0b013e31819e2f91</a>
 ), FAT = MFO x SIN(x; d, s, t), truncated
-at 0, with x the step intensity (% VO2max); t is set so that the maximum
-falls at the participant's Fatmax. Each step has VO2 = x / 100 x VO2max and
-the VCO2 for which the `author` equation gives that FAT, so [MFO()] recovers
-the curve exactly when there is no noise. VO2 is constant within a step (no
+at 0, with x the step intensity (% VO₂max); t is set so that the maximum
+falls at the participant's Fatmax. Each step has VO₂ = x / 100 x VO₂max and
+the VCO₂ for which the `author` equation gives that FAT, so [MFO()] recovers
+the curve exactly when there is no noise. VO₂ is constant within a step (no
 on-kinetics). Steps are cut as in `protocol`, which also gives the load
 schedule (`Load` column only when `load_start` and `load_increment` are set).</p>
 <p>**Variability.** Three levels:</p><ul><li><p>between participants: MFO (log-normal), Fatmax (normal, truncated to
-  `intensity`) and VO2max (normal, positive) from `population`. The MFO and
+  `intensity`) and VO₂max (normal, positive) from `population`. The MFO and
   Fatmax defaults are the sedentary adults of Amaro-Gahete, Sanchez-Delgado
-  and Ruiz (2018): 0.34 +/- 0.10 g/min and 44.2 +/- 12.4 % VO2max. VO2max has
+  and Ruiz (2018): 0.34 +/- 0.10 g/min and 44.2 +/- 12.4 % VO₂max. VO₂max has
   no default and must be given.</p></li>
 <li><p>between sessions: each session multiplies the participant's MFO and
   Fatmax by log-normal factors with coefficients of variation `cv_MFO` and
@@ -202,9 +206,9 @@ schedule (`Load` column only when `load_start` and `load_increment` are set).</p
 <li><p>within a session, on fat oxidation: `fat_noise_cv` adds to the
   true FAT of each step a normal error with standard deviation
   `fat_noise_cv` x MFO (the CV of the step FAT around the true curve,
-  residual SD / MFO; SPEC 17). VCO2 is then solved from the noisy FAT, so
+  residual SD / MFO; SPEC 17). VCO₂ is then solved from the noisy FAT, so
   [MFO()] sees exactly that error.</p></li>
-<li><p>within a session, on the gases: every record of VO2 and VCO2 is
+<li><p>within a session, on the gases: every record of VO₂ and VCO₂ is
   multiplied by (1 + e), with e normal, standard deviation `noise_cv` and
   correlation `noise_cor` between the two gases. Small errors in the gases
   become large errors in FAT, which depends on their difference; there is
@@ -212,10 +216,10 @@ schedule (`Load` column only when `load_start` and `load_increment` are set).</p
 </ul><p>Both noises default to 0 (noiseless tests); studies of the fit
 uncertainty set them explicitly as design parameters.</p>
 <p>**Resting and graded tests.** Conveniences for [MFO()], not physiological
-claims: the resting measure lasts 15 min at 10 % VO2max with RER 0.80; the
-graded test has 60-s stages from 50 to 100 % VO2max with RER rising
-linearly from 0.90 to 1.15, so the last stage gives VO2max exactly. Heart
-rate rises linearly with % VO2max from `hr_rest` to the predicted HRmax of
+claims: the resting measure lasts 15 min at 10 % VO₂max with RER 0.80; the
+graded test has 60-s stages from 50 to 100 % VO₂max with RER rising
+linearly from 0.90 to 1.15, so the last stage gives VO₂max exactly. Heart
+rate rises linearly with % VO₂max from `hr_rest` to the predicted HRmax of
 Tanaka, Monahan and Seals (2001, <a href="https://doi.org/10.1016/s0735-1097%2800%2901054-8" class="external-link">doi:10.1016/s0735-1097(00)01054-8</a>
 ),
 208 - 0.7 x `age`.</p>
@@ -227,7 +231,7 @@ Contextualising maximal fat oxidation during exercise: determinants and
 normative values. Front Physiol 9: 1460, Table 1 (sedentary adults).
 <a href="https://doi.org/10.3389/fphys.2018.01460" class="external-link">doi:10.3389/fphys.2018.01460</a></p>
 <p>Chrzanowski-Smith OJ, Edinburgh RM, Thomas MP, et al. (2020). The
-day-to-day reliability of peak fat oxidation and FATMAX. Eur J Appl
+day-to-day reliability of peak fat oxidation and Fatmax. Eur J Appl
 Physiol 120: 1745-1759. <a href="https://doi.org/10.1007/s00421-020-04397-3" class="external-link">doi:10.1007/s00421-020-04397-3</a></p>
 <p>Croci I, Borrani F, Byrne NM, et al. (2014). Reproducibility of Fatmax and
 fat oxidation rates during exercise in recreationally trained males. PLoS

@@ -69,11 +69,11 @@ A data frame with 12 rows and 25 variables:
 
 - Fatmax_mean, Fatmax_sd:
 
-  Fatmax mean and SD, in % VO2max
+  Fatmax mean and SD, in % VO₂max
 
 - Fatmax_p20, Fatmax_p40, Fatmax_p60, Fatmax_p80:
 
-  Fatmax percentiles, in % VO2max
+  Fatmax percentiles, in % VO₂max
 
 - mode:
 

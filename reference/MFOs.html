@@ -25,6 +25,10 @@ Nothing is written to disk unless `output_dir` is given (see *Output files*)."><
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/mfo-workflow.html">From gas exchange to Fatmax</a></li>
     <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Using the app</h6></li>
+    <li><a class="dropdown-item" href="../articles/app.html">Using the app</a></li>
+    <li><a class="dropdown-item" href="../articles/app-manual.html">App manual</a></li>
+    <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Bayesian fit</h6></li>
     <li><a class="dropdown-item" href="../articles/bayes.html">Bayesian fit of the fat oxidation curve</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -144,7 +148,7 @@ same participant are stored in one file but in different sheets)</p></dd>
 
 
 <dt id="arg-vo-max">VO2max<a class="anchor" aria-label="anchor" href="#arg-vo-max"></a></dt>
-<dd><p>VO2max can be passed directly (ml/min). Default NULL. If given, it is used for
+<dd><p>VO₂max can be passed directly (ml/min). Default NULL. If given, it is used for
 every participant and the graded databases are ignored.</p></dd>
 
 
@@ -182,11 +186,11 @@ number or "classic", "safe", "sedentary", "trained". See [MFO()].</p></dd>
 
 
 <dt id="arg-col-name-vo-">col_name_VO2<a class="anchor" aria-label="anchor" href="#arg-col-name-vo-"></a></dt>
-<dd><p>column name for VO2 in databases. Default "VO2".</p></dd>
+<dd><p>column name for VO₂ in databases. Default "VO2".</p></dd>
 
 
 <dt id="arg-col-name-vco-">col_name_VCO2<a class="anchor" aria-label="anchor" href="#arg-col-name-vco-"></a></dt>
-<dd><p>column name for VCO2 in databases. Default "VCO2".</p></dd>
+<dd><p>column name for VCO₂ in databases. Default "VCO2".</p></dd>
 
 
 <dt id="arg-col-name-rer">col_name_RER<a class="anchor" aria-label="anchor" href="#arg-col-name-rer"></a></dt>
@@ -212,7 +216,7 @@ number or "classic", "safe", "sedentary", "trained". See [MFO()].</p></dd>
 
 
 <dt id="arg-vo-max-window">vo2max_window<a class="anchor" aria-label="anchor" href="#arg-vo-max-window"></a></dt>
-<dd><p>averaging window in seconds for VO2max from the graded database
+<dd><p>averaging window in seconds for VO₂max from the graded database
 (default 30). See [MFO()].</p></dd>
 
 
@@ -247,7 +251,7 @@ given, `step_duration` and `steady_state_duration` are not used. See [MFO()].</p
 
 <dt id="arg-age">age<a class="anchor" aria-label="anchor" href="#arg-age"></a></dt>
 <dd><p>age in years (optional), the same for every participant, for the
-heart-rate criterion of VO2max. See [MFO()] and [VO2max_from_test()].</p></dd>
+heart-rate criterion of VO₂max. See [MFO()] and [VO2max_from_test()].</p></dd>
 
 
 <dt id="arg-col-name-load">col_name_Load<a class="anchor" aria-label="anchor" href="#arg-col-name-load"></a></dt>
@@ -285,25 +289,25 @@ returned (see *Output files*).</p></dd>
 <li><p>MFO_g_min: Maximal fat oxidation (g/min).</p></li>
 <li><p>MFO_relative: MFO relative to body mass (mg/kg/min), if body_mass provided.</p></li>
 <li><p>MFO_FFM: MFO relative to fat-free mass (mg/kgFFM/min), if fat_free_mass provided.</p></li>
-<li><p>VO2max: VO2max used (ml/min).</p></li>
-<li><p>VO2max_window: effective averaging window for VO2max (s); NA if VO2max was supplied.</p></li>
-<li><p>VO2max_type: "VO2max" or "VO2peak" (see [VO2max_from_test()]); NA if VO2max was supplied.</p></li>
-<li><p>FAT_MAX_perVO2max: FatMax as % VO2max.</p></li>
+<li><p>VO2max: VO₂max used (ml/min).</p></li>
+<li><p>VO2max_window: effective averaging window for VO₂max (s); NA if VO₂max was supplied.</p></li>
+<li><p>VO2max_type: "VO2max" or "VO2peak" (see [VO2max_from_test()]); NA if VO₂max was supplied.</p></li>
+<li><p>FAT_MAX_perVO2max: Fatmax as % VO₂max.</p></li>
 <li><p>FAT_MAX_lower, FAT_MAX_upper, MFO_lower, MFO_upper: bootstrap
   confidence limits with `ci = "bootstrap"`, otherwise `NA`.</p></li>
-<li><p>FAT_MAX_HR: Heart rate at FatMax (bpm).</p></li>
-<li><p>FAT_MAX_porcHRmax: FatMax as % HRmax, if HRmax provided.</p></li>
-<li><p>FatMax_zone_lower: Lower bound of FatMax zone (% VO2max).</p></li>
-<li><p>FatMax_zone_upper: Upper bound of FatMax zone (% VO2max).</p></li>
+<li><p>FAT_MAX_HR: Heart rate at Fatmax (bpm).</p></li>
+<li><p>FAT_MAX_porcHRmax: Fatmax as % HRmax, if HRmax provided.</p></li>
+<li><p>FatMax_zone_lower: Lower bound of Fatmax zone (% VO₂max).</p></li>
+<li><p>FatMax_zone_upper: Upper bound of Fatmax zone (% VO₂max).</p></li>
 <li><p>FatMax_zone_method: "fitted curve", or "linear interpolation" for "MV".</p></li>
 <li><p>FatMax_zone_lower_HR, FatMax_zone_upper_HR: heart rate at the limits of
   the Fatmax zone (bpm).</p></li>
 <li><p>HRmax: `HRmax` as given (`NA` if not given).</p></li>
-<li><p>HR_peak: highest mean HR of the graded test over the VO2max window
+<li><p>HR_peak: highest mean HR of the graded test over the VO₂max window
   (bpm); `NA` with a numeric `VO2max`. See [MFO_zones()].</p></li>
 <li><p>FAT_MAX_load, FatMax_zone_lower_load, FatMax_zone_upper_load: Fatmax and
   Fatmax zone in load units; load_unit and load_source as in [MFO()].</p></li>
-<li><p>crossover_point: Crossover intensity (% VO2max).</p></li>
+<li><p>crossover_point: Crossover intensity (% VO₂max).</p></li>
 <li><p>R_squared: R-squared of the curve fit.</p></li>
 <li><p>method: method requested.</p></li>
 <li><p>method_used: method actually used (differs after a fallback).</p></li>
@@ -314,8 +318,8 @@ returned (see *Output files*).</p></dd>
 <li><p>d: SIN dilatation parameter.</p></li>
 <li><p>t: SIN translation parameter.</p></li>
 <li><p>s: SIN symmetry parameter.</p></li>
-<li><p>Fatmin: Fatmin from SIN model (% VO2max).</p></li>
-<li><p>FatMax_SIN: FatMax from SIN model (% VO2max).</p></li>
+<li><p>Fatmin: Fatmin from SIN model (% VO₂max).</p></li>
+<li><p>FatMax_SIN: Fatmax from SIN model (% VO₂max).</p></li>
 <li><p>FatMax_SIN_lower, FatMax_SIN_upper, Fatmin_lower, Fatmin_upper:
   confidence limits of the SIN fit with `ci`, otherwise `NA`.</p></li>
 <li><p>MFO_SIN: MFO of the SIN curve with `sin_fit = "absolute"`, otherwise `NA`.</p></li>

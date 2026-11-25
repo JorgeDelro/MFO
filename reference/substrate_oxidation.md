@@ -1,6 +1,6 @@
 # Substrate oxidation equations
 
-Calculate fat and carbohydrate oxidation from VO2 and VCO2 using
+Calculate fat and carbohydrate oxidation from VO₂ and VCO₂ using
 different stoichiometric equations.
 
 ## Usage
@@ -24,7 +24,7 @@ substrate_oxidation(
 
 - VCO2:
 
-  carbon dioxide production in ml/min (same length as VO2)
+  carbon dioxide production in ml/min (same length as VO₂)
 
 - author:
 
@@ -54,7 +54,7 @@ Rule: a coefficient printed in the source is used as printed; a derived
 coefficient is used only where the source prints no equation (SPEC 19).
 
 \*\*Frayn (1983)\*\* (J Appl Physiol 55: 628-634, eqs. 5 and 6, n = 0),
-as printed: CHO = 4.55 VCO2 - 3.21 VO2, FAT = 1.67 VO2 - 1.67 VCO2.
+as printed: CHO = 4.55 VCO₂ - 3.21 VO₂, FAT = 1.67 VO₂ - 1.67 VCO₂.
 Deriving them from his Table 1 constants (glucose 0.746/0.746, fat
 2.03/1.43 L/g) gives 4.535/3.195 and 1.667/1.667; this is only a
 cross-check in the tests.
@@ -62,30 +62,30 @@ cross-check in the tests.
 \*\*Peronnet & Massicotte (1991)\*\* (Can J Sport Sci 16: 23-29) print
 no equations. The package derives them from the O2/CO2 constants of
 their Table 1 (glucose 0.7455/0.7426, fatty acid 2.0092/1.4136 L/g) by
-solving VO2 = 0.7455 CHO + 2.0092 FAT and VCO2 = 0.7426 CHO + 1.4136 FAT
-for CHO and FAT: CHO = 4.58519 VCO2 - 3.22597 VO2, FAT = 1.69469 VO2 -
-1.70130 VCO2. Up to v0.2.0 the rounded 4.585 / 3.2255 / 1.6946 / 1.7012
+solving VO₂ = 0.7455 CHO + 2.0092 FAT and VCO₂ = 0.7426 CHO + 1.4136 FAT
+for CHO and FAT: CHO = 4.58519 VCO₂ - 3.22597 VO₂, FAT = 1.69469 VO₂ -
+1.70130 VCO₂. Up to v0.2.0 the rounded 4.585 / 3.2255 / 1.6946 / 1.7012
 were used (SPEC 19, finding 6).
 
 \*\*Jeukendrup & Wallis (2005)\*\* (Int J Sports Med 26 Suppl 1:
 S28-S37), with the coefficients printed in their Table 5:
 
-- below 50 % VO2max (40-50 % set): CHO = 4.344 VCO2 - 3.061 VO2;
+- below 50 % VO₂max (40-50 % set): CHO = 4.344 VCO₂ - 3.061 VO₂;
 
-- at or above 50 % VO2max (50-75 % set): CHO = 4.210 VCO2 - 2.962 VO2;
+- at or above 50 % VO₂max (50-75 % set): CHO = 4.210 VCO₂ - 2.962 VO₂;
 
-- FAT = 1.695 VO2 - 1.701 VCO2 in both.
+- FAT = 1.695 VO₂ - 1.701 VCO₂ in both.
 
 With \`phase = "rest"\` there is no printed equation: Jeukendrup &
 Wallis propose none. As a package decision (pure glucose, no glycogen
 use at rest), the pair is derived from the O2/CO2 constants of their
 Table 4 (glucose 0.7455/0.7426, fatty acid 2.0092/1.4136 L/g) by solving
-the 2x2 system: CHO = 4.58519 VCO2 - 3.22597 VO2, FAT = 1.69469 VO2 -
-1.70130 VCO2. The same derivation with 50/50 and 20/80 glucose/glycogen
+the 2x2 system: CHO = 4.58519 VCO₂ - 3.22597 VO₂, FAT = 1.69469 VO₂ -
+1.70130 VCO₂. The same derivation with 50/50 and 20/80 glucose/glycogen
 reproduces the Table 5 coefficients within 0.005 and is kept as a
 cross-check in the tests.
 
-The Table 5 sets are defined for 40-75 % VO2max only. Below 40 % the
+The Table 5 sets are defined for 40-75 % VO₂max only. Below 40 % the
 40-50 % set and above 75 % the 50-75 % set are extrapolated;
 \[calculate_vars()\] warns when an exercise step falls outside the range
 (SPEC 3, 9.5). Resting values (\`phase = "rest"\`) never trigger that
@@ -105,9 +105,9 @@ warning.
   are used.
 
 - "source", \`author = "Jeukendrup"\`: Jeukendrup & Wallis (2005, Table
-  5), CHO 3.95 kcal/g below 50 % VO2max (40-50 % set) and 4.07 kcal/g at
+  5), CHO 3.95 kcal/g below 50 % VO₂max (40-50 % set) and 4.07 kcal/g at
   or above 50 % (50-75 % set), fat 9.75 kcal/g. At rest (\`phase =
   "rest"\`, pure glucose pair, package decision) the Peronnet &
   Massicotte glucose and fat values are used, because they are the
-  constants of that pair. \`Kcal\` jumps at 50 % VO2max with the CHO
+  constants of that pair. \`Kcal\` jumps at 50 % VO₂max with the CHO
   value.

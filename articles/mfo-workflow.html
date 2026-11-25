@@ -35,6 +35,10 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/mfo-workflow.html">From gas exchange to Fatmax</a></li>
     <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Using the app</h6></li>
+    <li><a class="dropdown-item" href="../articles/app.html">Using the app</a></li>
+    <li><a class="dropdown-item" href="../articles/app-manual.html">App manual</a></li>
+    <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Bayesian fit</h6></li>
     <li><a class="dropdown-item" href="../articles/bayes.html">Bayesian fit of the fat oxidation curve</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -82,12 +86,12 @@ Every number in the text is computed when the vignette is built.</p>
 <h2 id="what-the-test-measures">1. What the test measures<a class="anchor" aria-label="anchor" href="#what-the-test-measures"></a>
 </h2>
 <p>Fat oxidation is not measured directly; it is inferred from oxygen
-uptake (VO2) and carbon dioxide output (VCO2). Oxidising 1 g of glucose
+uptake (VO₂) and carbon dioxide output (VCO₂). Oxidising 1 g of glucose
 consumes 0.746 L of O2 and produces 0.746 L of CO2, a respiratory
 exchange ratio (RER) of 1.00; oxidising 1 g of fat consumes 2.03 L of O2
 and produces 1.43 L of CO2, an RER of about 0.70 <span class="citation">(<a href="#ref-frayn1983">Frayn 1983</a>, Table
 1)</span>. Solving these two balances for the two unknowns gives the
-stoichiometric equations that turn VO2 and VCO2 into grams of
+stoichiometric equations that turn VO₂ and VCO₂ into grams of
 carbohydrate (CHO) and fat (FAT) oxidised per minute <span class="citation">(<a href="#ref-frayn1983">Frayn 1983</a>)</span>. The
 package uses them with urinary nitrogen set to zero, i.e. it ignores
 protein oxidation. The inference fails at high intensity, when CO2
@@ -99,18 +103,18 @@ intensity, classically 3 min with 35 W increments <span class="citation">(<a hre
 Plotted against intensity, fat oxidation rises, reaches a peak, the
 <strong>maximal fat oxidation</strong> rate (MFO, g/min), and falls
 towards zero. The intensity at the peak is <strong>Fatmax</strong>,
-expressed as %VO2max. In the sample of <span class="citation">Achten et
-al. (<a href="#ref-achten2002">2002</a>)</span> Fatmax was 64 %VO2max
-(74 %HRmax), and Fatmax usually lies between 45 and 65 %VO2max <span class="citation">(<a href="#ref-achten2002">Achten et al. 2002</a>; <a href="#ref-maunder2018">Maunder et al. 2018</a>)</span>. The intensity
+expressed as %VO₂max. In the sample of <span class="citation">Achten et
+al. (<a href="#ref-achten2002">2002</a>)</span> Fatmax was 64 %VO₂max
+(74 %HRmax), and Fatmax usually lies between 45 and 65 %VO₂max <span class="citation">(<a href="#ref-achten2002">Achten et al. 2002</a>; <a href="#ref-maunder2018">Maunder et al. 2018</a>)</span>. The intensity
 at which fat oxidation becomes negligible is <strong>Fatmin</strong>: 89
-± 3 %VO2max in <span class="citation">Achten et al. (<a href="#ref-achten2002">2002</a>)</span> and 90.1 ± 14.1 %VO2max in <span class="citation">Chenevière et al. (<a href="#ref-cheneviere2009">2009</a>)</span>, who defined it as the
+± 3 %VO₂max in <span class="citation">Achten et al. (<a href="#ref-achten2002">2002</a>)</span> and 90.1 ± 14.1 %VO₂max in <span class="citation">Chenevière et al. (<a href="#ref-cheneviere2009">2009</a>)</span>, who defined it as the
 second zero of their SIN model.</p>
 <p><span class="citation">Achten et al. (<a href="#ref-achten2002">2002</a>)</span> also defined the <strong>Fatmax
 zone</strong>, the range of intensities at which fat oxidation is within
-10 % of the peak rate (mean zone 55–72 %VO2max in their sample). The
+10 % of the peak rate (mean zone 55–72 %VO₂max in their sample). The
 package therefore needs three recordings per participant: a resting
 measurement (the basal state), the graded MFO test, and a maximal test
-(or a known VO2max) to express every step as %VO2max.</p>
+(or a known VO₂max) to express every step as %VO₂max.</p>
 </div>
 <div class="section level2">
 <h2 id="input-data">2. Input data<a class="anchor" aria-label="anchor" href="#input-data"></a>
@@ -155,7 +159,7 @@ seconds, the columns</p>
 <tr class="odd">
 <td><code>VO2</code></td>
 <td>mL/min</td>
-<td>substrate oxidation, %VO2max</td>
+<td>substrate oxidation, %VO₂max</td>
 </tr>
 <tr class="even">
 <td><code>VCO2</code></td>
@@ -164,7 +168,7 @@ seconds, the columns</p>
 </tr>
 <tr class="odd">
 <td><code>RER</code></td>
-<td>— (VCO2/VO2)</td>
+<td>— (VCO₂/VO2)</td>
 <td>basal window, <code>RER_cutoff</code>
 </td>
 </tr>
@@ -191,9 +195,9 @@ change.</p>
 step is rebuilt by hand, with the same defaults: Frayn equations, 3-min
 steps, the last 60 s of each step, P3 fit.</p>
 <div class="section level3">
-<h3 id="vo2max">3.1 VO2max<a class="anchor" aria-label="anchor" href="#vo2max"></a>
+<h3 id="vo₂max">3.1 VO₂max<a class="anchor" aria-label="anchor" href="#vo%E2%82%82max"></a>
 </h3>
-<p>VO2max is the highest rolling mean of VO2 in the maximal test over
+<p>VO₂max is the highest rolling mean of VO₂ in the maximal test over
 <code>vo2max_window</code> seconds (default 30). With 20-s records a
 30-s window is rounded up to 2 records (40 s). This averaging is a rule
 of the package.</p>
@@ -261,7 +265,7 @@ steps.</p>
 <div class="section level3">
 <h3 id="stoichiometric-equation">3.4 Stoichiometric equation<a class="anchor" aria-label="anchor" href="#stoichiometric-equation"></a>
 </h3>
-<p>With VO2 and VCO2 in L/min, the equations of <span class="citation">Frayn (<a href="#ref-frayn1983">1983</a>)</span> (the
+<p>With VO₂ and VCO₂ in L/min, the equations of <span class="citation">Frayn (<a href="#ref-frayn1983">1983</a>)</span> (the
 default, <code>author = "Frayn"</code>) are</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">CHO</mtext><mo>=</mo><mn>4.55</mn><mspace width="0.167em"></mspace><mover><mi>V</mi><mo accent="true">̇</mo></mover><msub><mtext mathvariant="normal">CO</mtext><mn>2</mn></msub><mo>−</mo><mn>3.21</mn><mspace width="0.167em"></mspace><mover><mi>V</mi><mo accent="true">̇</mo></mover><msub><mtext mathvariant="normal">O</mtext><mn>2</mn></msub><mo>,</mo><mspace width="2.0em"></mspace><mtext mathvariant="normal">FAT</mtext><mo>=</mo><mn>1.67</mn><mspace width="0.167em"></mspace><mover><mi>V</mi><mo accent="true">̇</mo></mover><msub><mtext mathvariant="normal">O</mtext><mn>2</mn></msub><mo>−</mo><mn>1.67</mn><mspace width="0.167em"></mspace><mover><mi>V</mi><mo accent="true">̇</mo></mover><msub><mtext mathvariant="normal">CO</mtext><mn>2</mn></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">\text{CHO} = 4.55\,\dot{V}\text{CO}_2 - 3.21\,\dot{V}\text{O}_2,
 \qquad \text{FAT} = 1.67\,\dot{V}\text{O}_2 - 1.67\,\dot{V}\text{CO}_2 .</annotation></semantics></math></p>
@@ -270,8 +274,8 @@ Table 1 of <span class="citation">Péronnet and Massicotte (<a href="#ref-peronn
 / 1.70130), because the article prints no equation.
 <code>author = "Jeukendrup"</code> uses the exercise equations printed
 by <span class="citation">Jeukendrup and Wallis (<a href="#ref-jeukendrup2005">2005</a>)</span> (Table 5), one CHO equation
-for 40–50 % and one for 50–75 %VO2max; it needs VO2max and warns for
-steps outside 40–75 %VO2max. The same equation is applied to the basal
+for 40–50 % and one for 50–75 %VO₂max; it needs VO₂max and warns for
+steps outside 40–75 %VO₂max. The same equation is applied to the basal
 window.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">frayn</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">VO2</span>, <span class="va">VCO2</span><span class="op">)</span> <span class="op">{</span></span>
@@ -297,14 +301,14 @@ window.</p>
 CHO and 9 kcal/g fat with <code>energy_equivalents = "classic"</code>,
 the default in 0.2.x. With <code>"source"</code> it uses the values of
 the equation’s source: 3.8683 / 9.7460 kcal/g <span class="citation">(<a href="#ref-peronnet1991">Péronnet and Massicotte 1991</a>)</span>, also
-for Frayn, who gives none, or 3.95 (40–50 %VO2max) / 4.07 (50–75
-%VO2max) and 9.75 kcal/g <span class="citation">(<a href="#ref-jeukendrup2005">Jeukendrup and Wallis 2005</a>, Table
+for Frayn, who gives none, or 3.95 (40–50 %VO₂max) / 4.07 (50–75
+%VO₂max) and 9.75 kcal/g <span class="citation">(<a href="#ref-jeukendrup2005">Jeukendrup and Wallis 2005</a>, Table
 5)</span>. MFO and Fatmax do not depend on this choice.</p>
 </div>
 <div class="section level3">
 <h3 id="rer-cutoff-and-negative-fat-oxidation">3.5 RER cutoff and negative fat oxidation<a class="anchor" aria-label="anchor" href="#rer-cutoff-and-negative-fat-oxidation"></a>
 </h3>
-<p>With Frayn’s coefficients FAT = 1.67 VO2 (1 − RER), so any step with
+<p>With Frayn’s coefficients FAT = 1.67 VO₂ (1 − RER), so any step with
 RER &gt; 1 gives a negative fat oxidation, which is an artefact. Two
 arguments handle it. <code>RER_cutoff</code> removes the steps above a
 threshold before anything else (section 6). <code>negative_FAT</code>
@@ -323,7 +327,7 @@ drops the step and <code>"keep"</code> leaves them.</p>
 <h3 id="curve-fit">3.6 Curve fit<a class="anchor" aria-label="anchor" href="#curve-fit"></a>
 </h3>
 <p>The default method, P3, fits a third-degree polynomial of FAT on
-%VO2max. Fatmax is the root of its derivative that gives the highest FAT
+%VO₂max. Fatmax is the root of its derivative that gives the highest FAT
 within the measured range, and MFO is the fitted FAT at that root.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html" class="external-link">lm</a></span><span class="op">(</span><span class="va">FAT</span> <span class="op">~</span> <span class="va">porc_VO2</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html" class="external-link">I</a></span><span class="op">(</span><span class="va">porc_VO2</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html" class="external-link">I</a></span><span class="op">(</span><span class="va">porc_VO2</span><span class="op">^</span><span class="fl">3</span><span class="op">)</span>, data <span class="op">=</span> <span class="va">steps</span><span class="op">)</span></span>
@@ -376,7 +380,7 @@ interpolated linearly from the step values.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/all.equal.html" class="external-link">all.equal</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unname.html" class="external-link">unname</a></span><span class="op">(</span><span class="va">hand</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/unname.html" class="external-link">unname</a></span><span class="op">(</span><span class="va">package</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
 <p>The warning reports the step with RER &gt; 1 that was truncated
-(3.5); the message reports the effective VO2max window (3.1).
+(3.5); the message reports the effective VO₂max window (3.1).
 <code>res$MFO_db</code> is the step table that entered the fit:
 <code>Step</code> numbers the steps of the test and <code>Load</code> is
 the measured load of each step (W). <code>res$FAT_MAX_load</code> gives
@@ -421,9 +425,9 @@ symmetric curve.</li>
 observed FAT, no fit; its resolution is one step, and the Fatmax zone is
 interpolated linearly between steps.</li>
 <li>
-<strong>MRER</strong>: following <span class="citation"><span class="nocase">Pérez-Martín et al.</span> (<a href="#ref-perezmartin2001">2001</a>)</span>, as described by <span class="citation">Chenevière et al. (<a href="#ref-cheneviere2009">2009</a>)</span>, (1 − RER) and VO2 are
+<strong>MRER</strong>: following <span class="citation"><span class="nocase">Pérez-Martín et al.</span> (<a href="#ref-perezmartin2001">2001</a>)</span>, as described by <span class="citation">Chenevière et al. (<a href="#ref-cheneviere2009">2009</a>)</span>, (1 − RER) and VO₂ are
 fitted as straight lines of intensity and Fatmax is the vertex of FAT =
-1.7 (1 − RER) VO2, whatever <code>author</code> says. It falls back to
+1.7 (1 − RER) VO₂, whatever <code>author</code> says. It falls back to
 MV with a warning if the vertex is not a maximum inside the measured
 range. Until v0.2.0 the method called <code>"MRER"</code> was in fact
 MV.</li>
@@ -535,7 +539,7 @@ normalised to %MFO, with a sine function of three parameters (their eq.
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>%</mi><mtext mathvariant="normal">MFO</mtext><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mrow><mi mathvariant="normal">sin</mi><mo>⁡</mo></mrow><mrow><mo stretchy="true" form="prefix">{</mo><msup><mrow><mo stretchy="true" form="prefix">[</mo><mfrac><msup><mi>π</mi><mrow><mn>1</mn><mi>/</mi><mi>s</mi></mrow></msup><mrow><mi>π</mi><mo>+</mo><mn>2</mn><mi>d</mi></mrow></mfrac><mspace width="0.167em"></mspace><mo stretchy="false" form="prefix">(</mo><mi>K</mi><mi>x</mi><mo>+</mo><mi>d</mi><mo>+</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="true" form="postfix">]</mo></mrow><mi>s</mi></msup><mo stretchy="true" form="postfix">}</mo></mrow><mo>,</mo><mspace width="2.0em"></mspace><mi>K</mi><mo>=</mo><mfrac><mi>π</mi><mn>100</mn></mfrac><mo>,</mo><mspace width="1.0em"></mspace><mi>x</mi><mo>=</mo><mi>%</mi><mover><mi>V</mi><mo accent="true">̇</mo></mover><msub><mtext mathvariant="normal">O</mtext><mrow><mn>2</mn><mi mathvariant="normal">max</mi></mrow></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">\%\text{MFO}(x) = \sin\left\{\left[\frac{\pi^{1/s}}{\pi + 2d}\,(Kx + d + t)\right]^{s}\right\},
 \qquad K = \frac{\pi}{100},\quad x = \%\dot{V}\text{O}_{2\max}.</annotation></semantics></math></p>
 <p>With d = 0, s = 1 and t = 0 it is a half sine wave with its peak at
-50 %VO2max and zeros at 0 and 100 %VO2max. <strong>d</strong>
+50 %VO₂max and zeros at 0 and 100 %VO₂max. <strong>d</strong>
 (dilatation) widens (d &gt; 0) or narrows (d &lt; 0) the curve;
 <strong>s</strong> (symmetry) skews it: s &gt; 1 is a rightward
 asymmetry and 0 &lt; s &lt; 1 a leftward one <span class="citation">(<a href="#ref-cheneviere2009">Chenevière et al. 2009</a>)</span>;
@@ -792,7 +796,7 @@ the fit, and of the SIN model, which departs from <span class="citation">Chenevi
 </div>
 </div>
 <div class="section level2">
-<h2 id="protocols-load-and-vo2max">7. Protocols, load and VO2max<a class="anchor" aria-label="anchor" href="#protocols-load-and-vo2max"></a>
+<h2 id="protocols-load-and-vo₂max">7. Protocols, load and VO₂max<a class="anchor" aria-label="anchor" href="#protocols-load-and-vo%E2%82%82max"></a>
 </h2>
 <div class="section level3">
 <h3 id="describing-the-protocol">7.1 Describing the protocol<a class="anchor" aria-label="anchor" href="#describing-the-protocol"></a>
@@ -824,9 +828,9 @@ would be the last minute of stage 2, so the 7 steps are stages 2 to
 <h3 id="load-and-fatmax-in-watts">7.2 Load and Fatmax in watts<a class="anchor" aria-label="anchor" href="#load-and-fatmax-in-watts"></a>
 </h3>
 <p>The example test has a <code>Load</code> column (25 W in the first
-stage, +25 W per stage), averaged per step like VO2. Fatmax and the
+stage, +25 W per stage), averaged per step like VO₂. Fatmax and the
 Fatmax zone are converted to watts by linear interpolation of load
-against %VO2max between steps, as heart rate at Fatmax:</p>
+against %VO₂max between steps, as heart rate at Fatmax:</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res</span><span class="op">$</span><span class="va">MFO_db</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Step"</span>, <span class="st">"Load"</span>, <span class="st">"porc_VO2"</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="co">#&gt;   Step Load porc_VO2</span></span>
@@ -860,11 +864,11 @@ in W is divided by <code>body_mass</code> and the results are in
 W/kg.</p>
 </div>
 <div class="section level3">
-<h3 id="vo2max-or-vo2peak">7.3 VO2max or VO2peak<a class="anchor" aria-label="anchor" href="#vo2max-or-vo2peak"></a>
+<h3 id="vo₂max-or-vo₂peak">7.3 VO₂max or VO₂peak<a class="anchor" aria-label="anchor" href="#vo%E2%82%82max-or-vo%E2%82%82peak"></a>
 </h3>
-<p><code><a href="../reference/VO2max_from_test.html">VO2max_from_test()</a></code> takes the same rolling-mean VO2max as
+<p><code><a href="../reference/VO2max_from_test.html">VO2max_from_test()</a></code> takes the same rolling-mean VO₂max as
 <code><a href="../reference/MFO.html">MFO()</a></code> and checks whether the graded test was maximal with
-the criteria reviewed by <span class="citation">Howley et al. (<a href="#ref-howley1995">1995</a>)</span>: a plateau of VO2 between the
+the criteria reviewed by <span class="citation">Howley et al. (<a href="#ref-howley1995">1995</a>)</span>: a plateau of VO₂ between the
 last two stages (an increase below 150 mL/min, the threshold of Taylor
 et al. 1955 as reported by <span class="citation">Howley et al. (<a href="#ref-howley1995">1995</a>)</span>), the peak RER and the peak
 heart rate relative to the predicted HRmax (208 − 0.7 × age by default,
@@ -964,7 +968,7 @@ and returns one row per participant. With <code>from = "folder"</code>
 each participant has a subfolder with three xlsx files; with
 <code>from = "files"</code> each participant has one xlsx file with
 three sheets. The example builds two participants in a temporary folder:
-P01 is the example data and P02 the same data with VO2 and VCO2 scaled
+P01 is the example data and P02 the same data with VO₂ and VCO₂ scaled
 by 1.1 (same RER), so that the two rows differ.</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">root</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"mfo-batch"</span><span class="op">)</span></span>
@@ -1078,13 +1082,13 @@ takes the result of <code><a href="../reference/MFO.html">MFO()</a></code> or th
 <span><span class="co">#&gt;   Reference:   Amaro-Gahete 2018: Sedentary adults (n = 167)</span></span>
 <span><span class="co">#&gt;     MFO 0.32 g/min: no percentile</span></span>
 <span><span class="co">#&gt;     Fatmax 36.2 % VO2max: no percentile</span></span>
-<span><span class="co">#&gt;     Differences: mode: cycling (reference: treadmill walking; no percentile); method: P3 (reference: third-degree polynomial through (0;0), Croci et al. 2014); fasting: reference 5-6 h, not overnight</span></span></code></pre></div>
-<p>Fatmax and the limits of the Fatmax zone are given in % VO2max, in
+<span><span class="co">#&gt;     Differences: mode: cycling (reference: treadmill walking, no percentile); method: P3 (reference: third-degree polynomial through (0;0), Croci et al. 2014); fasting: reference 5-6 h, not overnight</span></span></code></pre></div>
+<p>Fatmax and the limits of the Fatmax zone are given in % VO₂max, in
 bpm (interpolated linearly between steps, as <code>FAT_MAX_HR</code>)
 and in % HRmax. The HRmax is, in this order, the <code>HRmax</code> you
 give (here or in <code><a href="../reference/MFO.html">MFO()</a></code>), the peak HR measured in the graded
 test (<code>HR_peak</code>: the highest mean HR over the same window as
-VO2max, 40 s here) or, only if you ask with
+VO₂max, 40 s here) or, only if you ask with
 <code>predicted_HRmax = TRUE</code> and <code>age</code>, the predicted
 HRmax of <span class="citation">Tanaka et al. (<a href="#ref-tanaka2001">2001</a>)</span> (208 − 0.7 × age;
 <code>HRmax_formula = "fox"</code> for 220 − age).
@@ -1108,9 +1112,9 @@ heart rate is still returned.</p>
 walking (<code>MFO_protocol(mode = "walking")</code>) from
 <code><a href="../reference/simulate_MFO_sessions.html">simulate_MFO_sessions()</a></code>, whose MFO and Fatmax are drawn
 from its sedentary defaults, the mean and SD of the same Table 1 (0.34 ±
-0.10 g/min, 44.2 ± 12.4 % VO2max). VO2max has no default and must be
+0.10 g/min, 44.2 ± 12.4 % VO₂max). VO₂max has no default and must be
 given; its value (2500 ml/min here) is arbitrary and does not change MFO
-in g/min or Fatmax in % VO2max. The protocol is passed on to
+in g/min or Fatmax in % VO₂max. The protocol is passed on to
 <code><a href="../reference/MFO.html">MFO()</a></code>, which is where the mode comes from.</p>
 <div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate_MFO_sessions.html">simulate_MFO_sessions</a></span><span class="op">(</span>n_participants <span class="op">=</span> <span class="fl">1</span>, n_sessions <span class="op">=</span> <span class="fl">1</span>,</span>
@@ -1154,7 +1158,7 @@ in g/min or Fatmax in % VO2max. The protocol is passed on to
 <td align="right">41</td>
 </tr></tbody>
 </table>
-<p>The simulated truth was MFO = 0.409 g/min and Fatmax = 42.2 % VO2max.
+<p>The simulated truth was MFO = 0.409 g/min and Fatmax = 42.2 % VO₂max.
 The seed was chosen for a clean example. With other seeds (for example
 <code>seed = 15</code>) the simulated Fatmax lands on the last step, and
 <code><a href="../reference/MFO.html">MFO()</a></code> warns that Fatmax “is at the last exercise step … the
@@ -1248,8 +1252,8 @@ individual zone falls in the range, <code>"partly overlaps"</code> or
 <code>"outside"</code>; read it with the numbers in % HRpeak next to it.
 The range refers to the <strong>measured</strong> HRpeak: with a
 predicted HRmax it is still shown, with a warning. % HRpeak is preferred
-to % VO2max in obesity because the HR–VO2 relation is more stable than a
-measured VO2max, which is often submaximal in these patients. The
+to % VO₂max in obesity because the HR–VO₂ relation is more stable than a
+measured VO₂max, which is often submaximal in these patients. The
 recommendation is only given when you ask for it with
 <code>population = "obesity"</code>; <code>body_fat</code> alone does
 not trigger it.</p>

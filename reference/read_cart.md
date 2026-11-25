@@ -59,7 +59,7 @@ read_cart(
 
 - vo2_unit:
 
-  unit of VO2 and VCO2 in the export: \`"auto"\` (default),
+  unit of VO₂ and VCO₂ in the export: \`"auto"\` (default),
   \`"mL/min"\`, \`"L/min"\` or \`"mL/kg/min"\`.
 
 - columns, skip, units_row, decimal, sheets, time_origin:
@@ -77,7 +77,7 @@ An object of class \`MFO_cart\`: a list with \`db_basal\`, \`db_MFO\`,
 and, when the export has them, \`HR\`, \`Load\`, \`VE\`; \`NULL\` for a
 phase not in the file), \`step_time\` (= \`interval\`, or the step of
 \`Time\` with \`interval = "none"\`) and \`info\` (device, interval,
-averaging, VO2 unit, cuts, \`time_origin\` and \`time_offset\` for
+averaging, VO₂ unit, cuts, \`time_origin\` and \`time_offset\` for
 generic files, number of breaths or records, of intervals and of empty
 intervals, and the RER mismatch count, \`NA\` when the export has no
 RER).
@@ -96,13 +96,13 @@ its own yet (one anonymised file per device is planned in
 measured in that interval, not an interpolation. An interval without
 breaths is kept as a row of \`NA\`, so the records stay aligned in time
 (\`MFO()\` cuts steps by counting records). The default of 10 s divides
-the usual step durations (60-300 s) and the 30-s windows of VO2max and
+the usual step durations (60-300 s) and the 30-s windows of VO₂max and
 ramps exactly, so they need no rounding.
 
-\*\*Units.\*\* VO2 and VCO2 are returned in mL/min. With \`vo2_unit =
-"auto"\` a median VO2 above 100 is read as mL/min; at or below 100 the
+\*\*Units.\*\* VO₂ and VCO₂ are returned in mL/min. With \`vo2_unit =
+"auto"\` a median VO₂ above 100 is read as mL/min; at or below 100 the
 unit must be given, because L/min and mL/kg/min cannot be told apart
-reliably. RER is always VCO2/VO2 of the interval means; when the export
+reliably. RER is always VCO₂/VO₂ of the interval means; when the export
 has its own RER, a warning counts the intervals where they differ by
 more than 0.02. Load is passed through unconverted: declare its unit in
 \[MFO_protocol()\].
@@ -128,7 +128,7 @@ columns are mapped with \`columns\`, as \`col_name\_\*\` in \[MFO()\]
 
 - \`skip\` lines (e.g. metadata) come before the header; with
   \`units_row = TRUE\` the line after the header holds the units. A
-  recognised VO2 unit there ("mL/min", "L/min", "mL/kg/min") is taken as
+  recognised VO₂ unit there ("mL/min", "L/min", "mL/kg/min") is taken as
   a declaration of the file, with a message; an explicit \`vo2_unit\`
   wins.
 
@@ -150,10 +150,22 @@ columns are mapped with \`columns\`, as \`col_name\_\*\` in \[MFO()\]
 
 - \`sheets\` reads the phases from the sheets of an xlsx file, \`c(basal
   = , MFO = , graded = )\` (any of them), as an alternative to \`cuts\`;
-  one unnamed sheet is the phase named in \`phase\`.
+  one unnamed sheet is the recording, the phase named in \`phase\` or
+  split by \`cuts\`.
 
 No personal data from the file are kept: the result holds only the
 measured variables and technical information.
+
+## Warnings and messages
+
+Every warning and message of this function is a classed condition:
+\`mfo_warning\_\<id\>\` and \`mfo_warning\` (or \`mfo_message\_\<id\>\`
+and \`mfo_message\`), with the numbers of the text as fields (for
+example \`mfo_warning_negative_fat\` has \`n\`, the number of steps).
+The text is English; the classes let a program, such as \[run_app()\],
+handle a given warning or word it in another language:
+\`withCallingHandlers(expr, mfo_warning_negative_fat = function(w)
+w\$n)\`.
 
 ## See also
 

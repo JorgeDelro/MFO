@@ -2,8 +2,8 @@
 
 Synthetic breath-by-breath data from an incremental exercise test with 8
 stages (25-200 W, 3 min per stage). Simulates a moderately trained male
-cyclist covering ~20-75% VO2max. The fat oxidation pattern shows a clear
-inverted U-shape with a peak around 35-40% VO2max, suitable for
+cyclist covering ~20-75% VO₂max. The fat oxidation pattern shows a clear
+inverted U-shape with a peak around 35-40% VO₂max, suitable for
 demonstrating P3, P2, MRER, and SIN model fitting.
 
 ## Usage
