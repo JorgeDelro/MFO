@@ -269,17 +269,43 @@
       ),
       shiny::actionButton(ns("read"), t("data.read"), class = "btn-primary")
     ),
+    shiny::h4(t("app.subtitle"), class = "mb-3"),
     shiny::uiOutput(ns("alerts")),
-    bslib::card(
-      bslib::card_header(t("data.recording.plot")),
-      shiny::plotOutput(ns("plot"), height = "300px", fill = FALSE,
-                        brush = shiny::brushOpts(ns("brush"), direction = "x", resetOnNew = TRUE))
+    bslib::layout_columns(
+      col_widths = c(7, 5),
+      bslib::card(
+        bslib::card_header(t("data.recording.plot")),
+        shiny::plotOutput(ns("plot"), height = "360px", fill = FALSE,
+                          brush = shiny::brushOpts(ns("brush"), direction = "x",
+                                                   resetOnNew = TRUE))
+      ),
+      # The tables as read, one per phase, before the analysis (Jorge,
+      # 2026-11-25); each scrolls inside the card
+      bslib::navset_card_underline(
+        title = t("data.tables"),
+        bslib::nav_panel(t("data.phase.basal"), .app_scroll_table(ns("view_basal"))),
+        bslib::nav_panel(t("data.phase.MFO"), .app_scroll_table(ns("view_MFO"))),
+        bslib::nav_panel(t("data.phase.graded"), .app_scroll_table(ns("view_graded")))
+      )
     ),
     bslib::card(
       bslib::card_header(t("data.summary")),
       shiny::tableOutput(ns("summary"))
     )
   )
+}
+
+# A table that scrolls inside its card
+.app_scroll_table <- function(id, height = "360px") {
+  shiny::div(style = sprintf("max-height: %s; overflow: auto;", height),
+             shiny::tableOutput(id))
+}
+
+# One phase of a cart as shown in the Data tab: its records as read
+.app_phase_view <- function(cart, phase) {
+  db <- cart[[paste0("db_", phase)]]
+  if (is.null(db)) return(NULL)
+  as.data.frame(db)
 }
 
 
@@ -386,14 +412,27 @@
       .app_alerts(l, if (is.null(l$error)) t("data.read.ok"))
     })
 
-    output$plot <- shiny::renderPlot({
-      cart <- if (identical(input$assign, "cuts") && !identical(input$source, "example")) {
+    # What the plot and the tables show: in cuts mode the whole recording
+    # before it is read, otherwise the data read
+    shown <- shiny::reactive({
+      if (identical(input$assign, "cuts") && !identical(input$source, "example")) {
         preview()
       } else {
         result()$cart
       }
+    })
+
+    output$plot <- shiny::renderPlot({
+      cart <- shown()
       shiny::req(cart)
       .app_recording_plot(cart, c(input$basal_end, input$MFO_end), t)
+    })
+    for (p in c("basal", "MFO", "graded")) local({
+      phase <- p
+      output[[paste0("view_", phase)]] <- shiny::renderTable({
+        shiny::req(shown())
+        .app_phase_view(shown(), phase)
+      }, digits = 2, na = "")
     })
 
     output$summary <- shiny::renderTable({

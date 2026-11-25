@@ -5,6 +5,7 @@ test_that("the interface is built", {
   skip_if_not_installed("bslib")
   en <- as.character(.app_ui(list(QUERY_STRING = "")))
   expect_match(en, "MFO analysis")
+  expect_match(en, "Maximal fat oxidation and Fatmax")
   expect_match(en, "Protocol and analysis")
   expect_match(en, "Read data")
   expect_no_match(en, "Espa\u00f1ol")
