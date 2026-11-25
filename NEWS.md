@@ -24,6 +24,10 @@
 
 ## New features
 
+* The app has a dark mode (switch in the navbar): the interface follows
+  Bootstrap's colour modes and the plots a light or dark theme with a
+  transparent background; reports and downloaded figures stay light.
+
 * The app's Report tab downloads the individual report also as a Word file
   (officer, in Suggests; no pandoc), with the same sections as the HTML
   report, plots as PNG at 300 dpi and the methods paragraph and references

@@ -82,7 +82,7 @@
 }
 
 
-.mod_reliability_server <- function(id, group) {
+.mod_reliability_server <- function(id, group, plot_theme = function() .app_plot_theme(FALSE)) {
   shiny::moduleServer(id, function(input, output, session) {
     t <- function(key) .tr(key)
     output$template <- .app_template_download("MFO_results_template.csv")
@@ -120,8 +120,10 @@
       shiny::req(out())
       plot(out(), pair = input$pair)
     })
-    output$plot <- shiny::renderPlot(ba_plot())
-    .app_figure_download(input, output, "fig_bland_altman", ba_plot, "Bland_Altman")
+    output$plot <- shiny::renderPlot(.app_style_plot(ba_plot(), plot_theme()),
+                                     bg = "transparent")
+    .app_figure_download(input, output, "fig_bland_altman",
+                         function() .app_style_plot(ba_plot()), "Bland_Altman")
     out
   })
 }
