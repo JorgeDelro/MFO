@@ -2,6 +2,16 @@
 
 ## Breaking changes
 
+* `MFOs()` no longer writes to the working directory by default. It
+  returns the results and writes the plots (`MFO_plots/`) and the results
+  table (`MFO_result.<output_format>`) only in the folder given by the new
+  argument `output_dir`; without it, a message once per session says that
+  nothing is written and how to ask for it. `save_plot`, `save_result` and
+  `output_format` keep their meaning inside `output_dir`. Scripts that
+  relied on `MFO_result.xlsx` appearing in the working directory must add
+  `output_dir = "."` (CRAN Repository Policy: packages must not write
+  outside the temporary directory unless the user asks for it).
+
 * `MFO_db` gains a first column `Step`: the step number in the test
   (0 = resting row with `include_basal = TRUE`). It identifies the resting
   row instead of `Load == "basal"`. Code that selects `MFO_db` columns by

@@ -44,7 +44,8 @@ MFOs(
   conf = 0.95,
   seed = NULL,
   sin_fit = c("normalised", "absolute"),
-  sin_ci = FALSE
+  sin_ci = FALSE,
+  output_dir = NULL
 )
 }
 \arguments{
@@ -96,9 +97,11 @@ number or "classic", "safe", "sedentary", "trained". See [MFO()].}
 
 \item{col_name_HR}{column name for HR in databases. Default "HR".}
 
-\item{save_plot}{save plots to MFO_plots/ directory (default TRUE).}
+\item{save_plot}{with `output_dir`, save the plots of each participant in
+`output_dir/MFO_plots` (default TRUE).}
 
-\item{save_result}{save results file (default TRUE).}
+\item{save_result}{with `output_dir`, save the results table as
+`output_dir/MFO_result.<output_format>` (default TRUE).}
 
 \item{output_format}{format for results file: "xlsx", "csv", or "rds". Default "xlsx".}
 
@@ -138,6 +141,10 @@ model. See [MFO_kinetics()].}
 
 \item{sin_ci}{logical; if `TRUE`, `ci` is also computed for the SIN model
 (default `FALSE`, as it doubles the run time).}
+
+\item{output_dir}{folder where plots and results are written (created if
+needed). `NULL` (default): nothing is written, the results are only
+returned (see *Output files*).}
 }
 \value{
 {Data frame with one row per participant containing:
@@ -189,8 +196,9 @@ model. See [MFO_kinetics()].}
 }}
 }
 \description{
-Process multiple participants' MFO data in batch, generating plots and summary results.
-Supports all parameters from the MFO() and MFO_kinetics() functions.
+Process multiple participants' MFO data in batch and return the summary
+results. Supports all parameters from the MFO() and MFO_kinetics() functions.
+Nothing is written to disk unless `output_dir` is given (see *Output files*).
 }
 \details{
 Every warning raised for a participant is re-issued with the
@@ -199,6 +207,17 @@ quality warnings of [MFO()] (missing HR, few steps, Fatmax at the edge,
 incomplete last step) can be traced in a batch. A participant whose data
 cannot be processed gives a row of `NA` and a warning with the error.
 }
+\section{Output files}{
+
+Up to v0.2.1 `MFOs()` wrote `MFO_plots/` and `MFO_result.xlsx` in the
+working directory by default. It now writes only when `output_dir` is
+given, as the CRAN Repository Policy asks of packages (no writing outside
+the temporary directory unless the user asks for it). Without
+`output_dir`, a message once per session says that nothing is written and
+how to ask for it. `save_plot`, `save_result` and `output_format` choose
+what is written in `output_dir`.
+}
+
 \examples{
 
 \dontrun{
@@ -212,6 +231,16 @@ results <- MFOs(from = "folder",
                 cv_var = "RER",
                 author = "Frayn",
                 method = "P3")
+# The same, writing the plots and MFO_result.xlsx in a folder
+results <- MFOs(from = "folder",
+                path = "/path/to/participant_data",
+                db_basal_name = "basal_df",
+                db_MFO_name = "MFO_df",
+                db_graded_name = "graded_df",
+                step_time = 20,
+                cv_var = "RER",
+                author = "Frayn",
+                output_dir = "MFO_output")
 }
 
 }

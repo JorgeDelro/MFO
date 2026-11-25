@@ -222,21 +222,75 @@ test_that("a participant that cannot be processed gives an NA row and a warning"
   expect_error(.mfos("folder", withr::local_tempdir()), "No participant folders")
 })
 
-test_that("MFOs() saves plots and results in xlsx, csv and rds", {
+test_that("MFOs() saves plots and results in output_dir in xlsx, csv and rds", {
   root <- withr::local_tempdir()
   .write_folder(root, .participants()["P01"])
   out <- withr::local_tempdir()
-  withr::local_dir(out)
 
   for (fmt in c("xlsx", "csv", "rds")) {
     res <- suppressWarnings(suppressMessages(
       MFOs(from = "folder", path = root, db_basal_name = "basal_df",
            db_MFO_name = "MFO_df", db_graded_name = "VO2max_df", step_time = 20,
            cv_var = "RER", author = "Frayn", energy_equivalents = "classic",
-           save_plot = fmt == "xlsx", save_result = TRUE, output_format = fmt)))
+           save_plot = fmt == "xlsx", save_result = TRUE, output_format = fmt,
+           output_dir = out)))
     expect_true(file.exists(file.path(out, paste0("MFO_result.", fmt))))
   }
   expect_true(file.exists(file.path(out, "MFO_plots", "P01_MFO.png")))
   expect_true(file.exists(file.path(out, "MFO_plots", "P01_kinetics.png")))
   expect_equal(readRDS(file.path(out, "MFO_result.rds")), res)
+})
+
+test_that("MFOs() writes no files without output_dir (CRAN policy)", {
+  root <- withr::local_tempdir()
+  .write_folder(root, .participants())
+  wd <- withr::local_tempdir()
+  withr::local_dir(wd)
+  # the message is shown once per session
+  old <- .mfo_state$mfos_output_message_shown
+  .mfo_state$mfos_output_message_shown <- NULL
+  withr::defer(.mfo_state$mfos_output_message_shown <- old)
+  run <- function() {
+    suppressWarnings(MFOs(from = "folder", path = root, db_basal_name = "basal_df",
+                          db_MFO_name = "MFO_df", db_graded_name = "VO2max_df",
+                          step_time = 20, cv_var = "RER", author = "Frayn",
+                          energy_equivalents = "classic", age = 30))
+  }
+  msgs <- character(0)
+  res <- withCallingHandlers(run(), message = function(m) {
+    msgs <<- c(msgs, conditionMessage(m))
+    invokeRestart("muffleMessage")
+  })
+  expect_equal(nrow(res), 2)
+  expect_equal(list.files(wd, recursive = TRUE, all.files = TRUE, no.. = TRUE),
+               character(0))
+  expect_equal(sum(grepl("writes no files", msgs)), 1)
+  expect_match(msgs[grepl("writes no files", msgs)], "output_dir")
+  msgs <- character(0)
+  withCallingHandlers(run(), message = function(m) {
+    msgs <<- c(msgs, conditionMessage(m))
+    invokeRestart("muffleMessage")
+  })
+  expect_false(any(grepl("writes no files", msgs)))
+  expect_equal(list.files(wd, recursive = TRUE, all.files = TRUE, no.. = TRUE),
+               character(0))
+})
+
+test_that("MFOs() writes plots and results only in output_dir", {
+  root <- withr::local_tempdir()
+  .write_folder(root, .participants())
+  wd <- withr::local_tempdir()
+  withr::local_dir(wd)
+  out <- file.path(withr::local_tempdir(), "MFO_output")
+  res <- suppressWarnings(suppressMessages(
+    MFOs(from = "folder", path = root, db_basal_name = "basal_df",
+         db_MFO_name = "MFO_df", db_graded_name = "VO2max_df", step_time = 20,
+         cv_var = "RER", author = "Frayn", energy_equivalents = "classic", age = 30,
+         output_format = "csv", output_dir = out)))
+  expect_true(file.exists(file.path(out, "MFO_result.csv")))
+  expect_equal(nrow(utils::read.csv(file.path(out, "MFO_result.csv"))), nrow(res))
+  expect_setequal(list.files(file.path(out, "MFO_plots")),
+                  paste0(rep(res$ID, each = 2), c("_MFO.png", "_kinetics.png")))
+  expect_equal(list.files(wd, all.files = TRUE, no.. = TRUE), character(0))
+  expect_error(.mfos("folder", root, output_dir = ""), "output_dir")
 })

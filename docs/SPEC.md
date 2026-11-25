@@ -235,7 +235,7 @@ El paquete tiene tres funciones exportadas y seis auxiliares internas, en ocho f
 | --- | --- | --- | --- |
 | `MFO()` | Tres data frames (basal, test MFO, test máximo) o VO2max; parámetros de protocolo | Lista con MFO\_db (tabla por escalón), gráfico, MFO, Fatmax, HR, zona, cruce, R², RMSE, basales | §3–§7 |
 | `MFO_kinetics()` | `MFO_db` devuelto por `MFO()` | d, s, t con sus errores típicos, Fatmax\_SIN, Fatmin, R², RMSE, convergencia, gráfico SIN básico vs ajustado | §6.5 |
-| `MFOs()` | Carpeta con una subcarpeta de tres xlsx por participante (`"folder"`) o un xlsx de tres hojas por participante (`"files"`) | Tabla resumen (una fila por participante; desde la 0.2.1 incluye `VO2max`, `VO2max_window`, `FatMax_zone_method` y `energy_equivalents`) en xlsx/csv/rds y carpeta de gráficos; cada aviso lleva delante el ID del participante | todo |
+| `MFOs()` | Carpeta con una subcarpeta de tres xlsx por participante (`"folder"`) o un xlsx de tres hojas por participante (`"files"`) | Tabla resumen (una fila por participante; desde la 0.2.1 incluye `VO2max`, `VO2max_window`, `FatMax_zone_method` y `energy_equivalents`) devuelta en R; el xlsx/csv/rds y la carpeta de gráficos solo se escriben en `output_dir` si el usuario lo da (desde la 0.3.0; hasta la 0.2.1 se escribían en el directorio de trabajo por defecto, contra la política de CRAN; sin `output_dir`, un mensaje único por sesión lo explica); cada aviso lleva delante el ID del participante | todo |
 
 **9.2 Auxiliares internas y la ecuación que implementan**
 
