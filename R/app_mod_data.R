@@ -39,11 +39,14 @@
     name <- files$name[i]
     path <- files$datapath[i]
     if (is_ext(name, "zip")) {
+      # names inside the zip, relative, from its listing: stripping the
+      # extraction folder from the paths failed on Windows (backslashes)
       dir <- file.path(exdir, i)
-      inside <- utils::unzip(path, exdir = dir)
-      inside <- inside[!grepl("(^|/)(__MACOSX|\\.)", sub(paste0("^", dir, "/"), "", inside))]
-      for (f in inside) {
-        fake <- data.frame(name = sub(paste0("^", dir, "/"), "", f), datapath = f,
+      utils::unzip(path, exdir = dir)
+      inside <- utils::unzip(path, list = TRUE)$Name
+      inside <- inside[!grepl("(^|/)(__MACOSX|\\.)", inside) & !grepl("/$", inside)]
+      for (nm in inside) {
+        fake <- data.frame(name = nm, datapath = file.path(dir, nm),
                            stringsAsFactors = FALSE)
         rows[[length(rows) + 1]] <- .app_tables(fake, expand_sheets, exdir)
       }
