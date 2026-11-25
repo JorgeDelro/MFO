@@ -1,8 +1,9 @@
 
 #' Maximal Fat Oxidation calculation of multiple databases
 #'
-#' Process multiple participants' MFO data in batch, generating plots and summary results.
-#' Supports all parameters from the MFO() and MFO_kinetics() functions.
+#' Process multiple participants' MFO data in batch and return the summary
+#' results. Supports all parameters from the MFO() and MFO_kinetics() functions.
+#' Nothing is written to disk unless `output_dir` is given (see *Output files*).
 #'
 #' @param from select "folder" (basal, MFO and graded databases of the same participant are stored in
 #'              different files but in the same folder) or "files" (basal, MFO and graded databases of the
@@ -55,9 +56,23 @@
 #' @param col_name_HR column name for HR in databases. Default "HR".
 #' @param col_name_Load column name for the external load (W or km/h) in the
 #'        databases. Default "Load"; the column is optional. See [MFO()].
-#' @param save_plot save plots to MFO_plots/ directory (default TRUE).
-#' @param save_result save results file (default TRUE).
+#' @param save_plot with `output_dir`, save the plots of each participant in
+#'   `output_dir/MFO_plots` (default TRUE).
+#' @param save_result with `output_dir`, save the results table as
+#'   `output_dir/MFO_result.<output_format>` (default TRUE).
 #' @param output_format format for results file: "xlsx", "csv", or "rds". Default "xlsx".
+#' @param output_dir folder where plots and results are written (created if
+#'   needed). `NULL` (default): nothing is written, the results are only
+#'   returned (see *Output files*).
+#'
+#' @section Output files:
+#' Up to v0.2.1 `MFOs()` wrote `MFO_plots/` and `MFO_result.xlsx` in the
+#' working directory by default. It now writes only when `output_dir` is
+#' given, as the CRAN Repository Policy asks of packages (no writing outside
+#' the temporary directory unless the user asks for it). Without
+#' `output_dir`, a message once per session says that nothing is written and
+#' how to ask for it. `save_plot`, `save_result` and `output_format` choose
+#' what is written in `output_dir`.
 #'
 #' @details Every warning raised for a participant is re-issued with the
 #' participant ID first (e.g. `"P02: No HR data in db_MFO: ..."`), so the
@@ -134,6 +149,16 @@
 #'                 cv_var = "RER",
 #'                 author = "Frayn",
 #'                 method = "P3")
+#' # The same, writing the plots and MFO_result.xlsx in a folder
+#' results <- MFOs(from = "folder",
+#'                 path = "/path/to/participant_data",
+#'                 db_basal_name = "basal_df",
+#'                 db_MFO_name = "MFO_df",
+#'                 db_graded_name = "graded_df",
+#'                 step_time = 20,
+#'                 cv_var = "RER",
+#'                 author = "Frayn",
+#'                 output_dir = "MFO_output")
 #' }
 #'
 MFOs <- function(from = c("folder", "files"),
@@ -175,9 +200,22 @@ MFOs <- function(from = c("folder", "files"),
                  conf = 0.95,
                  seed = NULL,
                  sin_fit = c("normalised", "absolute"),
-                 sin_ci = FALSE) {
+                 sin_ci = FALSE,
+                 output_dir = NULL) {
 
   from <- match.arg(from)
+  # Files are written only in output_dir, never by default (CRAN policy)
+  if (is.null(output_dir)) {
+    if (save_plot || save_result) .mfos_output_message()
+    save_plot <- FALSE
+    save_result <- FALSE
+  } else {
+    if (!is.character(output_dir) || length(output_dir) != 1 || !nzchar(output_dir)) {
+      stop("output_dir must be the path of a folder.", call. = FALSE)
+    }
+    dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
+  }
+  plot_dir <- if (!is.null(output_dir)) file.path(output_dir, "MFO_plots")
   output_format <- match.arg(output_format, c("xlsx", "csv", "rds"))
   sin_fit <- match.arg(sin_fit)
   if (missing(energy_equivalents)) .energy_default_message()
@@ -254,13 +292,10 @@ MFOs <- function(from = c("folder", "files"),
 
       # Save MFO plot
       if (save_plot) {
-        if (i == 1) {
-          plot_dir <- paste(getwd(), "/MFO_plots", sep = "")
-          if (!dir.exists(plot_dir)) dir.create(plot_dir)
-        }
+        if (!dir.exists(plot_dir)) dir.create(plot_dir, recursive = TRUE)
         ggsave(paste(ID_participant, "_MFO.png", sep = ""),
                plot = participant_result_MFO$MFO_plot,
-               path = paste(getwd(), "/MFO_plots", sep = ""),
+               path = plot_dir,
                height = 5, width = 7, units = "in", dpi = 600)
       }
 
@@ -275,7 +310,7 @@ MFOs <- function(from = c("folder", "files"),
       if (save_plot) {
         ggsave(paste(ID_participant, "_kinetics.png", sep = ""),
                plot = participant_result_kinetics$MFO_kinetics_plot,
-               path = paste(getwd(), "/MFO_plots", sep = ""),
+               path = plot_dir,
                height = 5, width = 7, units = "in", dpi = 600)
       }
 
@@ -380,7 +415,7 @@ MFOs <- function(from = c("folder", "files"),
 
   # Save results
   if (save_result) {
-    result_file <- paste("MFO_result.", output_format, sep = "")
+    result_file <- file.path(output_dir, paste0("MFO_result.", output_format))
     if (output_format == "xlsx") {
       write.xlsx(dF_result, result_file)
     } else if (output_format == "csv") {

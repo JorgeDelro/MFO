@@ -587,16 +587,17 @@ for (id in c("P01", "P02")) {
 list.files(root, recursive = TRUE)
 ```
 
-`save_plot` and `save_result` write the plots and the summary table to the
-working directory; they are switched off here. Every warning is repeated with
-the participant ID in front.
+`MFOs()` returns the table and writes no files. To save the plots of each
+participant and the table, give a folder with `output_dir` (for instance
+`output_dir = "MFO_output"`); `save_plot`, `save_result` and `output_format`
+choose what is written there. Every warning is repeated with the participant
+ID in front.
 
 ```{r batch}
 batch <- MFOs(from = "folder", path = root,
               db_basal_name = "basal_df", db_MFO_name = "MFO_df",
               db_graded_name = "VO2max_df", step_time = 20, cv_var = "RER",
-              author = "Frayn", energy_equivalents = "classic",
-              save_plot = FALSE, save_result = FALSE)
+              author = "Frayn", energy_equivalents = "classic")
 knitr::kable(batch[, c("ID", "MFO_g_min", "FAT_MAX_perVO2max", "VO2max",
                        "FatMax_zone_lower", "FatMax_zone_upper", "d", "s", "t",
                        "Fatmin")], digits = 3)

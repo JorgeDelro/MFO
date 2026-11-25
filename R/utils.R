@@ -231,6 +231,17 @@ substrate_oxidation <- function(VO2, VCO2, author, VO2max = NULL,
   invisible(TRUE)
 }
 
+# MFOs() writes nothing without output_dir (CRAN policy); say so once
+.mfos_output_message <- function() {
+  if (isTRUE(.mfo_state$mfos_output_message_shown)) return(invisible(FALSE))
+  .mfo_state$mfos_output_message_shown <- TRUE
+  message("MFOs() returns the results and writes no files. To save the plots and ",
+          "the results table, give output_dir, e.g. output_dir = \"MFO_output\" ",
+          "(up to v0.2.1 they were written in the working directory; shown once ",
+          "per session).")
+  invisible(TRUE)
+}
+
 .energy_default_message <- function() {
   if (isTRUE(.mfo_state$energy_message_shown)) return(invisible(FALSE))
   .mfo_state$energy_message_shown <- TRUE
