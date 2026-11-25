@@ -274,28 +274,55 @@
     ),
     shiny::h4(t("app.subtitle"), class = "mb-3"),
     shiny::uiOutput(ns("alerts")),
-    bslib::layout_columns(
-      col_widths = c(7, 5),
-      bslib::card(
-        bslib::card_header(t("data.recording.plot")),
-        shiny::plotOutput(ns("plot"), height = "360px", fill = FALSE,
-                          brush = shiny::brushOpts(ns("brush"), direction = "x",
-                                                   resetOnNew = TRUE)),
-        .app_figure_controls(ns, "fig_recording", 90)
-      ),
-      # The tables as read, one per phase, before the analysis (Jorge,
-      # 2026-11-25); each scrolls inside the card
-      bslib::navset_card_underline(
-        title = t("data.tables"),
-        bslib::nav_panel(t("data.phase.basal"), .app_scroll_table(ns("view_basal"))),
-        bslib::nav_panel(t("data.phase.MFO"), .app_scroll_table(ns("view_MFO"))),
-        bslib::nav_panel(t("data.phase.graded"), .app_scroll_table(ns("view_graded")))
+    # Two tabs (Jorge, 2026-11-25): how to prepare the data, shown first, and
+    # the data loaded, selected when they are read
+    bslib::navset_underline(
+      id = ns("view"),
+      bslib::nav_panel(t("prep.tab"), .app_prepare_ui(ns), value = "prepare"),
+      bslib::nav_panel(
+        t("data.loaded"), value = "loaded",
+        bslib::card(
+          class = "mt-3",
+          bslib::card_header(t("data.recording.plot")),
+          shiny::plotOutput(ns("plot"), height = "360px", fill = FALSE,
+                            brush = shiny::brushOpts(ns("brush"), direction = "x",
+                                                     resetOnNew = TRUE)),
+          .app_figure_controls(ns, "fig_recording", 90)
+        ),
+        # The tables as read, one tab per phase, each scrolling
+        bslib::navset_card_underline(
+          bslib::nav_panel(t("data.phase.basal"), .app_scroll_table(ns("view_basal"))),
+          bslib::nav_panel(t("data.phase.MFO"), .app_scroll_table(ns("view_MFO"))),
+          bslib::nav_panel(t("data.phase.graded"), .app_scroll_table(ns("view_graded")))
+        ),
+        bslib::card(
+          bslib::card_header(t("data.summary")),
+          shiny::tableOutput(ns("summary"))
+        )
       )
-    ),
-    bslib::card(
-      bslib::card_header(t("data.summary")),
-      shiny::tableOutput(ns("summary"))
     )
+  )
+}
+
+# "Prepare your data": the three ways to bring data into the app and the
+# templates (Jorge, 2026-11-25)
+.app_prepare_ui <- function(ns) {
+  t <- function(key) .tr(key)
+  case <- function(title, keys, ...) {
+    shiny::div(class = "mb-3", shiny::h5(t(title)),
+               shiny::tags$ul(lapply(keys, function(k) shiny::tags$li(t(k)))), ...)
+  }
+  shiny::div(
+    class = "mt-3",
+    shiny::p(t("prep.intro")),
+    case("prep.a", c("prep.a.example", "prep.a.file", "prep.a.device", "prep.a.phases",
+                     "prep.a.records"),
+         shiny::downloadButton(ns("template_test"), t("prep.template.test"),
+                               class = "btn-outline-primary btn-sm")),
+    case("prep.b", c("prep.b.add", "prep.b.download")),
+    case("prep.c", c("prep.c.when", "prep.c.columns", "prep.c.n"),
+         shiny::downloadButton(ns("template_results"), t("prep.template.results"),
+                               class = "btn-outline-primary btn-sm"))
   )
 }
 
@@ -389,6 +416,16 @@
     })
 
     # Dragging over the MFO test sets both cuts
+    output$template_test <- .app_template_download("MFO_test_template.xlsx")
+    output$template_results <- .app_template_download("MFO_results_template.csv")
+
+    # In cuts mode the recording is shown at once, to drag the cuts on it
+    shiny::observeEvent(input$tab_recording, {
+      if (identical(input$assign, "cuts") && nzchar(input$tab_recording)) {
+        bslib::nav_select("view", "loaded", session = session)
+      }
+    }, ignoreInit = TRUE)
+
     shiny::observeEvent(input$brush, {
       shiny::updateNumericInput(session, "basal_end", value = round(input$brush$xmin))
       shiny::updateNumericInput(session, "MFO_end", value = round(input$brush$xmax))
@@ -415,6 +452,7 @@
       }
       log(out)
       result(if (is.null(out$error)) c(list(cart = out$value), meta))
+      if (is.null(out$error)) bslib::nav_select("view", "loaded", session = session)
     })
 
     output$alerts <- shiny::renderUI({

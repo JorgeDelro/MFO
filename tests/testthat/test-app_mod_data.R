@@ -170,3 +170,30 @@ test_that("the Data tab shows the tables of each phase before the analysis", {
     expect_match(output$view_graded, "<table")
   })
 })
+
+test_that("the individual-test template is read and analysed as it is", {
+  # Jorge, 2026-11-25: xlsx with one sheet per phase, contract column names,
+  # so no mapping is needed
+  f <- system.file("app", "templates", "MFO_test_template.xlsx", package = "MFO")
+  tabs <- .app_tables(data.frame(name = "MFO_test_template.xlsx", datapath = f))
+  expect_equal(tabs$sheet, c("Rest", "MFO", "Graded"))
+  cart <- .app_read_data(tabs, list(mode = "phases", basal = tabs$label[1],
+                                    MFO = tabs$label[2], graded = tabs$label[3]),
+                         .generic_settings())
+  expect_equal(cart$step_time, 20)
+  ex <- .app_example_data()
+  expect_equal(cart$db_MFO$VO2, ex$db_MFO$VO2)
+  a <- suppressWarnings(suppressMessages(.app_run_analysis(cart, .app_default_opts())))
+  b <- suppressWarnings(suppressMessages(.app_run_analysis(ex, .app_default_opts())))
+  expect_equal(a$res$MFO, b$res$MFO)
+  expect_equal(a$res$FAT_MAX, b$res$FAT_MAX)
+})
+
+test_that("the Data tab offers both templates", {
+  skip_if_not_installed("shiny")
+  shiny::testServer(.mod_data_server, {
+    expect_equal(readxl::excel_sheets(output$template_test), c("Rest", "MFO", "Graded"))
+    expect_equal(names(utils::read.csv(output$template_results))[1:4],
+                 c("id", "session", "MFO", "Fatmax"))
+  })
+})
