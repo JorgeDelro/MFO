@@ -47,7 +47,7 @@ MFOs(
   B = 2000,
   conf = 0.95,
   seed = NULL,
-  sin_fit = c("normalised", "absolute"),
+  sin_fit = c("absolute", "normalised"),
   sin_ci = FALSE,
   output_dir = NULL
 )
@@ -221,8 +221,8 @@ MFOs(
 
 - sin_fit:
 
-  \`"normalised"\` (default) or \`"absolute"\` fit of the SIN model. See
-  \[MFO_kinetics()\].
+  \`"absolute"\` (default since 0.3.0-beta.1) or \`"normalised"\` fit of
+  the SIN model. See \[MFO_kinetics()\].
 
 - sin_ci:
 

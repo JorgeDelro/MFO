@@ -440,11 +440,15 @@ rightward asymmetry and 0 \< s \< 1 a leftward one ([Chenevière et al.
 left (t \> 0) or right (t \< 0).
 [`MFO_kinetics()`](https://jorgedelro.github.io/MFO/reference/MFO_kinetics.md)
 fits the model by nonlinear least squares directly to the observed
-steps, normalised to the highest observed step, without smoothing, as
-Chenevière et al. ([2009](#ref-cheneviere2009)) did. Fatmax_SIN and
-Fatmin come from closed forms of eq. \[14\]; Fatmin is the second zero
-of the curve (set `fatmin_threshold` to use a proportion of MFO
-instead).
+steps, without smoothing. By default (`fit = "absolute"`) fat oxidation
+is fitted in g/min with MFO as a fourth parameter; `fit = "normalised"`
+first divides it by the highest observed step, as Chenevière et al.
+([2009](#ref-cheneviere2009)) did, which biases the shape unless a step
+falls exactly on Fatmax
+([`vignette("validation")`](https://jorgedelro.github.io/MFO/articles/validation.md)).
+Fatmax_SIN and Fatmin come from closed forms of eq. \[14\]; Fatmin is
+the second zero of the curve (set `fatmin_threshold` to use a proportion
+of MFO instead).
 
 ``` r
 
@@ -458,15 +462,15 @@ knitr::kable(data.frame(
 
 | parameter | estimate | std_error |
 |:----------|---------:|----------:|
-| d         |   -0.385 |     0.194 |
-| s         |    0.910 |     0.307 |
-| t         |    0.355 |     0.228 |
+| d         |   -0.237 |     0.524 |
+| s         |    1.102 |     0.698 |
+| t         |    0.509 |     0.555 |
 
 ``` r
 
 round(c(FatMax_SIN = kin$FatMax_SIN, Fatmin = kin$Fatmin, R2 = kin$R_squared), 2)
 #> FatMax_SIN     Fatmin         R2 
-#>      36.18      76.44       0.97
+#>      36.61      76.26       0.97
 kin$MFO_kinetics_plot
 ```
 
@@ -499,14 +503,15 @@ knitr::kable(rbind(
 
 | setting                   | steps |      d |     s |     t | FatMax_SIN | Fatmin |
 |:--------------------------|------:|-------:|------:|------:|-----------:|-------:|
-| negative_FAT = “truncate” |     8 | -0.385 | 0.910 | 0.355 |     36.182 | 76.443 |
-| negative_FAT = “exclude”  |     7 | -0.440 | 0.539 | 0.023 |     33.157 | 85.252 |
-| RER_cutoff = 1            |     7 | -0.440 | 0.539 | 0.023 |     33.157 | 85.252 |
+| negative_FAT = “truncate” |     8 | -0.237 | 1.102 | 0.509 |     36.614 | 76.258 |
+| negative_FAT = “exclude”  |     7 | -0.417 | 0.565 | 0.043 |     33.439 | 85.340 |
+| RER_cutoff = 1            |     7 | -0.417 | 0.565 | 0.043 |     33.439 | 85.340 |
 
 SIN parameters; Fatmax_SIN and Fatmin in %VO2max. {.table}
 
 A single step moves Fatmin by several points here, which is why the
-setting must be reported. With fewer than 4 steps the SIN is not fitted
+setting must be reported. The absolute fit needs 5 steps and the
+normalised one 4; with fewer the SIN is not fitted
 (`convergence = FALSE`); with 4–5 steps it is fitted with a warning, and
 6 or more steps are recommended.
 
@@ -581,8 +586,8 @@ knitr::kable(data.frame(
 
 | include_basal | rows |   MFO | Fatmax |    R2 | FatMax_SIN |
 |:--------------|-----:|------:|-------:|------:|-----------:|
-| FALSE         |    8 | 0.317 | 36.170 | 0.971 |     36.182 |
-| TRUE          |    9 | 0.322 | 36.112 | 0.975 |     35.851 |
+| FALSE         |    8 | 0.317 | 36.170 | 0.971 |     36.614 |
+| TRUE          |    9 | 0.322 | 36.112 | 0.975 |     35.819 |
 
 ## 7. Protocols, load and VO₂max
 
@@ -755,8 +760,8 @@ n_steps <- sum(final$MFO_db$Step != 0)
 > (Achten et al., 2002). Fat oxidation kinetics were described with the
 > SIN model (Chenevière et al., 2009). MFO was 0.32 g/min at 36.2%
 > VO2max (87 W, 128 bpm, 68.7% HRmax; Fatmax zone 24.2–48.3% VO2max);
-> the SIN parameters were d = -0.38, s = 0.91 and t = 0.36, with Fatmin
-> at 76.4% VO2max. Analyses were run with the R package MFO, version
+> the SIN parameters were d = -0.24, s = 1.10 and t = 0.51, with Fatmin
+> at 76.3% VO2max. Analyses were run with the R package MFO, version
 > 0.2.1.9000, \[protocol: ergometer, initial load and increment, fasting
 > and pre-test conditions\].
 
@@ -824,8 +829,8 @@ knitr::kable(batch[, c("ID", "MFO_g_min", "FAT_MAX_perVO2max", "VO2max",
 
 | ID | MFO_g_min | FAT_MAX_perVO2max | VO2max | FatMax_zone_lower | FatMax_zone_upper | d | s | t | Fatmin |
 |:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| P01 | 0.317 | 36.17 | 3315.0 | 24.19 | 48.34 | -0.385 | 0.91 | 0.355 | 76.44 |
-| P02 | 0.348 | 36.17 | 3646.5 | 24.19 | 48.34 | -0.385 | 0.91 | 0.355 | 76.44 |
+| P01 | 0.317 | 36.17 | 3315.0 | 24.19 | 48.34 | -0.237 | 1.102 | 0.509 | 76.26 |
+| P02 | 0.348 | 36.17 | 3646.5 | 24.19 | 48.34 | -0.237 | 1.102 | 0.509 | 76.26 |
 
 ## 10. Heart-rate zones and reference values
 

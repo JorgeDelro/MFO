@@ -99,7 +99,7 @@ Nothing is written to disk unless `output_dir` is given (see *Output files*).</p
 <span>  B <span class="op">=</span> <span class="fl">2000</span>,</span>
 <span>  conf <span class="op">=</span> <span class="fl">0.95</span>,</span>
 <span>  seed <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  sin_fit <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"normalised"</span>, <span class="st">"absolute"</span><span class="op">)</span>,</span>
+<span>  sin_fit <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"absolute"</span>, <span class="st">"normalised"</span><span class="op">)</span>,</span>
 <span>  sin_ci <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  output_dir <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -267,8 +267,8 @@ participant.</p></dd>
 
 
 <dt id="arg-sin-fit">sin_fit<a class="anchor" aria-label="anchor" href="#arg-sin-fit"></a></dt>
-<dd><p>`"normalised"` (default) or `"absolute"` fit of the SIN
-model. See [MFO_kinetics()].</p></dd>
+<dd><p>`"absolute"` (default since 0.3.0-beta.1) or `"normalised"`
+fit of the SIN model. See [MFO_kinetics()].</p></dd>
 
 
 <dt id="arg-sin-ci">sin_ci<a class="anchor" aria-label="anchor" href="#arg-sin-ci"></a></dt>

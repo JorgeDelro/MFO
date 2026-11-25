@@ -545,11 +545,15 @@ normalised to %MFO, with a sine function of three parameters (their eq.
 asymmetry and 0 &lt; s &lt; 1 a leftward one <span class="citation">(<a href="#ref-cheneviere2009">Chenevière et al. 2009</a>)</span>;
 <strong>t</strong> (translation) shifts the whole curve left (t &gt; 0)
 or right (t &lt; 0). <code><a href="../reference/MFO_kinetics.html">MFO_kinetics()</a></code> fits the model by
-nonlinear least squares directly to the observed steps, normalised to
-the highest observed step, without smoothing, as <span class="citation">Chenevière et al. (<a href="#ref-cheneviere2009">2009</a>)</span> did. Fatmax_SIN and Fatmin
-come from closed forms of eq. [14]; Fatmin is the second zero of the
-curve (set <code>fatmin_threshold</code> to use a proportion of MFO
-instead).</p>
+nonlinear least squares directly to the observed steps, without
+smoothing. By default (<code>fit = "absolute"</code>) fat oxidation is
+fitted in g/min with MFO as a fourth parameter;
+<code>fit = "normalised"</code> first divides it by the highest observed
+step, as <span class="citation">Chenevière et al. (<a href="#ref-cheneviere2009">2009</a>)</span> did, which biases the shape
+unless a step falls exactly on Fatmax
+(<code><a href="../articles/validation.html">vignette("validation")</a></code>). Fatmax_SIN and Fatmin come from
+closed forms of eq. [14]; Fatmin is the second zero of the curve (set
+<code>fatmin_threshold</code> to use a proportion of MFO instead).</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">kin</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/MFO_kinetics.html">MFO_kinetics</a></span><span class="op">(</span><span class="va">res</span><span class="op">$</span><span class="va">MFO_db</span><span class="op">)</span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -566,25 +570,25 @@ instead).</p>
 <tbody>
 <tr class="odd">
 <td align="left">d</td>
-<td align="right">-0.385</td>
-<td align="right">0.194</td>
+<td align="right">-0.237</td>
+<td align="right">0.524</td>
 </tr>
 <tr class="even">
 <td align="left">s</td>
-<td align="right">0.910</td>
-<td align="right">0.307</td>
+<td align="right">1.102</td>
+<td align="right">0.698</td>
 </tr>
 <tr class="odd">
 <td align="left">t</td>
-<td align="right">0.355</td>
-<td align="right">0.228</td>
+<td align="right">0.509</td>
+<td align="right">0.555</td>
 </tr>
 </tbody>
 </table>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>FatMax_SIN <span class="op">=</span> <span class="va">kin</span><span class="op">$</span><span class="va">FatMax_SIN</span>, Fatmin <span class="op">=</span> <span class="va">kin</span><span class="op">$</span><span class="va">Fatmin</span>, R2 <span class="op">=</span> <span class="va">kin</span><span class="op">$</span><span class="va">R_squared</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span></span>
 <span><span class="co">#&gt; FatMax_SIN     Fatmin         R2 </span></span>
-<span><span class="co">#&gt;      36.18      76.44       0.97</span></span>
+<span><span class="co">#&gt;      36.61      76.26       0.97</span></span>
 <span><span class="va">kin</span><span class="op">$</span><span class="va">MFO_kinetics_plot</span></span></code></pre></div>
 <p><img src="mfo-workflow_files/figure-html/sin-1.png" class="r-plt" alt="Fat oxidation as %MFO against %VO2max: observed steps, the basic SIN curve in grey and the fitted SIN curve in orange between its two zeros; d, s, t, Fatmin and R² in the subtitle." width="100%"></p>
 <p><code><a href="../reference/MFO_kinetics.html">MFO_kinetics()</a></code> fits every row it receives, so the SIN
@@ -628,34 +632,35 @@ with RER ≤ 1.0.</p>
 <tr class="odd">
 <td align="left">negative_FAT = “truncate”</td>
 <td align="right">8</td>
-<td align="right">-0.385</td>
-<td align="right">0.910</td>
-<td align="right">0.355</td>
-<td align="right">36.182</td>
-<td align="right">76.443</td>
+<td align="right">-0.237</td>
+<td align="right">1.102</td>
+<td align="right">0.509</td>
+<td align="right">36.614</td>
+<td align="right">76.258</td>
 </tr>
 <tr class="even">
 <td align="left">negative_FAT = “exclude”</td>
 <td align="right">7</td>
-<td align="right">-0.440</td>
-<td align="right">0.539</td>
-<td align="right">0.023</td>
-<td align="right">33.157</td>
-<td align="right">85.252</td>
+<td align="right">-0.417</td>
+<td align="right">0.565</td>
+<td align="right">0.043</td>
+<td align="right">33.439</td>
+<td align="right">85.340</td>
 </tr>
 <tr class="odd">
 <td align="left">RER_cutoff = 1</td>
 <td align="right">7</td>
-<td align="right">-0.440</td>
-<td align="right">0.539</td>
-<td align="right">0.023</td>
-<td align="right">33.157</td>
-<td align="right">85.252</td>
+<td align="right">-0.417</td>
+<td align="right">0.565</td>
+<td align="right">0.043</td>
+<td align="right">33.439</td>
+<td align="right">85.340</td>
 </tr>
 </tbody>
 </table>
 <p>A single step moves Fatmin by several points here, which is why the
-setting must be reported. With fewer than 4 steps the SIN is not fitted
+setting must be reported. The absolute fit needs 5 steps and the
+normalised one 4; with fewer the SIN is not fitted
 (<code>convergence = FALSE</code>); with 4–5 steps it is fitted with a
 warning, and 6 or more steps are recommended.</p>
 </div>
@@ -781,7 +786,7 @@ the fit, and of the SIN model, which departs from <span class="citation">Chenevi
 <td align="right">0.317</td>
 <td align="right">36.170</td>
 <td align="right">0.971</td>
-<td align="right">36.182</td>
+<td align="right">36.614</td>
 </tr>
 <tr class="even">
 <td align="left">TRUE</td>
@@ -789,7 +794,7 @@ the fit, and of the SIN model, which departs from <span class="citation">Chenevi
 <td align="right">0.322</td>
 <td align="right">36.112</td>
 <td align="right">0.975</td>
-<td align="right">35.851</td>
+<td align="right">35.819</td>
 </tr>
 </tbody>
 </table>
@@ -946,7 +951,7 @@ defined as the intensities eliciting at least 90% of MFO (Achten et al.,
 2002). Fat oxidation kinetics were described with the SIN model
 (Chenevière et al., 2009). MFO was 0.32 g/min at 36.2% VO2max (87 W, 128
 bpm, 68.7% HRmax; Fatmax zone 24.2–48.3% VO2max); the SIN parameters
-were d = -0.38, s = 0.91 and t = 0.36, with Fatmin at 76.4% VO2max.
+were d = -0.24, s = 1.10 and t = 0.51, with Fatmin at 76.3% VO2max.
 Analyses were run with the R package MFO, version 0.2.1.9000, [protocol:
 ergometer, initial load and increment, fasting and pre-test
 conditions].</p>
@@ -1017,7 +1022,7 @@ front.</p>
 <col width="17%">
 <col width="17%">
 <col width="6%">
-<col width="4%">
+<col width="5%">
 <col width="5%">
 <col width="6%">
 </colgroup>
@@ -1041,10 +1046,10 @@ front.</p>
 <td align="right">3315.0</td>
 <td align="right">24.19</td>
 <td align="right">48.34</td>
-<td align="right">-0.385</td>
-<td align="right">0.91</td>
-<td align="right">0.355</td>
-<td align="right">76.44</td>
+<td align="right">-0.237</td>
+<td align="right">1.102</td>
+<td align="right">0.509</td>
+<td align="right">76.26</td>
 </tr>
 <tr class="even">
 <td align="left">P02</td>
@@ -1053,10 +1058,10 @@ front.</p>
 <td align="right">3646.5</td>
 <td align="right">24.19</td>
 <td align="right">48.34</td>
-<td align="right">-0.385</td>
-<td align="right">0.91</td>
-<td align="right">0.355</td>
-<td align="right">76.44</td>
+<td align="right">-0.237</td>
+<td align="right">1.102</td>
+<td align="right">0.509</td>
+<td align="right">76.26</td>
 </tr>
 </tbody>
 </table>

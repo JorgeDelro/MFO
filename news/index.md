@@ -4,6 +4,18 @@
 
 ### Breaking changes
 
+- [`MFO_kinetics()`](https://jorgedelro.github.io/MFO/reference/MFO_kinetics.md)
+  fits the SIN model in g/min by default (`fit = "absolute"`, with MFO
+  as a fourth parameter), as `MFOs(sin_fit =)` and the app;
+  `fit = "normalised"` gives the fit of Chenevière et al. (2009) and of
+  earlier versions. Its intervals covered the truth 92-97 % of the time
+  against 74-93 % for the normalised fit
+  ([`vignette("validation")`](https://jorgedelro.github.io/MFO/articles/validation.md),
+  SPEC 13.2). With 4 steps there is no SIN by default (5 are needed);
+  use `fit = "normalised"`. The SIN plot extends its y axis when an
+  observed step lies above the fitted MFO, which a fixed axis used to
+  drop.
+
 - [`MFOs()`](https://jorgedelro.github.io/MFO/reference/MFOs.md) no
   longer writes to the working directory by default. It returns the
   results and writes the plots (`MFO_plots/`) and the results table
