@@ -52,6 +52,8 @@ test_that("the Word report includes zones and intervals when computed", {
   expect_true(all(c("Heart-rate zones", "Reference values") %in%
                     s$text[s$style_name %in% "heading 1"]))
   expect_true(any(grepl("^Phase cuts: basal_end = 900", s$text)))
+  # the differences from the reference test are bulleted
+  expect_true(any(grepl("^\u2022 mode: cycling", s$text)))
 })
 
 test_that("the Report tab downloads the Word report", {

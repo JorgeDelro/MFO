@@ -41,7 +41,7 @@
         par(b$alt, "Image Caption")
       },
       alert = par(paste0(prefix[[b$level]], b$text)),
-      list = for (x in b$items) par(paste0("• ", x)),
+      list = for (x in b$items) par(paste0("\u2022 ", x)),
       methods = par(b$text),
       references = for (i in seq_along(b$items)) par(paste0(i, ". ", b$items[[i]])),
       footer = {
