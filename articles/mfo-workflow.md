@@ -795,17 +795,20 @@ list.files(root, recursive = TRUE)
 #> [4] "P02/basal_df.xlsx"  "P02/MFO_df.xlsx"    "P02/VO2max_df.xlsx"
 ```
 
-`save_plot` and `save_result` write the plots and the summary table to
-the working directory; they are switched off here. Every warning is
-repeated with the participant ID in front.
+[`MFOs()`](https://jorgedelro.github.io/MFO/reference/MFOs.md) returns
+the table and writes no files. To save the plots of each participant and
+the table, give a folder with `output_dir` (for instance
+`output_dir = "MFO_output"`); `save_plot`, `save_result` and
+`output_format` choose what is written there. Every warning is repeated
+with the participant ID in front.
 
 ``` r
 
 batch <- MFOs(from = "folder", path = root,
               db_basal_name = "basal_df", db_MFO_name = "MFO_df",
               db_graded_name = "VO2max_df", step_time = 20, cv_var = "RER",
-              author = "Frayn", energy_equivalents = "classic",
-              save_plot = FALSE, save_result = FALSE)
+              author = "Frayn", energy_equivalents = "classic")
+#> MFOs() returns the results and writes no files. To save the plots and the results table, give output_dir, e.g. output_dir = "MFO_output" (up to v0.2.1 they were written in the working directory; shown once per session).
 #> Processing: P01
 #> VO2max: a 30-s window is not a multiple of step_time (20 s); using 2 record(s) = 40 s.
 #> Warning: P01: 1 step(s) with negative fat oxidation detected (RER > 1.0

@@ -980,15 +980,19 @@ by 1.1 (same RER), so that the two rows differ.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="va">root</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "P01/basal_df.xlsx"  "P01/MFO_df.xlsx"    "P01/VO2max_df.xlsx"</span></span>
 <span><span class="co">#&gt; [4] "P02/basal_df.xlsx"  "P02/MFO_df.xlsx"    "P02/VO2max_df.xlsx"</span></span></code></pre></div>
-<p><code>save_plot</code> and <code>save_result</code> write the plots
-and the summary table to the working directory; they are switched off
-here. Every warning is repeated with the participant ID in front.</p>
+<p><code><a href="../reference/MFOs.html">MFOs()</a></code> returns the table and writes no files. To save
+the plots of each participant and the table, give a folder with
+<code>output_dir</code> (for instance
+<code>output_dir = "MFO_output"</code>); <code>save_plot</code>,
+<code>save_result</code> and <code>output_format</code> choose what is
+written there. Every warning is repeated with the participant ID in
+front.</p>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">batch</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/MFOs.html">MFOs</a></span><span class="op">(</span>from <span class="op">=</span> <span class="st">"folder"</span>, path <span class="op">=</span> <span class="va">root</span>,</span>
 <span>              db_basal_name <span class="op">=</span> <span class="st">"basal_df"</span>, db_MFO_name <span class="op">=</span> <span class="st">"MFO_df"</span>,</span>
 <span>              db_graded_name <span class="op">=</span> <span class="st">"VO2max_df"</span>, step_time <span class="op">=</span> <span class="fl">20</span>, cv_var <span class="op">=</span> <span class="st">"RER"</span>,</span>
-<span>              author <span class="op">=</span> <span class="st">"Frayn"</span>, energy_equivalents <span class="op">=</span> <span class="st">"classic"</span>,</span>
-<span>              save_plot <span class="op">=</span> <span class="cn">FALSE</span>, save_result <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span>              author <span class="op">=</span> <span class="st">"Frayn"</span>, energy_equivalents <span class="op">=</span> <span class="st">"classic"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; MFOs() returns the results and writes no files. To save the plots and the results table, give output_dir, e.g. output_dir = "MFO_output" (up to v0.2.1 they were written in the working directory; shown once per session).</span></span>
 <span><span class="co">#&gt; Processing: P01</span></span>
 <span><span class="co">#&gt; VO2max: a 30-s window is not a multiple of step_time (20 s); using 2 record(s) = 40 s.</span></span>
 <span><span class="co">#&gt; Warning: P01: 1 step(s) with negative fat oxidation detected (RER &gt; 1.0</span></span>
