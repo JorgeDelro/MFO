@@ -98,7 +98,7 @@ The kinetics of the curve are described with the SIN model:
 kin <- MFO_kinetics(result$MFO_db)
 unlist(kin[c("d", "s", "t", "FatMax_SIN", "Fatmin", "R_squared")])
 #>          d          s          t FatMax_SIN     Fatmin  R_squared 
-#> -0.3848798  0.9096423  0.3551958 36.1821171 76.4426627  0.9654434
+#> -0.2370131  1.1019621  0.5088720 36.6142231 76.2577380  0.9670980
 ```
 
 ``` r
@@ -192,10 +192,13 @@ at which CHO exceeds FAT, by linear interpolation between steps.
 
 ### SIN model
 
-`MFO_kinetics()` normalises fat oxidation to %MFO (highest observed step
-= 100 %) and fits the three-parameter sine model of Chenevière et
-al. (2009, eq. 14) directly to the observed steps by non-linear least
-squares (`minpack.lm::nlsLM`), with no prior smoothing:
+`MFO_kinetics()` fits the three-parameter sine model of Chenevière et
+al. (2009, eq. 14) directly to the observed steps by non-linear least
+squares, with no prior smoothing. By default (`fit = "absolute"`, since
+0.3.0-beta.1) fat oxidation is fitted in g/min with MFO as a fourth
+parameter, which avoids the bias of normalising to the highest observed
+step; `fit = "normalised"` divides by that step first (%MFO, highest
+observed step = 100 %), as Chenevière et al. did:
 
 $$
 \%\mathrm{MFO}(x) = \sin\left\{\left[\frac{\pi^{1/s}}{\pi + 2d}\left(Kx + d + t\right)\right]^{s}\right\},

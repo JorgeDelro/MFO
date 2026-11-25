@@ -327,9 +327,11 @@ With d = 0, s = 1 and t = 0 it is a half sine wave with its peak at
 or narrows (d < 0) the curve; **s** (symmetry) skews it: s > 1 is a rightward
 asymmetry and 0 < s < 1 a leftward one [@cheneviere2009]; **t** (translation)
 shifts the whole curve left (t > 0) or right (t < 0). `MFO_kinetics()` fits
-the model by nonlinear least squares directly to the observed steps,
-normalised to the highest observed step, without smoothing, as
-@cheneviere2009 did. Fatmax_SIN and Fatmin come from closed forms of eq. [14];
+the model by nonlinear least squares directly to the observed steps, without
+smoothing. By default (`fit = "absolute"`) fat oxidation is fitted in g/min
+with MFO as a fourth parameter; `fit = "normalised"` first divides it by the
+highest observed step, as @cheneviere2009 did, which biases the shape
+unless a step falls exactly on Fatmax (`vignette("validation")`). Fatmax_SIN and Fatmin come from closed forms of eq. [14];
 Fatmin is the second zero of the curve (set `fatmin_threshold` to use a
 proportion of MFO instead).
 
@@ -363,9 +365,9 @@ knitr::kable(rbind(
 ```
 
 A single step moves Fatmin by several points here, which is why the setting
-must be reported. With fewer than 4 steps the SIN is not fitted
-(`convergence = FALSE`); with 4–5 steps it is fitted with a warning, and
-6 or more steps are recommended.
+must be reported. The absolute fit needs 5 steps and the normalised one 4;
+with fewer the SIN is not fitted (`convergence = FALSE`); with 4–5 steps it
+is fitted with a warning, and 6 or more steps are recommended.
 
 ## 6. Sensitivity to protocol decisions
 

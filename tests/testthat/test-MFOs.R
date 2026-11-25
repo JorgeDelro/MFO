@@ -203,9 +203,12 @@ test_that("MFOs() passes sin_fit and reports the SIN limits", {
   res1 <- suppressWarnings(suppressMessages(.mfos("folder", root, ci = TRUE, B = 50, seed = 2)))
   expect_true(all(is.na(res1$Fatmin_lower)))
   expect_false(anyNA(res1$FAT_MAX_lower))
+  # default absolute fit since 0.3.0-beta.1: MFO of the SIN reported
   res0 <- suppressWarnings(suppressMessages(.mfos("folder", root)))
-  expect_true(all(is.na(res0$MFO_SIN)))
-  expect_equal(res0$sin_fit, c("normalised", "normalised"))
+  expect_false(anyNA(res0$MFO_SIN))
+  expect_equal(res0$sin_fit, c("absolute", "absolute"))
+  resn <- suppressWarnings(suppressMessages(.mfos("folder", root, sin_fit = "normalised")))
+  expect_true(all(is.na(resn$MFO_SIN)))
 })
 
 test_that("a participant that cannot be processed gives an NA row and a warning", {

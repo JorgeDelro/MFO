@@ -160,20 +160,26 @@ test_that("fatmin_threshold gives the closed-form intensity at that fraction of 
 })
 
 test_that("MFO_kinetics warns that 4-5 steps give an unreliable fit", {
-  # 5 steps: fit attempted, warning recommends >= 6 (SPEC 6.5)
-  expect_warning(k5 <- MFO_kinetics(fig5_steps()[c(1, 3, 5, 7, 9), ]),
-                 "5 steps.*unreliable.*at least 6")
-  expect_true(k5$convergence)
-  expect_false(is.na(k5$FatMax_SIN))
-  # 4 steps: same warning, still fitted
-  expect_warning(MFO_kinetics(fig5_steps()[c(1, 3, 5, 9), ]),
+  # 5 steps: fit attempted, warning recommends >= 6 (SPEC 6.5), both fits
+  for (fit in c("absolute", "normalised")) {
+    expect_warning(k5 <- MFO_kinetics(fig5_steps()[c(1, 3, 5, 7, 9), ], fit = fit),
+                   "5 steps.*unreliable.*at least 6")
+    expect_true(k5$convergence)
+    expect_false(is.na(k5$FatMax_SIN))
+  }
+  # 4 steps: the normalised fit (3 parameters) is still possible
+  expect_warning(MFO_kinetics(fig5_steps()[c(1, 3, 5, 9), ], fit = "normalised"),
                  "4 steps.*unreliable")
   # 6 or more steps: no warning
   expect_no_warning(MFO_kinetics(fig5_steps()[3:8, ]))
 })
 
-test_that("MFO_kinetics needs at least 4 steps", {
-  expect_warning(k <- MFO_kinetics(fig5_steps()[3:5, ]), "at least 4 steps")
+test_that("MFO_kinetics needs at least 5 steps (absolute) or 4 (normalised)", {
+  # default absolute fit since 0.3.0-beta.1: 4 parameters, 5 steps
+  expect_warning(k <- MFO_kinetics(fig5_steps()[c(1, 3, 5, 9), ]), "at least 5 steps")
+  expect_false(k$convergence)
+  expect_warning(k <- MFO_kinetics(fig5_steps()[3:5, ], fit = "normalised"),
+                 "at least 4 steps")
   expect_false(k$convergence)
   expect_true(is.na(k$FatMax_SIN))
   expect_s3_class(k$MFO_kinetics_plot, "ggplot")
@@ -186,21 +192,23 @@ test_that("SIN results on the example data (regression, SPEC 19)", {
     MFO(step_time = 20, db_MFO = MFO_df, db_basal = basal_df,
         db_graded = VO2max_df, cv_var = "RER", author = "Frayn", ...)))
   # Values of this implementation, documented in ?MFO_kinetics;
-  # tolerance 1e-4 for the nlsLM optimum
-  k <- MFO_kinetics(run()$MFO_db)
+  # tolerance 1e-4 for the nlsLM optimum. The normalised fit of Cheneviere
+  # et al. (2009), the default up to 0.3.0-alpha.2
+  kin <- function(db) MFO_kinetics(db, fit = "normalised")
+  k <- kin(run()$MFO_db)
   expect_equal(c(k$d, k$s, k$t), c(-0.384880, 0.909642, 0.355196), tolerance = 1e-4)
   expect_equal(k$FatMax_SIN, 36.1821, tolerance = 1e-4)
   expect_equal(k$Fatmin, 76.4427, tolerance = 1e-4)
 
   # Sensitivity to the truncated last step (RER 1.03)
-  k_ex <- MFO_kinetics(run(negative_FAT = "exclude")$MFO_db)
+  k_ex <- kin(run(negative_FAT = "exclude")$MFO_db)
   expect_equal(c(k_ex$d, k_ex$s, k_ex$t), c(-0.440258, 0.538705, 0.023075), tolerance = 1e-4)
   expect_equal(k_ex$Fatmin, 85.2516, tolerance = 1e-4)
-  k_cut <- MFO_kinetics(run(RER_cutoff = 1)$MFO_db)
+  k_cut <- kin(run(RER_cutoff = 1)$MFO_db)
   expect_equal(k_cut$Fatmin, k_ex$Fatmin)
 
   # include_basal = TRUE: the resting row is fitted too
-  k_b <- MFO_kinetics(run(include_basal = TRUE)$MFO_db)
+  k_b <- kin(run(include_basal = TRUE)$MFO_db)
   expect_equal(nrow(k_b$MFO_kinetics_data), nrow(k$MFO_kinetics_data) + 1)
   expect_equal(k_b$FatMax_SIN, 35.8506, tolerance = 1e-4)
 })
@@ -236,7 +244,7 @@ test_that("the absolute SIN fit recovers the truth with Fatmax between steps", {
   }
   # the normalised fit of the trained shape: d = 0.234 instead of 0.18
   x <- .sin_case(47.5, "trained")
-  kn <- MFO_kinetics(x$db)
+  kn <- MFO_kinetics(x$db, fit = "normalised")
   expect_gt(abs(kn$d - 0.18), 0.04)
   expect_true(is.na(kn$MFO_SIN))
   expect_equal(kn$fit, "normalised")
@@ -271,7 +279,8 @@ test_that("SIN intervals: degenerate without noise, reproducible, both types", {
   expect_true(all(kp$ci$lower < kp$ci$upper))
   expect_identical(kp$ci, suppressWarnings(
     MFO_kinetics(db, fit = "absolute", ci = "parametric", B = 200, seed = 2))$ci)
-  kb <- suppressWarnings(MFO_kinetics(db, ci = "bootstrap", B = 100, seed = 2))
+  kb <- suppressWarnings(MFO_kinetics(db, fit = "normalised", ci = "bootstrap", B = 100,
+                                      seed = 2))
   expect_equal(rownames(kb$ci), c("d", "s", "t", "FatMax_SIN", "Fatmin"))
   expect_equal(kb$bootstrap$type, "bootstrap")
   expect_null(MFO_kinetics(db)$ci)
@@ -285,4 +294,28 @@ test_that("ci = FALSE means no interval; all-zero fat oxidation stops", {
   db0 <- x$db
   db0$FAT <- 0
   expect_error(MFO_kinetics(db0), "Maximum FAT value is <= 0")
+})
+
+test_that("the default fit is absolute since 0.3.0-beta.1 (SPEC 13.2)", {
+  # Jorge, 2026-11-18: the default changes at beta.1
+  expect_equal(formals(MFO_kinetics)$fit[[2]], "absolute")
+  expect_equal(formals(MFOs)$sin_fit[[2]], "absolute")
+  x <- .sin_case(47.5, "trained")
+  k <- MFO_kinetics(x$db)
+  expect_equal(k$fit, "absolute")
+  expect_identical(k$d, MFO_kinetics(x$db, fit = "absolute")$d)
+  expect_false(is.na(k$MFO_SIN))
+})
+
+test_that("the SIN plot keeps observed steps above the fitted MFO", {
+  # absolute fit of the example data: the highest step is above MFO_SIN, and
+  # a fixed ylim(0, 1.01) dropped it from the plot
+  data(list = c("basal_df", "MFO_df", "VO2max_df"), package = "MFO",
+       envir = environment())
+  db <- suppressWarnings(suppressMessages(
+    MFO(step_time = 20, db_MFO = MFO_df, db_basal = basal_df, db_graded = VO2max_df,
+        cv_var = "RER", author = "Frayn", energy_equivalents = "classic", age = 30)))$MFO_db
+  k <- MFO_kinetics(db)
+  expect_gt(max(k$MFO_kinetics_data$porc_MFO), 101)
+  expect_no_warning(ggplot2::ggplot_build(k$MFO_kinetics_plot))
 })
