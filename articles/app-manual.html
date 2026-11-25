@@ -93,6 +93,7 @@ shorter tour.</p>
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"shiny"</span>, <span class="st">"bslib"</span><span class="op">)</span><span class="op">)</span>   <span class="co"># once</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"officer"</span><span class="op">)</span>             <span class="co"># optional: report as Word</span></span>
 <span><span class="fu">MFO</span><span class="fu">::</span><span class="fu"><a href="../reference/run_app.html">run_app</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <ul>
 <li>
@@ -116,6 +117,10 @@ table.</li>
 <strong>One participant at a time.</strong> The group table collects
 the results of the session; it lives only while the app is open, so
 download it before closing.</li>
+<li>
+<strong>Dark mode.</strong> The moon at the right of the navigation
+bar switches the app to dark mode and back (see <em>Dark mode</em>
+below).</li>
 </ul>
 </div>
 <div class="section level2">
@@ -720,16 +725,21 @@ mind.</li>
 saves one HTML file, with the plots inside, that opens in any browser.
 <em>Save as PDF</em> opens the print dialog of the browser with the
 report: choose <em>Save as PDF</em> as the printer (the downloaded HTML
-has the same button). It holds the curve, the results (with their
-intervals if computed), the steps of the fit, the SIN kinetics, the
-heart-rate zones and reference values (if computed for this analysis),
-the quality alerts, a <strong>methods paragraph</strong> ready to adapt
-for a paper, its references, and a footer with the package version and
-commit, the dates of the analysis and of the report, the data source,
-the phase cuts and the seed. The methods paragraph opens with a bracket
-that you complete (hours of fasting and ergometer) and cites only
-sources verified by the package. The participant code, if given, goes in
-the title and the file name.</p>
+has the same button). <em>Download report (Word)</em> saves the same
+report as a .docx file (it needs the package officer; without it the tab
+says how to install it): the same sections, the plots as PNG at 300 dpi,
+and the methods paragraph and the references as ordinary paragraphs that
+can be edited in Word. The reports are always in the light theme,
+whatever the mode of the app. They hold the curve, the results (with
+their intervals if computed), the steps of the fit, the SIN kinetics,
+the heart-rate zones and reference values (if computed for this
+analysis), the quality alerts, a <strong>methods paragraph</strong>
+ready to adapt for a paper, its references, and a footer with the
+package version and commit, the dates of the analysis and of the report,
+the data source, the phase cuts and the seed. The methods paragraph
+opens with a bracket that you complete (hours of fasting and ergometer)
+and cites only sources verified by the package. The participant code, if
+given, goes in the title and the file name.</p>
 <p><strong>Group table.</strong> The rows added in Results, as xlsx or
 csv. <em>Empty the table</em> starts a new one. Download it before
 closing the app: it can be uploaded again in Reliability.</p>
@@ -813,6 +823,46 @@ significant, the error grows with the value; use CV_log.</td>
 <p>The <strong>Bland-Altman plots</strong> show, for the chosen pair of
 sessions, each participant’s difference against their mean, with the
 bias (solid line) and the limits of agreement (dashed).</p>
+</div>
+<div class="section level2">
+<h2 id="dark-mode">Dark mode<a class="anchor" aria-label="anchor" href="#dark-mode"></a>
+</h2>
+<p>The moon at the right of the navigation bar switches the app to dark
+mode. Everything is kept (data, results, group table). The interface
+follows the dark colours of Bootstrap, and the plots are drawn with
+light text and a dark grid on a transparent background; FAT, CHO and the
+other series keep the colours of the app.</p>
+<div class="float">
+<img src="figures/manual-results-dark.png" alt="The Results tab in dark mode."><div class="figcaption">The Results tab in dark mode.</div>
+</div>
+<div class="float">
+<img src="figures/manual-results-sin-dark.png" alt="The SIN kinetics and the quality alerts in dark mode."><div class="figcaption">The SIN kinetics and the quality alerts in dark
+mode.</div>
+</div>
+<p>What does not change with the mode:</p>
+<ul>
+<li>
+<strong>The reports</strong> (HTML, Word, Save as PDF) <strong>and
+the downloaded figures</strong> are always light, because they are meant
+for papers and printing.</li>
+<li>
+<strong>The colours of the series</strong> (FAT, CHO, Fatmax zone,
+interval band, Fatmax line) are the same in both modes; the shaded
+Fatmax zone looks darker on the dark background.</li>
+<li>
+<strong>The buttons</strong> keep their colours: the main action of
+each tab (<em>Read data</em>, <em>Run analysis</em>, <em>Compute
+zones</em>, <em>Compute reliability</em>) is filled in the primary
+colour, and the other buttons (downloads, <em>Compute intervals</em>,
+<em>Add to the group table</em>…) are outlined in it.</li>
+<li>
+<strong>The progress bar of a file upload</strong> (“Upload
+complete”) is drawn by Shiny in the primary colour in both modes.</li>
+<li>
+<strong>The plots are images</strong>: when the mode changes they
+are drawn again by R, so they change a moment after the rest of the
+page.</li>
+</ul>
 </div>
 <div class="section level2">
 <h2 id="warnings-and-messages">Warnings and messages<a class="anchor" aria-label="anchor" href="#warnings-and-messages"></a>

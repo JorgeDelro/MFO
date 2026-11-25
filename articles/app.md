@@ -137,14 +137,17 @@ differences from the reference test.](figures/app-zones.png)
 
 The individual report is a single HTML file, with the plots inside, that
 opens in any browser; *Save as PDF* opens the print dialog of the
-browser with it. It holds the curve and the results (with their
-intervals if computed), the SIN kinetics, the heart-rate zones and
-reference values, the quality alerts, a methods paragraph ready to adapt
-for a paper, its references, and a footer with the package version and
-commit, the dates of the analysis and the report, the data source, the
-phase cuts and the seed. The methods paragraph starts with a bracket for
-you to complete (hours of fasting and ergometer) and cites only the
-sources the package has verified.
+browser with it, and *Download report (Word)* saves it as a .docx file
+(with the package officer). Reports and downloaded figures are always
+light; the app itself has a dark mode (the moon in the navigation bar).
+It holds the curve and the results (with their intervals if computed),
+the SIN kinetics, the heart-rate zones and reference values, the quality
+alerts, a methods paragraph ready to adapt for a paper, its references,
+and a footer with the package version and commit, the dates of the
+analysis and the report, the data source, the phase cuts and the seed.
+The methods paragraph starts with a bracket for you to complete (hours
+of fasting and ergometer) and cites only the sources the package has
+verified.
 
 The group table can be downloaded as xlsx or csv.
 

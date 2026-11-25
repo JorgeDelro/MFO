@@ -22,6 +22,7 @@ The screenshots use the example data of the package.
 ``` r
 
 install.packages(c("shiny", "bslib"))   # once
+install.packages("officer")             # optional: report as Word
 MFO::run_app()
 ```
 
@@ -39,6 +40,8 @@ MFO::run_app()
 - **One participant at a time.** The group table collects the results of
   the session; it lives only while the app is open, so download it
   before closing.
+- **Dark mode.** The moon at the right of the navigation bar switches
+  the app to dark mode and back (see *Dark mode* below).
 
 ## 1. Data
 
@@ -351,16 +354,21 @@ The Report and downloads tab.
 **Individual report.** *Download report (HTML)* saves one HTML file,
 with the plots inside, that opens in any browser. *Save as PDF* opens
 the print dialog of the browser with the report: choose *Save as PDF* as
-the printer (the downloaded HTML has the same button). It holds the
-curve, the results (with their intervals if computed), the steps of the
-fit, the SIN kinetics, the heart-rate zones and reference values (if
-computed for this analysis), the quality alerts, a **methods paragraph**
-ready to adapt for a paper, its references, and a footer with the
-package version and commit, the dates of the analysis and of the report,
-the data source, the phase cuts and the seed. The methods paragraph
-opens with a bracket that you complete (hours of fasting and ergometer)
-and cites only sources verified by the package. The participant code, if
-given, goes in the title and the file name.
+the printer (the downloaded HTML has the same button). *Download report
+(Word)* saves the same report as a .docx file (it needs the package
+officer; without it the tab says how to install it): the same sections,
+the plots as PNG at 300 dpi, and the methods paragraph and the
+references as ordinary paragraphs that can be edited in Word. The
+reports are always in the light theme, whatever the mode of the app.
+They hold the curve, the results (with their intervals if computed), the
+steps of the fit, the SIN kinetics, the heart-rate zones and reference
+values (if computed for this analysis), the quality alerts, a **methods
+paragraph** ready to adapt for a paper, its references, and a footer
+with the package version and commit, the dates of the analysis and of
+the report, the data source, the phase cuts and the seed. The methods
+paragraph opens with a bracket that you complete (hours of fasting and
+ergometer) and cites only sources verified by the package. The
+participant code, if given, goes in the title and the file name.
 
 **Group table.** The rows added in Results, as xlsx or csv. *Empty the
 table* starts a new one. Download it before closing the app: it can be
@@ -406,6 +414,40 @@ participants with a value in every session are used for each outcome.
 The **Bland-Altman plots** show, for the chosen pair of sessions, each
 participant’s difference against their mean, with the bias (solid line)
 and the limits of agreement (dashed).
+
+## Dark mode
+
+The moon at the right of the navigation bar switches the app to dark
+mode. Everything is kept (data, results, group table). The interface
+follows the dark colours of Bootstrap, and the plots are drawn with
+light text and a dark grid on a transparent background; FAT, CHO and the
+other series keep the colours of the app.
+
+![The Results tab in dark mode.](figures/manual-results-dark.png)
+
+The Results tab in dark mode.
+
+![The SIN kinetics and the quality alerts in dark
+mode.](figures/manual-results-sin-dark.png)
+
+The SIN kinetics and the quality alerts in dark mode.
+
+What does not change with the mode:
+
+- **The reports** (HTML, Word, Save as PDF) **and the downloaded
+  figures** are always light, because they are meant for papers and
+  printing.
+- **The colours of the series** (FAT, CHO, Fatmax zone, interval band,
+  Fatmax line) are the same in both modes; the shaded Fatmax zone looks
+  darker on the dark background.
+- **The buttons** keep their colours: the main action of each tab (*Read
+  data*, *Run analysis*, *Compute zones*, *Compute reliability*) is
+  filled in the primary colour, and the other buttons (downloads,
+  *Compute intervals*, *Add to the group table*…) are outlined in it.
+- **The progress bar of a file upload** (“Upload complete”) is drawn by
+  Shiny in the primary colour in both modes.
+- **The plots are images**: when the mode changes they are drawn again
+  by R, so they change a moment after the rest of the page.
 
 ## Warnings and messages
 
