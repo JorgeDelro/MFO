@@ -1,11 +1,33 @@
 # Figure downloads of the app (#24; Jorge, 2026-11-25): every plot can be
 # saved as PNG at 300 dpi, PDF or SVG, 180 mm wide by default (a full-width
 # journal figure), with width and height set by the user. Only grDevices is
-# used: cairo_pdf and svg print the subscript of VO₂, which pdf() cannot.
+# used: cairo_pdf, quartz and svg print the subscript of VO₂, which pdf()
+# cannot.
 
 .app_figure_formats <- c("PNG (300 dpi)" = "png", "PDF" = "pdf", "SVG" = "svg")
 
-# Save a ggplot to file; width and height in mm
+# Whether cairo devices really work: capabilities("cairo") can be TRUE while
+# the cairo module of R fails to load (macOS without XQuartz, as on the
+# GitHub runners), so a device is opened once to see
+.app_cairo_ok <- local({
+  ok <- NULL
+  function() {
+    if (is.null(ok)) {
+      ok <<- isTRUE(capabilities("cairo")) && tryCatch({
+        f <- tempfile(fileext = ".pdf")
+        on.exit(unlink(f))
+        withCallingHandlers(grDevices::cairo_pdf(f), warning = function(w) stop(w))
+        grDevices::dev.off()
+        TRUE
+      }, error = function(e) FALSE)
+    }
+    ok
+  }
+})
+
+# Save a ggplot to file; width and height in mm. PNG uses the default bitmap
+# device of the platform; PDF uses cairo_pdf, else quartz on macOS (both
+# print VO₂), else pdf(); SVG needs cairo
 .app_save_figure <- function(p, file, format = c("png", "pdf", "svg"), width_mm = 180,
                              height_mm = 120) {
   format <- match.arg(format)
@@ -15,12 +37,18 @@
   }
   w <- width_mm / 25.4
   h <- height_mm / 25.4
-  cairo <- isTRUE(capabilities("cairo"))
+  cairo <- .app_cairo_ok()
+  quartz <- identical(Sys.info()[["sysname"]], "Darwin") && isTRUE(capabilities("aqua"))
   switch(format,
-    png = grDevices::png(file, width = w, height = h, units = "in", res = 300,
-                         type = if (cairo) "cairo" else getOption("bitmapType")),
-    pdf = if (cairo) grDevices::cairo_pdf(file, width = w, height = h) else
-      grDevices::pdf(file, width = w, height = h),
+    png = grDevices::png(file, width = w, height = h, units = "in", res = 300),
+    pdf = if (cairo) {
+      grDevices::cairo_pdf(file, width = w, height = h)
+    } else if (quartz) {
+      tryCatch(grDevices::quartz(type = "pdf", file = file, width = w, height = h),
+               error = function(e) grDevices::pdf(file, width = w, height = h))
+    } else {
+      grDevices::pdf(file, width = w, height = h)
+    },
     svg = if (cairo) grDevices::svg(file, width = w, height = h) else
       stop("SVG needs R with cairo support; use PNG or PDF.", call. = FALSE))
   on.exit(grDevices::dev.off())

@@ -16,7 +16,7 @@ test_that("figures are saved at the size and resolution asked", {
   pdf_file <- withr::local_tempfile(fileext = ".pdf")
   .app_save_figure(p, pdf_file, "pdf", 90, 60)
   expect_identical(readChar(pdf_file, 4), "%PDF")
-  skip_if_not(isTRUE(capabilities("cairo")))
+  skip_if_not(.app_cairo_ok(), "cairo devices do not load here")
   svg_file <- withr::local_tempfile(fileext = ".svg")
   .app_save_figure(p, svg_file, "svg")
   # svg() writes points: 180 mm = 510.24 pt
@@ -44,4 +44,19 @@ test_that("each plot of the app has its download", {
                       fig_recording_height = 90)
     expect_true(file.size(output$fig_recording_download) > 1000)
   })
+})
+
+test_that("without working cairo, PNG and PDF still work and SVG says why", {
+  # GitHub macOS runners: capabilities("cairo") is TRUE but the module of R
+  # does not load
+  local_mocked_bindings(.app_cairo_ok = function() FALSE)
+  p <- .app_style_plot(.app_test_analysis()$res$MFO_plot)
+  png_file <- withr::local_tempfile(fileext = ".png")
+  expect_no_warning(.app_save_figure(p, png_file, "png", 100, 60))
+  expect_true(file.size(png_file) > 1000)
+  pdf_file <- withr::local_tempfile(fileext = ".pdf")
+  .app_save_figure(p, pdf_file, "pdf", 100, 60)
+  expect_identical(readChar(pdf_file, 4), "%PDF")
+  expect_error(.app_save_figure(p, withr::local_tempfile(fileext = ".svg"), "svg"),
+               "SVG needs R with cairo")
 })
