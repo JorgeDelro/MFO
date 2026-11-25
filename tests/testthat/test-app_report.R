@@ -67,3 +67,22 @@ test_that("the Report module lists the group table and empties it", {
     expect_null(group())
   })
 })
+
+test_that("the report and the app have a Save as PDF button", {
+  skip_if_not_installed("shiny")
+  a <- .app_test_analysis()
+  a$data <- list(cuts = NULL)
+  page <- .app_report(a)
+  expect_match(page, "onclick=\"window.print()\"", fixed = TRUE)
+  expect_match(page, "@media print", fixed = TRUE)
+  ui <- as.character(.mod_report_ui("report"))
+  expect_match(ui, "mfo-print", fixed = TRUE)
+  expect_match(ui, "Save as PDF", fixed = TRUE)
+  results <- shiny::reactiveVal(a)
+  zones <- shiny::reactiveVal(NULL)
+  group <- shiny::reactiveVal(NULL)
+  shiny::testServer(.mod_report_server, args = list(results = results, zones = zones,
+                                                    group = group), {
+    expect_no_error(session$setInputs(ID = "P01", print = 1))
+  })
+})

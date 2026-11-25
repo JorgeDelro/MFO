@@ -20,6 +20,15 @@ th { background: #f4f4f4; }
 footer { margin-top: 2em; font-size: .85em; color: #555; border-top: 1px solid #ddd;
          padding-top: .6em; }
 img { max-width: 100%; height: auto; }
+.print-button { float: right; padding: .4em 1em; border: 0; border-radius: 4px;
+                background: #6C63FF; color: #fff; font: inherit; cursor: pointer; }
+@media print {
+  .print-button { display: none; }
+  body { margin: 0; max-width: none; }
+  h2 { break-after: avoid; }
+  table, img, .alert, .methods { break-inside: avoid; }
+}
+@page { size: A4; margin: 15mm; }
 "
 
 # A data frame as an HTML table
@@ -123,6 +132,9 @@ img { max-width: 100%; height: auto; }
     tags$p("This report was produced by MFO::run_app(), which runs on the user's computer."))
 
   body <- tags$body(
+    # opens the print dialog of the browser, where "Save as PDF" is a printer
+    tags$button(class = "print-button", type = "button", onclick = "window.print()",
+                "Save as PDF"),
     tags$h1(title),
     tags$h2("Fat oxidation curve"),
     .app_plot_tag(.app_style_plot(res$MFO_plot), "Fat and carbohydrate oxidation against % VO\u2082max"),

@@ -207,6 +207,8 @@
 "rep.report","Individual report"
 "rep.report.help","HTML report of the current result: curve, results, intervals, SIN, zones and references, alerts, methods paragraph and references. Open it in the browser and print it to PDF if needed."
 "rep.download_report","Download report (HTML)"
+"rep.print","Save as PDF"
+"rep.print.help","Opens the print dialog of the browser with the report; choose Save as PDF as the printer."
 "rep.download_xlsx","Download xlsx"
 "rep.download_csv","Download csv"
 "rep.clear","Empty the table"

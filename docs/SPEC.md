@@ -337,6 +337,8 @@ Cada punto de la hoja de ruta responde a una limitación identificada en §4–�
 
 **Figuras** (Jorge, 25 nov 2026). Cada gráfica de la app (registro de VO₂, curva de oxidación, SIN, Bland-Altman) se descarga en PNG a 300 ppp, PDF o SVG, con 180 mm de ancho por defecto (figura a ancho completo de revista) y ancho y alto configurables. Solo `grDevices`: `cairo_pdf` y `svg` imprimen el subíndice de VO₂, que `pdf()` no puede; sin cairo, el PDF usa `pdf()` y el SVG no está disponible.
 
+**PDF del informe** (Jorge, 25 nov 2026). Botón «Save as PDF» en la pestaña Informe (el informe se escribe en un iframe oculto y se abre el diálogo de impresión del navegador, donde «Guardar como PDF» es una impresora) y dentro del propio HTML (`window.print()`, oculto al imprimir); hoja de estilos de impresión A4 sin cortar tablas ni gráficas. Sin pandoc ni LaTeX. DOCX con `officer`: pendiente de la estimación de coste.
+
 **Despliegue.** La beta.1 es solo local, con `MFO::run_app()`. Una demo pública, si se hace, solo con datos simulados o de ejemplo y sin subida de ficheros (los datos de participantes no se suben a servidores de terceros). Escritorio y Docker, en la 0.3.x.
 
 **Arquitectura de la app** (decisiones de Claude, una línea cada una):

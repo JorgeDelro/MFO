@@ -10,6 +10,21 @@
 }
 
 
+# Prints a report sent by the server: a hidden iframe gets the page and its
+# print dialog is opened when it has loaded
+.app_print_js <- "
+Shiny.addCustomMessageHandler('mfo-print', function(m) {
+  var f = document.getElementById('mfo-print-frame');
+  if (f) f.remove();
+  f = document.createElement('iframe');
+  f.id = 'mfo-print-frame';
+  f.style.position = 'fixed'; f.style.width = '0'; f.style.height = '0'; f.style.border = '0';
+  f.onload = function() { f.contentWindow.focus(); f.contentWindow.print(); };
+  f.srcdoc = m.html;
+  document.body.appendChild(f);
+});
+"
+
 .mod_report_ui <- function(id) {
   ns <- shiny::NS(id)
   t <- function(key) .tr(key)
@@ -20,8 +35,15 @@
       shiny::uiOutput(ns("status")),
       shiny::textInput(ns("ID"), t("res.ID")),
       shiny::helpText(t("rep.report.help")),
-      shiny::downloadButton(ns("report"), t("rep.download_report"))
+      bslib::layout_columns(
+        shiny::downloadButton(ns("report"), t("rep.download_report")),
+        shiny::actionButton(ns("print"), t("rep.print"), icon = shiny::icon("print"))
+      ),
+      shiny::helpText(t("rep.print.help"))
     ),
+    # "Save as PDF": the report is written into a hidden frame and the print
+    # dialog of the browser is opened on it (Jorge, 2026-11-25)
+    shiny::tags$script(shiny::HTML(.app_print_js)),
     bslib::card(
       bslib::card_header(t("res.group")),
       shiny::tableOutput(ns("group")),
@@ -52,6 +74,26 @@
       if (is.null(current())) shiny::div(class = "alert alert-secondary", t("res.none"))
     })
 
+    # The participant code of the report ("" if none or invalid)
+    report_id <- function() {
+      id <- trimws(input$ID)
+      if (nzchar(id) && !.app_valid_id(id)) {
+        shiny::showNotification(t("res.ID.invalid"), type = "error")
+        id <- ""
+      }
+      id
+    }
+
+    shiny::observeEvent(input$print, {
+      a <- current()
+      if (is.null(a)) {
+        shiny::showNotification(t("res.none"), type = "error")
+        return()
+      }
+      session$sendCustomMessage("mfo-print", list(
+        html = .app_report(a = a, zones = current_zones(), id = report_id())))
+    })
+
     output$report <- shiny::downloadHandler(
       filename = function() {
         id <- trimws(input$ID)
@@ -60,12 +102,7 @@
       content = function(file) {
         a <- current()
         shiny::req(a)
-        id <- trimws(input$ID)
-        if (nzchar(id) && !.app_valid_id(id)) {
-          shiny::showNotification(t("res.ID.invalid"), type = "error")
-          id <- ""
-        }
-        .app_write_report(file, a = a, zones = current_zones(), id = id)
+        .app_write_report(file, a = a, zones = current_zones(), id = report_id())
       })
 
     output$group <- shiny::renderTable({
