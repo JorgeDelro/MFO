@@ -31,12 +31,21 @@ img { max-width: 100%; height: auto; }
 @page { size: A4; margin: 15mm; }
 "
 
-# A data frame as an HTML table
-.app_html_table <- function(df, digits = 3) {
+# A data frame as text, as both reports show it
+.app_format_table <- function(df, digits = 3) {
   fmt <- function(x) {
     if (is.numeric(x)) ifelse(is.na(x), "", formatC(x, format = "fg", digits = digits))
     else ifelse(is.na(x), "", as.character(x))
   }
+  out <- as.data.frame(lapply(df, fmt), stringsAsFactors = FALSE, check.names = FALSE)
+  names(out) <- names(df)
+  out
+}
+
+# A data frame as an HTML table
+.app_html_table <- function(df, digits = 3) {
+  df <- .app_format_table(df, digits)
+  fmt <- function(x) x
   htmltools::tags$table(
     htmltools::tags$thead(htmltools::tags$tr(lapply(names(df), htmltools::tags$th))),
     htmltools::tags$tbody(lapply(seq_len(nrow(df)), function(i) {
@@ -49,16 +58,22 @@ img { max-width: 100%; height: auto; }
 }
 
 
-# The report as an HTML page. a: current analysis (with ci_settings if
-# intervals were computed); zones: result of the Zones tab for this run, or
-# NULL; id: participant code ("" if none)
-.app_report <- function(a, zones = NULL, id = "", generated = Sys.time()) {
-  tags <- htmltools::tags
+# The contents of the report, the same for HTML and DOCX: a title and a list
+# of blocks (h2, p, table, plot, alert, list, methods, references, footer).
+# a: current analysis (with ci_settings if intervals were computed); zones:
+# result of the Zones tab for this run, or NULL; id: participant code (""
+# if none)
+.app_report_content <- function(a, zones = NULL, id = "", generated = Sys.time()) {
   res <- a$res
   kin <- a$kin
   ci <- a$ci_settings
   methods <- .app_methods(a, ci = ci, zones = zones)
   title <- if (nzchar(id)) paste("MFO report:", id) else "MFO report"
+  h2 <- function(x) list(type = "h2", text = x)
+  p <- function(x) list(type = "p", text = x)
+  table <- function(x) list(type = "table", data = x)
+  plot <- function(x, alt) list(type = "plot", plot = .app_style_plot(x), alt = alt)
+  alert <- function(x, level) list(type = "alert", text = x, level = level)
 
   results <- .app_results_names(.app_results_table(res))
   if (is.null(ci)) results <- results[setdiff(names(results), c("Lower", "Upper"))]
@@ -84,7 +99,7 @@ img { max-width: 100%; height: auto; }
     }
     obesity <- NULL
     if (identical(zones$options$population, "obesity")) {
-      obesity <- tags$p(if (is.na(zn$obesity_range_lower)) {
+      obesity <- p(if (is.na(zn$obesity_range_lower)) {
         "Obesity range: none (the source defines more than and less than 35 % body fat, not exactly 35.0 %)."
       } else {
         sprintf("Obesity range (Ch\u00e1vez-Guevara et al. 2023): %d-%d %% HRpeak; individual zone: %s.",
@@ -92,70 +107,84 @@ img { max-width: 100%; height: auto; }
                 .app_zones_label(zn$obesity_zone))
       })
     }
-    zones_part <- tags$section(
-      tags$h2("Heart-rate zones"),
-      .app_html_table(zt$zones), tags$p(hr_line), obesity,
-      tags$h2("Reference values"),
-      tags$p(sprintf("%s (n = %d).", zn$reference, zn$reference_n)),
-      .app_html_table(zt$reference),
-      tags$p("How this test differs from the reference test:"),
-      tags$ul(lapply(zt$differences, tags$li)))
+    zones_part <- list(
+      h2("Heart-rate zones"), table(zt$zones), p(hr_line), obesity,
+      h2("Reference values"), p(sprintf("%s (n = %d).", zn$reference, zn$reference_n)),
+      table(zt$reference), p("How this test differs from the reference test:"),
+      list(type = "list", items = zt$differences))
   }
 
   sin_part <- NULL
   if (isTRUE(kin$convergence)) {
-    sin_part <- tags$section(tags$h2("SIN kinetics"),
-                             .app_plot_tag(.app_style_plot(kin$MFO_kinetics_plot), "SIN kinetics of fat oxidation"),
-                             .app_html_table(.app_sin_table(kin)))
+    sin_part <- list(h2("SIN kinetics"),
+                     plot(kin$MFO_kinetics_plot, "SIN kinetics of fat oxidation"),
+                     table(.app_sin_table(kin)))
   }
 
   commit <- .app_commit()
-  info <- a$cart$info
   data_line <- paste0("Data: ", switch(if (is.null(a$data$source)) "" else a$data$source,
                                        example = "example data of the package",
                                        generic = "csv/xlsx file", device = "analyser export",
                                        "not recorded"),
                       "; records every ", format(a$cart$step_time), " s.")
   cuts <- .app_cuts_text(a$data$cuts)
-  footer <- tags$footer(
-    tags$p(sprintf("MFO %s%s. Analysis: %s. Report: %s.", utils::packageVersion("MFO"),
-                   if (is.na(commit)) " (commit not recorded: not installed from GitHub)"
-                   else paste0(", commit ", commit),
-                   format(a$date, "%Y-%m-%d %H:%M"), format(generated, "%Y-%m-%d %H:%M"))),
-    tags$p(data_line),
-    tags$p(paste0("Phase cuts: ", if (nzchar(cuts)) paste0(cuts, " s") else
-      "none (one table per phase).")),
-    if (!is.null(ci)) tags$p(sprintf("Intervals: %s, B = %d, level %s, seed %s.", ci$type,
-                                     as.integer(ci$B), format(ci$conf),
-                                     if (is.null(ci$seed) || is.na(ci$seed)) "none"
-                                     else format(ci$seed))),
-    tags$p("This report was produced by MFO::run_app(), which runs on the user's computer."))
+  footer <- c(
+    sprintf("MFO %s%s. Analysis: %s. Report: %s.", utils::packageVersion("MFO"),
+            if (is.na(commit)) " (commit not recorded: not installed from GitHub)"
+            else paste0(", commit ", commit),
+            format(a$date, "%Y-%m-%d %H:%M"), format(generated, "%Y-%m-%d %H:%M")),
+    data_line,
+    paste0("Phase cuts: ", if (nzchar(cuts)) paste0(cuts, " s") else
+      "none (one table per phase)."),
+    if (!is.null(ci)) sprintf("Intervals: %s, B = %d, level %s, seed %s.", ci$type,
+                              as.integer(ci$B), format(ci$conf),
+                              if (is.null(ci$seed) || is.na(ci$seed)) "none"
+                              else format(ci$seed)),
+    "This report was produced by MFO::run_app(), which runs on the user's computer.")
 
+  blocks <- c(
+    list(h2("Fat oxidation curve"),
+         plot(res$MFO_plot, "Fat and carbohydrate oxidation against % VO\u2082max"),
+         h2("Results"), table(results),
+         h2("Steps of the fit"), table(.app_step_table(res))),
+    sin_part,
+    zones_part,
+    list(h2("Quality alerts")),
+    if (length(alerts) == 0) list(alert("No warnings.", "ok")) else
+      lapply(alerts, alert, level = "warning"),
+    lapply(notes, alert, level = "info"),
+    list(h2("Methods"), list(type = "methods", text = methods$text),
+         h2("References"), list(type = "references", items = methods$references),
+         list(type = "footer", items = footer)))
+  list(title = title, blocks = Filter(Negate(is.null), blocks))
+}
+
+
+# The report as an HTML page (arguments of .app_report_content())
+.app_report <- function(a, zones = NULL, id = "", generated = Sys.time()) {
+  tags <- htmltools::tags
+  r <- .app_report_content(a, zones, id, generated)
+  block <- function(b) {
+    switch(b$type,
+           h2 = tags$h2(b$text),
+           p = tags$p(b$text),
+           table = .app_html_table(b$data),
+           plot = .app_plot_tag(b$plot, b$alt),
+           alert = tags$div(class = paste("alert", b$level), b$text),
+           list = tags$ul(lapply(b$items, tags$li)),
+           methods = tags$p(class = "methods", b$text),
+           references = tags$ol(lapply(b$items, tags$li)),
+           footer = tags$footer(lapply(b$items, tags$p)))
+  }
   body <- tags$body(
     # opens the print dialog of the browser, where "Save as PDF" is a printer
     tags$button(class = "print-button", type = "button", onclick = "window.print()",
                 "Save as PDF"),
-    tags$h1(title),
-    tags$h2("Fat oxidation curve"),
-    .app_plot_tag(.app_style_plot(res$MFO_plot), "Fat and carbohydrate oxidation against % VO\u2082max"),
-    tags$h2("Results"),
-    .app_html_table(results),
-    tags$h2("Steps of the fit"),
-    .app_html_table(.app_step_table(res)),
-    sin_part,
-    zones_part,
-    tags$h2("Quality alerts"),
-    if (length(alerts) == 0) tags$div(class = "alert ok", "No warnings.") else
-      lapply(alerts, function(x) tags$div(class = "alert warning", x)),
-    lapply(notes, function(x) tags$div(class = "alert info", x)),
-    tags$h2("Methods"),
-    tags$p(class = "methods", methods$text),
-    tags$h2("References"),
-    tags$ol(lapply(methods$references, tags$li)),
-    footer)
+    tags$h1(r$title),
+    lapply(r$blocks, block))
   # the head is written as text: htmltools moves <head> tags out of a page
   paste0("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<title>",
-         htmltools::htmlEscape(title), "</title>\n<style>", .app_report_css,
+         htmltools::htmlEscape(r$title), "</title>\n<style>", .app_report_css,
          "</style>\n</head>\n", as.character(body), "\n</html>\n")
 }
 

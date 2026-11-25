@@ -224,6 +224,8 @@
 "rep.report.help","Report of the current result: curve, results, steps, intervals, SIN, zones and references, alerts, methods paragraph and references, as one HTML file or as PDF."
 "rep.download_report","Download report (HTML)"
 "rep.print","Save as PDF"
+"rep.download_docx","Download report (Word)"
+"rep.docx.missing","The Word report needs the package officer: install.packages(""officer"")."
 "rep.print.help","Opens the print dialog of the browser with the report; choose Save as PDF as the printer."
 "rep.download_xlsx","Download xlsx"
 "rep.download_csv","Download csv"

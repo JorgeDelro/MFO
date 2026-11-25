@@ -24,6 +24,11 @@
 
 ## New features
 
+* The app's Report tab downloads the individual report also as a Word file
+  (officer, in Suggests; no pandoc), with the same sections as the HTML
+  report, plots as PNG at 300 dpi and the methods paragraph and references
+  as editable paragraphs.
+
 * Warnings and messages of `MFO()`, `read_cart()`, `MFO_zones()`,
   `MFO_kinetics()`, `MFO_protocol()` and `MFO_reliability()` are classed
   conditions (`mfo_warning_<id>`, `mfo_message_<id>`) with their numbers as

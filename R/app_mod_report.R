@@ -43,6 +43,12 @@ Shiny.addCustomMessageHandler('mfo-print', function(m) {
           shiny::downloadButton(ns("report"), t("rep.download_report")),
           shiny::actionButton(ns("print"), t("rep.print"), icon = shiny::icon("print"))
         ),
+        # Word, with officer in Suggests (Jorge, 2026-11-25)
+        if (requireNamespace("officer", quietly = TRUE)) {
+          shiny::downloadButton(ns("report_docx"), t("rep.download_docx"))
+        } else {
+          shiny::helpText(t("rep.docx.missing"))
+        },
         shiny::helpText(t("rep.print.help"))
       ),
       bslib::card(
@@ -105,6 +111,17 @@ Shiny.addCustomMessageHandler('mfo-print', function(m) {
         a <- current()
         shiny::req(a)
         .app_write_report(file, a = a, zones = current_zones(), id = report_id())
+      })
+
+    output$report_docx <- shiny::downloadHandler(
+      filename = function() {
+        id <- trimws(input$ID)
+        paste0("MFO_report", if (.app_valid_id(id)) paste0("_", id), ".docx")
+      },
+      content = function(file) {
+        a <- current()
+        shiny::req(a)
+        .app_report_docx(file, a = a, zones = current_zones(), id = report_id())
       })
 
     output$group <- shiny::renderTable({
