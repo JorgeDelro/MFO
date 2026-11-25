@@ -30,6 +30,15 @@
 # Labels of the choices of a radio input, from their keys
 .app_labels <- function(keys) unname(vapply(keys, .tr, character(1)))
 
+# Download of a template of inst/app/templates
+.app_template_download <- function(file) {
+  shiny::downloadHandler(
+    filename = function() file,
+    content = function(dest) {
+      file.copy(system.file("app", "templates", file, package = "MFO"), dest)
+    })
+}
+
 # A file input with its button and placeholder from i18n.csv
 .app_file_input <- function(id, key, ...) {
   shiny::fileInput(id, .tr(key), buttonLabel = .tr("data.browse"),

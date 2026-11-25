@@ -18,7 +18,33 @@ test_that("the group table becomes the input of MFO_reliability()", {
   ref <- suppressWarnings(MFO_reliability(transform(g, participant = ID)))
   expect_equal(r$table, ref$table)
   expect_error(.app_reliability_input(NULL), "empty")
-  expect_error(.app_reliability_input(g[, -2]), "ID and session")
+  expect_error(.app_reliability_input(g[, -2]), "missing: session")
+})
+
+test_that("an uploaded results table with only id, session, MFO and Fatmax works", {
+  # Jorge, 2026-11-25: required columns id, session, MFO (g/min), Fatmax
+  g <- .group_sessions()
+  short <- data.frame(id = g$ID, session = g$session, MFO = g$MFO_g_min,
+                      Fatmax = g$FAT_MAX_perVO2max)
+  f <- withr::local_tempfile(fileext = ".csv")
+  utils::write.csv(short, f, row.names = FALSE)
+  x <- .app_reliability_input(.app_read_group(f))
+  r <- suppressWarnings(MFO_reliability(x))
+  ref <- suppressWarnings(MFO_reliability(transform(g, participant = ID)))
+  expect_equal(r$table$variable, c("MFO_g_min", "FAT_MAX_perVO2max"))
+  expect_equal(r$table$ICC, ref$table$ICC)
+  expect_error(.app_reliability_input(short[, c("id", "session", "MFO")]),
+               "missing: Fatmax")
+  # the template has the required columns and optional ones of MFOs()
+  tpl <- utils::read.csv(system.file("app", "templates", "MFO_results_template.csv",
+                                     package = "MFO"))
+  expect_equal(names(tpl)[1:4], c("id", "session", "MFO", "Fatmax"))
+  expect_equal(nrow(tpl), 4)
+  expect_true(all(table(tpl$id) == 2))
+  more <- rbind(tpl, transform(tpl[1:2, ], id = "P03", MFO = MFO * 1.1))
+  r <- suppressWarnings(MFO_reliability(.app_reliability_input(more)))
+  expect_true(all(c("MFO_g_min", "FAT_MAX_perVO2max", "FatMax_zone_lower") %in%
+                    r$table$variable))
 })
 
 test_that("the Reliability module uses the session table or an uploaded one", {
@@ -32,7 +58,7 @@ test_that("the Reliability module uses the session table or an uploaded one", {
     expect_equal(out()$table$variable, c("MFO_g_min", "FAT_MAX_perVO2max"))
     expect_match(log()$warnings[1], "Koo & Li")
     session$setInputs(source = "file", file = NULL, run = 2)
-    expect_match(log()$error, "Upload the group table")
+    expect_match(log()$error, "Upload the results table")
     session$setInputs(file = data.frame(name = "MFO_group.xlsx", datapath = f), run = 3)
     expect_equal(out()$table$ICC, suppressWarnings(
       MFO_reliability(.app_reliability_input(g)))$table$ICC)
@@ -40,5 +66,14 @@ test_that("the Reliability module uses the session table or an uploaded one", {
     session$setInputs(source = "session", run = 4)
     expect_null(out())
     expect_match(log()$error, "At least")
+  })
+})
+
+test_that("the Reliability tab offers the results template", {
+  skip_if_not_installed("shiny")
+  group <- shiny::reactiveVal(NULL)
+  shiny::testServer(.mod_reliability_server, args = list(group = group), {
+    f <- output$template
+    expect_equal(names(utils::read.csv(f))[1:4], c("id", "session", "MFO", "Fatmax"))
   })
 })
