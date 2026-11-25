@@ -48,7 +48,7 @@ cannot be combined with `sex` or `age_group`.}
 A data frame of class `MFO_zones`, one row per result, with `ID`
   (results of [MFOs()]), `HRmax`, `HRmax_source` (`"given"`, `"measured"`,
   `"predicted (Tanaka)"`, `"predicted (Fox)"` or `NA`), `FAT_MAX` and the
-  zone (`zone_lower`, `zone_upper`; \% VO2max), `FAT_MAX_HR`,
+  zone (`zone_lower`, `zone_upper`; \% \VOmax{}), `FAT_MAX_HR`,
   `zone_lower_HR`, `zone_upper_HR` (bpm), `FAT_MAX_porcHRmax`,
   `zone_lower_porcHRmax`, `zone_upper_porcHRmax`, `obesity_range_lower`,
   `obesity_range_upper` and `obesity_zone` (`NA` unless
@@ -66,7 +66,7 @@ percentiles of [reference_MFO] (SPEC 15).
 
 The HRmax used for the percentages is, in this order: `HRmax` given here or
 in [MFO()]/[MFOs()]; the peak HR measured in the graded test (`HR_peak`,
-the highest mean HR over the same window as VO2max); and, only when
+the highest mean HR over the same window as \VOmax{}); and, only when
 `predicted_HRmax = TRUE`, the predicted HRmax for `age`: `"tanaka"`
 208 - 0.7 x age (default; Tanaka, Monahan and Seals 2001,
 \doi{10.1016/s0735-1097(00)01054-8}) or `"fox"` 220 - age, the equation
@@ -88,7 +88,7 @@ shown, with a warning.
 
 \section{Reference values}{
 
-MFO (g/min) and Fatmax (\% VO2max) are placed among the empirical
+MFO (g/min) and Fatmax (\% \VOmax{}) are placed among the empirical
 percentiles P20, P40, P60 and P80 of Table 1 of Amaro-Gahete,
 Sanchez-Delgado and Ruiz (2018, \doi{10.3389/fphys.2018.01460}), 167
 sedentary adults, by linear interpolation. Below P20 or above P80 the
@@ -110,6 +110,17 @@ differs from the reference: mode, equation (Frayn without protein in the
 reference), protocol (3-min steps averaged over the last 60 s), method
 (third-degree polynomial through the origin in the reference, unlike the
 unconstrained `"P3"` of [MFO()]) and fasting (5-6 h, not overnight).
+}
+
+\section{Warnings and messages}{
+
+Every warning and message of this function is a classed condition:
+`mfo_warning_<id>` and `mfo_warning` (or `mfo_message_<id>` and
+`mfo_message`), with the numbers of the text as fields (for example
+`mfo_warning_negative_fat` has `n`, the number of steps). The text is
+English; the classes let a program, such as [run_app()], handle a given
+warning or word it in another language:
+`withCallingHandlers(expr, mfo_warning_negative_fat = function(w) w$n)`.
 }
 
 \examples{

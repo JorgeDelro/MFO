@@ -51,6 +51,9 @@ test_that("cycling gets no percentile; running does, with the difference stated"
   expect_true(is.na(z$MFO_percentile_label))
   expect_true(is.na(z$Fatmax_percentile))
   expect_match(z$reference_differences, "mode: cycling")
+  # one difference per "; " (the app and the report split on it)
+  expect_equal(strsplit(z$reference_differences, "; ")[[1]][1],
+               "mode: cycling (reference: treadmill walking, no percentile)")
   z <- MFO_zones(fake_MFO(mode = "running"))
   expect_false(is.na(z$MFO_percentile_label))
   expect_match(z$reference_differences, "mode: running \\(reference: treadmill walking\\)")

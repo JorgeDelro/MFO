@@ -1,13 +1,13 @@
-#' VO2max as the highest rolling mean of a graded test
+#' \VOmax{} as the highest rolling mean of a graded test
 #'
-#' Takes the highest mean VO2 over `window` seconds of consecutive records,
-#' instead of the single highest record, which overestimates VO2max when data
+#' Takes the highest mean \VO{} over `window` seconds of consecutive records,
+#' instead of the single highest record, which overestimates \VOmax{} when data
 #' are averaged over short intervals (SPEC 9.5 and 14). When `window` is not a
 #' multiple of `step_time`, the number of records is rounded up so the
 #' effective window is never shorter than requested (e.g. 30 s with 20-s
 #' records uses 2 records = 40 s).
 #'
-#' @param VO2 numeric vector of VO2 values (ml/min), one per record.
+#' @param VO2 numeric vector of \VO{} values (ml/min), one per record.
 #' @param step_time how often the data was collected (in seconds).
 #' @param window requested averaging window in seconds (default 30).
 #'
@@ -26,9 +26,10 @@
   effective_window <- n_records * step_time
 
   if (!isTRUE(all.equal(effective_window, window))) {
-    message(sprintf(
+    .mfo_message("vo2max_window", sprintf(
       "VO2max: a %g-s window is not a multiple of step_time (%g s); using %d record(s) = %g s.",
-      window, step_time, n_records, effective_window))
+      window, step_time, n_records, effective_window),
+      window = window, step_time = step_time, n = n_records, used = effective_window)
   }
 
   if (sum(!is.na(VO2)) < n_records) {

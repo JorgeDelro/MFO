@@ -1,7 +1,7 @@
 #' Oxidation equations derived from O2/CO2 constants per gram of substrate
 #'
 #' Solves the 2x2 system
-#' VO2 = cho_O2 * CHO + fat_O2 * FAT and VCO2 = cho_CO2 * CHO + fat_CO2 * FAT
+#' \VO{} = cho_O2 * CHO + fat_O2 * FAT and \VCO{} = cho_CO2 * CHO + fat_CO2 * FAT
 #' (L/min and g/min), so that every coefficient in the package can be traced
 #' back to the constants published in the source table.
 #'
@@ -9,7 +9,7 @@
 #' @param fat_O2,fat_CO2 litres of O2 consumed / CO2 produced per g of fatty acid.
 #'
 #' @return named numeric vector with the coefficients of
-#'   CHO = cho_VCO2 * VCO2 - cho_VO2 * VO2 and FAT = fat_VO2 * VO2 - fat_VCO2 * VCO2.
+#'   CHO = cho_VCO2 * \VCO{} - cho_VO2 * \VO{} and FAT = fat_VO2 * \VO{} - fat_VCO2 * \VCO{}.
 #'
 #' @noRd
 .derive_oxidation_coefficients <- function(cho_O2, cho_CO2, fat_O2, fat_CO2) {
@@ -27,7 +27,7 @@
 #' (Peronnet F, Massicotte D. Can J Sport Sci 1991; 16: 23-29, Table 1).
 #' The article prints no oxidation equations, so the package derives them
 #' from these constants with [.derive_oxidation_coefficients()] (SPEC 19,
-#' finding 6): CHO = 4.58519 VCO2 - 3.22597 VO2, FAT = 1.69469 VO2 - 1.70130 VCO2.
+#' finding 6): CHO = 4.58519 \VCO{} - 3.22597 \VO{}, FAT = 1.69469 \VO{} - 1.70130 \VCO{}.
 #' The values often quoted as Peronnet's (4.585 / 3.2255 / 1.6946 / 1.7012),
 #' used up to v0.2.0, are these numbers rounded by later authors.
 #'
@@ -70,7 +70,7 @@
 #' Only 100/0 (pure glucose) is used in calculations: it is the package's choice
 #' for resting values, because the article proposes no resting equation. For
 #' exercise the package uses the coefficients printed in Table 5; 50/50
-#' (40-50 \% VO2max) and 20/80 (50-75 \% VO2max) are derived only to cross-check
+#' (40-50 \% \VOmax{}) and 20/80 (50-75 \% \VOmax{}) are derived only to cross-check
 #' them in the tests.
 #'
 #' @param glucose_fraction fraction of carbohydrate oxidised as glucose (0-1).

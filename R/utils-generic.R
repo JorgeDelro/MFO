@@ -29,25 +29,7 @@
 # with units_row, the units in the next line. Returns the mapped columns
 # renamed to the contract and the units of VO2 and VCO2 ("" if none)
 .read_generic_table <- function(file, sheet, columns, skip, units_row, decimal) {
-  ext <- tolower(sub(".*\\.([^.]+)$", "\\1", basename(file)))
-  if (ext %in% c("xlsx", "xls")) {
-    raw <- readxl::read_excel(file, sheet = if (is.null(sheet)) 1 else sheet, skip = skip,
-                              col_names = FALSE, col_types = "text", .name_repair = "minimal")
-    raw <- as.data.frame(raw, stringsAsFactors = FALSE)
-  } else if (ext %in% c("csv", "txt", "tsv")) {
-    if (!is.null(sheet)) stop("sheets are only for xlsx files.", call. = FALSE)
-    lines <- readLines(file, warn = FALSE, encoding = "UTF-8")
-    if (skip > 0) lines <- lines[-seq_len(min(skip, length(lines)))]
-    if (length(lines) == 0) stop("The file has no data rows.", call. = FALSE)
-    sep <- .detect_sep(lines[1], decimal)
-    raw <- utils::read.table(text = lines, sep = sep, header = FALSE, quote = "\"",
-                             colClasses = "character", na.strings = c("", "NA"),
-                             fill = TRUE, comment.char = "", strip.white = TRUE,
-                             check.names = FALSE)
-  } else {
-    stop("device = \"generic\" reads csv (or txt/tsv) and xlsx files, not .", ext, ".",
-         call. = FALSE)
-  }
+  raw <- .read_generic_raw(file, sheet, skip, decimal)
   if (nrow(raw) < 1 + units_row) stop("The file has no data rows.", call. = FALSE)
   header <- trimws(as.character(unlist(raw[1, ])))
   units <- if (units_row) trimws(as.character(unlist(raw[2, ]))) else rep("", length(header))
@@ -72,6 +54,41 @@
   list(data = out,
        vo2_unit = units[match(columns[["VO2"]], header)],
        vco2_unit = units[match(columns[["VCO2"]], header)])
+}
+
+
+# The whole table as text, without header: csv (or txt/tsv) or an xlsx sheet
+.read_generic_raw <- function(file, sheet, skip, decimal, n_max = Inf) {
+  ext <- tolower(sub(".*\\.([^.]+)$", "\\1", basename(file)))
+  if (ext %in% c("xlsx", "xls")) {
+    raw <- readxl::read_excel(file, sheet = if (is.null(sheet)) 1 else sheet, skip = skip,
+                              col_names = FALSE, col_types = "text", n_max = n_max,
+                              .name_repair = "minimal")
+    return(as.data.frame(raw, stringsAsFactors = FALSE))
+  }
+  if (!ext %in% c("csv", "txt", "tsv")) {
+    stop("device = \"generic\" reads csv (or txt/tsv) and xlsx files, not .", ext, ".",
+         call. = FALSE)
+  }
+  if (!is.null(sheet)) stop("sheets are only for xlsx files.", call. = FALSE)
+  lines <- readLines(file, warn = FALSE, encoding = "UTF-8",
+                     n = if (is.finite(n_max)) skip + n_max else -1L)
+  if (skip > 0) lines <- lines[-seq_len(min(skip, length(lines)))]
+  if (length(lines) == 0) stop("The file has no data rows.", call. = FALSE)
+  sep <- .detect_sep(lines[1], decimal)
+  utils::read.table(text = lines, sep = sep, header = FALSE, quote = "\"",
+                    colClasses = "character", na.strings = c("", "NA"),
+                    fill = TRUE, comment.char = "", strip.white = TRUE,
+                    check.names = FALSE)
+}
+
+
+# Column names in the header line of a generic file (for the mapping of the
+# app, #24)
+.generic_header <- function(file, sheet = NULL, skip = 0, decimal = ".") {
+  raw <- .read_generic_raw(file, sheet, skip, decimal, n_max = 1)
+  h <- trimws(as.character(unlist(raw[1, ])))
+  h[!is.na(h) & h != ""]
 }
 
 
@@ -125,7 +142,7 @@
   num <- suppressWarnings(as.numeric(ok))
   if (!anyNA(num)) {
     if (max(num) <= 1) {
-      message("Time read as Excel times (fractions of a day).")
+      .mfo_message("excel_time", "Time read as Excel times (fractions of a day).")
       # rounded to the millisecond: day fractions carry binary error
       return(round(as.numeric(v) * 86400, 3))
     }
@@ -168,8 +185,9 @@
   u <- .unit_from_label(vo2_label)
   if (is.na(u)) {
     if (!is.null(vo2_label) && !is.na(vo2_label) && vo2_label != "") {
-      message("VO2 unit \"", vo2_label, "\" in the units row not recognised; ",
-              "using vo2_unit = \"auto\".")
+      .mfo_message("units_row_unknown",
+                   paste0("VO2 unit \"", vo2_label, "\" in the units row not recognised; ",
+                          "using vo2_unit = \"auto\"."), unit = vo2_label)
     }
     return("auto")
   }
@@ -178,6 +196,7 @@
     stop("The units row gives VO2 in ", u, " and VCO2 in ", u2,
          "; both must be in the same unit.", call. = FALSE)
   }
-  message("VO2 and VCO2 unit taken from the units row: ", u, ".")
+  .mfo_message("units_row", paste0("VO2 and VCO2 unit taken from the units row: ", u, "."),
+               unit = u)
   u
 }

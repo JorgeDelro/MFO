@@ -4,11 +4,11 @@
 #' p. 1618 and Appendix p. 1625, \doi{10.1249/MSS.0b013e31819e2f91}):
 #' \deqn{\%MFO(x) = \sin\{[\pi^{1/s} / (\pi + 2d) \cdot (Kx + d + t)]^s\},
 #'       \quad K = \pi / 100}
-#' with x in \% VO2max, d = dilatation, s = symmetry and t = translation.
+#' with x in \% \VOmax{}, d = dilatation, s = symmetry and t = translation.
 #' The denominator is (pi + 2d); v0.1.0/v0.2.0 computed (pi^(1/s) / pi) + 2d,
 #' which is the same curve family but a different d (SPEC 6.5, 19 finding 5).
 #'
-#' @param x intensity (\% VO2max).
+#' @param x intensity (\% \VOmax{}).
 #' @param d,s,t SIN parameters.
 #'
 #' @return \%MFO as a proportion (1 at Fatmax). Below the first zero the
@@ -36,7 +36,7 @@
 #' @param d,s,t SIN parameters.
 #' @param threshold `NULL` (second zero) or a proportion of MFO in (0, 1).
 #'
-#' @return intensity in \% VO2max.
+#' @return intensity in \% \VOmax{}.
 #'
 #' @noRd
 .sin_fatmax <- function(d, s, t) {

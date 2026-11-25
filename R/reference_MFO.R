@@ -35,9 +35,9 @@
 #'   \item{n}{number of participants in the group}
 #'   \item{MFO_mean, MFO_sd}{MFO mean and SD, in g/min}
 #'   \item{MFO_p20, MFO_p40, MFO_p60, MFO_p80}{MFO percentiles, in g/min}
-#'   \item{Fatmax_mean, Fatmax_sd}{Fatmax mean and SD, in \% VO2max}
+#'   \item{Fatmax_mean, Fatmax_sd}{Fatmax mean and SD, in \% \VOmax{}}
 #'   \item{Fatmax_p20, Fatmax_p40, Fatmax_p60, Fatmax_p80}{Fatmax percentiles,
-#'     in \% VO2max}
+#'     in \% \VOmax{}}
 #'   \item{mode}{exercise mode, `"walking"` (treadmill)}
 #'   \item{protocol}{graded protocol and averaging period}
 #'   \item{equation}{stoichiometric equation, Frayn (1983) without protein}

@@ -1,23 +1,23 @@
 
-#' Maximal Fat Oxidation & FatMax Function
+#' Maximal Fat Oxidation & Fatmax Function
 #'
 #' Calculate Maximal Fat Oxidation (MFO), the exercise intensity that elicits
-#' MFO (FatMax), the FatMax zone, and the crossover point. Supports multiple
+#' MFO (Fatmax), the Fatmax zone, and the crossover point. Supports multiple
 #' methods to locate MFO (P3, P2, MV, MRER) and stoichiometric equations
 #' (Frayn, Jeukendrup, Peronnet).
 #'
 #' @param step_time how often the data was collected (in seconds).
 #' @param db_MFO database containing MFO test. An optional `Load` column (W or
-#'        km/h, in the unit of `protocol`) is averaged per step like VO2 and gives
+#'        km/h, in the unit of `protocol`) is averaged per step like \VO{} and gives
 #'        Fatmax and the Fatmax zone in load units.
 #' @param db_basal database containing basal test.
-#' @param db_graded database containing incremental exercise test (optional if VO2max provided).
-#'        VO2max is the highest mean VO2 over `vo2max_window` seconds of consecutive records.
+#' @param db_graded database containing incremental exercise test (optional if \VOmax{} provided).
+#'        \VOmax{} is the highest mean \VO{} over `vo2max_window` seconds of consecutive records.
 #' @param cv_var variable to estimate coefficient of variation. Can be: "VO2", "VCO2" or "RER".
 #' @param author author to estimate MFO. Can be: "Frayn", "Jeukendrup" or "Peronnet".
-#'        "Jeukendrup" warns when an exercise step is outside 40-75 \% VO2max, the range
+#'        "Jeukendrup" warns when an exercise step is outside 40-75 \% \VOmax{}, the range
 #'        of Jeukendrup & Wallis (2005, Table 5); the resting row never warns.
-#' @param VO2max VO2max can be passed directly (ml/min) instead of using db_graded,
+#' @param VO2max \VOmax{} can be passed directly (ml/min) instead of using db_graded,
 #'        or as the result of [VO2max_from_test()] (to set its thresholds or HRmax
 #'        equation). If both are given, `VO2max` is used as is and `db_graded` is
 #'        ignored with a warning.
@@ -37,8 +37,8 @@
 #'        "exclude" (remove from fitting), or "keep" (include in fitting).
 #' @param body_mass body mass in kg (optional, for relative MFO calculation).
 #' @param fat_free_mass fat-free mass in kg (optional, for FFM-relative MFO calculation).
-#' @param HRmax maximum heart rate in bpm (optional, for FatMax as \%HRmax).
-#' @param vo2max_window averaging window in seconds for VO2max from `db_graded` (default 30).
+#' @param HRmax maximum heart rate in bpm (optional, for Fatmax as \%HRmax).
+#' @param vo2max_window averaging window in seconds for \VOmax{} from `db_graded` (default 30).
 #'        If it is not a multiple of `step_time`, the number of records is rounded up
 #'        (30 s with 20-s records uses 2 records = 40 s). See SPEC 9.5 and 14.
 #' @param include_basal logical. If `TRUE`, the resting row (from `db_basal`) enters
@@ -60,7 +60,7 @@
 #'        With `FALSE` (default, as in v0.2.0) they are dropped. With `TRUE` that
 #'        incomplete step is used only if it lasts at least `steady_state_duration`;
 #'        its last `steady_state_duration` s are averaged, as for complete steps,
-#'        although VO2 may not have reached its plateau. See SPEC 9.5.
+#'        although \VO{} may not have reached its plateau. See SPEC 9.5.
 #' @param min_steps minimum number of exercise steps recommended for the fit
 #'        (default 6). A warning is given when fewer steps remain after
 #'        `RER_cutoff` and `negative_FAT = "exclude"`; the resting row of
@@ -72,7 +72,7 @@
 #'        `MFO_protocol("step", step_duration, steady_state_duration)`, which
 #'        gives the same results as v0.2.1. See SPEC 14.
 #' @param age age in years (optional), for the heart-rate criterion of
-#'        [VO2max_from_test()] when VO2max comes from `db_graded`. Without it that
+#'        [VO2max_from_test()] when \VOmax{} comes from `db_graded`. Without it that
 #'        criterion is not evaluated and a message says so once per session.
 #' @param ci `"none"` (default), `"parametric"` or `"bootstrap"`: percentile
 #'        intervals of the fit for MFO, Fatmax, the Fatmax zone and Fatmax in
@@ -101,7 +101,7 @@
 #'   X (X'X)^-1 X'), and centred (Davison & Hinkley 1997, Bootstrap Methods
 #'   and their Application, ch. 6).
 #' }
-#' For `"MRER"` its two regressions, 1 - RER and VO2 on \% VO2max, are
+#' For `"MRER"` its two regressions, 1 - RER and \VO{} on \% \VOmax{}, are
 #' handled separately. Replicates in which the fit falls back to another
 #' method (e.g. P3 to P2) are dropped and counted.
 #'
@@ -114,7 +114,7 @@
 #' P(|t_5| < 1.96) = 0.893.
 #'
 #' **MRER.** Against SIN-shaped curves (the truth of the simulation study),
-#' MRER overestimated Fatmax by 3-4 \% VO2max and MFO by 3-7 \%, and its
+#' MRER overestimated Fatmax by 3-4 \% \VOmax{} and MFO by 3-7 \%, and its
 #' interval is centred on that bias, so it covered the true Fatmax in only
 #' 48-74 \% of tests. It is kept for comparability with the literature and
 #' is not recommended as the main method. The study takes SIN curves as the
@@ -129,8 +129,8 @@
 #'
 #' This is the uncertainty of the fit within one test, not the day-to-day
 #' error (see [MFO_reliability()]). It assumes exchangeable residuals; fat
-#' oxidation errors grow with intensity (FAT is about 1.67 (VO2 - VCO2), which
-#' amplifies the error of VCO2), so the interval is approximate. A wild
+#' oxidation errors grow with intensity (FAT is about 1.67 (\VO{} - \VCO{}), which
+#' amplifies the error of \VCO{}), so the interval is approximate. A wild
 #' bootstrap (Wu 1986, Ann Stat 14(4): 1261-1295,
 #' \doi{10.1214/aos/1176350142}) would allow for it, but with 6-10 steps and
 #' two-point weights it can produce only 2^n distinct samples, so it is not
@@ -141,7 +141,7 @@
 #' the averaged segment) when `db_MFO` has a `Load` column; otherwise the load
 #' schedule of `protocol` (`load_start + (Step - 1) * load_increment`); otherwise
 #' `NA` (`load_source` says which). Fatmax and the Fatmax zone are converted to
-#' load units by linear interpolation of Load against \% VO2max between steps,
+#' load units by linear interpolation of Load against \% \VOmax{} between steps,
 #' as HR at Fatmax. With `MFO_protocol("relative")` a `Load` column is taken as
 #' W and divided by `body_mass` to give W/kg; without `body_mass` it stays in W
 #' with a warning. Up to v0.2.1 `Load` was a synthetic step label. See SPEC 14.
@@ -161,7 +161,7 @@
 #'
 #' @section Methods:
 #' \itemize{
-#' \item `"P3"`, `"P2"`: least-squares polynomial of FAT on \% VO2max; Fatmax is
+#' \item `"P3"`, `"P2"`: least-squares polynomial of FAT on \% \VOmax{}; Fatmax is
 #'   the maximum of the fitted curve within the measured range (SPEC 6.2, 6.3).
 #' \item `"MV"` (measured values): Fatmax is the step with the highest observed
 #'   FAT, computed with the `author` equations; MFO is that FAT. No model is
@@ -170,16 +170,16 @@
 #'   "linear interpolation"`). SPEC 6.1.
 #' \item `"MRER"`: procedure of Cheneviere et al. (2009, p. 1617,
 #'   \doi{10.1249/MSS.0b013e31819e2f91}), after Perez-Martin et al. (2001).
-#'   (1 - RER) and VO2 are fitted as straight lines of \% VO2max,
-#'   1 - RER = a1 + b1 x and VO2 = a2 + b2 x, so fat oxidation
-#'   1.7 (1 - RER) VO2 is a parabola whose vertex,
+#'   (1 - RER) and \VO{} are fitted as straight lines of \% \VOmax{},
+#'   1 - RER = a1 + b1 x and \VO{} = a2 + b2 x, so fat oxidation
+#'   1.7 (1 - RER) \VO{} is a parabola whose vertex,
 #'   x = -(a1 b2 + a2 b1) / (2 b1 b2), gives Fatmax, and its value MFO (g/min).
-#'   This uses the 1.7 (1 - RER) VO2 simplification of Peronnet & Massicotte
+#'   This uses the 1.7 (1 - RER) \VO{} simplification of Peronnet & Massicotte
 #'   whatever `author` is. If the parabola has no maximum or the vertex lies
 #'   outside the measured range, `"MV"` is used with a warning. SPEC 3, 6.1.
 #' }
 #' Up to v0.2.0, `"MRER"` returned the step with the highest observed
-#' 1.7 (1 - RER) VO2, which is a measured-values method: use `"MV"` for that
+#' 1.7 (1 - RER) \VO{}, which is a measured-values method: use `"MV"` for that
 #' behaviour (same step; MFO from the `author` equation). SPEC 19, finding 4.
 #'
 #' @import ggplot2
@@ -197,23 +197,23 @@
 #' \item MFO: Maximal fat oxidation (g/min).
 #' \item MFO_relative: MFO relative to body mass (mg/kg/min), if body_mass provided.
 #' \item MFO_FFM: MFO relative to fat-free mass (mg/kgFFM/min), if fat_free_mass provided.
-#' \item FAT_MAX: Intensity that elicits MFO (\% VO2max).
-#' \item FAT_MAX_HR: Heart rate at FatMax (bpm), interpolated from data.
-#' \item FAT_MAX_porcHRmax: FatMax as \% HRmax, if HRmax provided.
-#' \item FatMax_zone_lower: Lower bound of FatMax zone (\% VO2max).
-#' \item FatMax_zone_upper: Upper bound of FatMax zone (\% VO2max).
+#' \item FAT_MAX: Intensity that elicits MFO (\% \VOmax{}).
+#' \item FAT_MAX_HR: Heart rate at Fatmax (bpm), interpolated from data.
+#' \item FAT_MAX_porcHRmax: Fatmax as \% HRmax, if HRmax provided.
+#' \item FatMax_zone_lower: Lower bound of Fatmax zone (\% \VOmax{}).
+#' \item FatMax_zone_upper: Upper bound of Fatmax zone (\% \VOmax{}).
 #' \item FatMax_zone_method: "fitted curve", or "linear interpolation" for `method = "MV"`.
 #' \item FatMax_zone_lower_HR, FatMax_zone_upper_HR: heart rate at the limits of
 #'   the Fatmax zone (bpm), interpolated as `FAT_MAX_HR`.
 #' \item HRmax: `HRmax` as given (`NA` if not given).
-#' \item HR_peak: highest mean HR in `db_graded` over the VO2max window (bpm;
+#' \item HR_peak: highest mean HR in `db_graded` over the \VOmax{} window (bpm;
 #'   `NA` without `db_graded`, without HR, or with a numeric `VO2max`). Used by
 #'   [MFO_zones()].
 #' \item FAT_MAX_load, FatMax_zone_lower_load, FatMax_zone_upper_load: Fatmax and
 #'   the Fatmax zone in `load_unit` (`NA` without load).
 #' \item load_unit: "W", "km/h" or "W/kg" (`NA` without load).
 #' \item load_source: "file", "protocol" or "none".
-#' \item crossover_point: Intensity at which CHO > FAT (\% VO2max).
+#' \item crossover_point: Intensity at which CHO > FAT (\% \VOmax{}).
 #' \item R_squared: R-squared of the fitted model (`NA` for "MV").
 #' \item RMSE: Root mean squared error of the fitted model (`NA` for "MV").
 #' \item method: Method requested for curve fitting.
@@ -221,11 +221,11 @@
 #'   fit falls back (P3 to P2, P2 or MRER to MV), with a warning.
 #' \item energy_equivalents: energy equivalents used for `Kcal` ("classic" or "source").
 #' \item author: stoichiometric equation used.
-#' \item VO2max: VO2max used to express intensity (ml/min).
-#' \item VO2max_window: effective averaging window for VO2max (s); NA if VO2max was supplied.
-#' \item VO2max_window_requested: `vo2max_window` as requested (s); NA if VO2max was supplied.
+#' \item VO2max: \VOmax{} used to express intensity (ml/min).
+#' \item VO2max_window: effective averaging window for \VOmax{} (s); NA if \VOmax{} was supplied.
+#' \item VO2max_window_requested: `vo2max_window` as requested (s); NA if \VOmax{} was supplied.
 #' \item VO2max_type: "VO2max" or "VO2peak" from the maximality criteria of
-#'   [VO2max_from_test()]; NA if a number was supplied as VO2max.
+#'   [VO2max_from_test()]; NA if a number was supplied as \VOmax{}.
 #' \item VO2max_criteria: data frame of those criteria (NULL if a number was supplied).
 #' \item x_CHO: carbohydrates in basal metabolism (g/min), with the same `author` equations as the test.
 #' \item x_FAT: fat in basal metabolism (g/min).
@@ -238,6 +238,15 @@
 #' \item protocol: the [MFO_protocol()] used.
 #' \item mode: exercise mode of the protocol ("cycling", "running" or "walking").
 #' }}
+#'
+#' @section Warnings and messages:
+#' Every warning and message of this function is a classed condition:
+#' `mfo_warning_<id>` and `mfo_warning` (or `mfo_message_<id>` and
+#' `mfo_message`), with the numbers of the text as fields (for example
+#' `mfo_warning_negative_fat` has `n`, the number of steps). The text is
+#' English; the classes let a program, such as [run_app()], handle a given
+#' warning or word it in another language:
+#' `withCallingHandlers(expr, mfo_warning_negative_fat = function(w) w$n)`.
 #'
 #' @export
 #'
@@ -362,7 +371,9 @@ MFO <- function(step_time,
   vo2 <- NULL
   if (!is.null(VO2max)) {
     if (!is.null(db_graded)) {
-      warning("Both VO2max and db_graded supplied; using VO2max and ignoring db_graded.")
+      .mfo_warning("both_vo2max",
+                   "Both VO2max and db_graded supplied; using VO2max and ignoring db_graded.",
+                   call. = TRUE)
     }
     if (inherits(VO2max, "MFO_VO2max")) vo2 <- VO2max
   } else if (!is.null(db_graded)) {
@@ -443,7 +454,9 @@ MFO <- function(step_time,
   # Handle negative FAT values
   n_negative <- sum(MFO_db$FAT < 0)
   if (n_negative > 0) {
-    warning(sprintf("%d step(s) with negative fat oxidation detected (RER > 1.0 artifact).", n_negative))
+    .mfo_warning("negative_fat",
+                 sprintf("%d step(s) with negative fat oxidation detected (RER > 1.0 artifact).",
+                         n_negative), n = n_negative, call. = TRUE)
     if (negative_FAT == "truncate") {
       MFO_db$FAT[MFO_db$FAT < 0] <- 0
     } else if (negative_FAT == "exclude") {
@@ -473,10 +486,11 @@ MFO <- function(step_time,
   p2_outside <- result$method == "P2" &&
     (result$FAT_MAX < ex_range[1] || result$FAT_MAX > ex_range[2])
   if (p2_outside) {
-    warning(sprintf(paste0("P2: the vertex (Fatmax %.1f %%VO2max) lies outside the measured ",
-                           "range (%.1f-%.1f); Fatmax, MFO and their interval are ",
-                           "extrapolated."), result$FAT_MAX, ex_range[1], ex_range[2]),
-            call. = FALSE)
+    .mfo_warning("p2_extrapolated",
+                 sprintf(paste0("P2: the vertex (Fatmax %.1f %%VO2max) lies outside the measured ",
+                                "range (%.1f-%.1f); Fatmax, MFO and their interval are ",
+                                "extrapolated."), result$FAT_MAX, ex_range[1], ex_range[2]),
+                 fatmax = result$FAT_MAX, lower = ex_range[1], upper = ex_range[2])
   }
 
   # Quality: Fatmax at the first or last exercise step (SPEC 14)
@@ -524,13 +538,15 @@ MFO <- function(step_time,
   bootstrap <- NULL
   if (ci != "none") {
     if (result$method != method) {
-      warning(sprintf("The %s fit fell back to %s; no bootstrap CI.", method, result$method),
-              call. = FALSE)
+      .mfo_warning("ci_fallback",
+                   sprintf("The %s fit fell back to %s; no bootstrap CI.", method, result$method),
+                   method = method, fallback = result$method)
     } else {
       reps <- .with_seed(seed, .bootstrap_fit(MFO_db, method, B, type = ci))
       if (nrow(reps) < B) {
-        warning(sprintf("%d of %d bootstrap replicates fell back to another method and were dropped.",
-                        B - nrow(reps), B), call. = FALSE)
+        .mfo_warning("boot_dropped",
+                     sprintf("%d of %d bootstrap replicates fell back to another method and were dropped.",
+                             B - nrow(reps), B), dropped = B - nrow(reps), B = B)
       }
       bounds <- .percentile_ci(reps, conf)
       ci_table <- data.frame(
@@ -601,8 +617,8 @@ MFO <- function(step_time,
     source <- "file"
     if (protocol$type == "relative") {
       if (is.null(body_mass)) {
-        warning("Relative protocol without body_mass: the Load column is kept in W, ",
-                "not W/kg.", call. = FALSE)
+        .mfo_warning("relative_no_mass",
+                     "Relative protocol without body_mass: the Load column is kept in W, not W/kg.")
         unit <- "W"
       } else {
         load <- load / body_mass
@@ -651,10 +667,12 @@ MFO <- function(step_time,
 .warn_min_steps <- function(n_steps, min_steps, ramp = FALSE) {
   if (n_steps < min_steps) {
     what <- if (ramp) "non-overlapping ramp window(s)" else "exercise step(s)"
-    warning(sprintf(paste0("The curve is fitted with %d %s; at least %s ",
-                           "are recommended (min_steps). A low RER_cutoff or ",
-                           "negative_FAT = \"exclude\" removes steps."),
-                    n_steps, what, format(min_steps)), call. = FALSE)
+    .mfo_warning(if (ramp) "min_windows" else "min_steps",
+                 sprintf(paste0("The curve is fitted with %d %s; at least %s ",
+                                "are recommended (min_steps). A low RER_cutoff or ",
+                                "negative_FAT = \"exclude\" removes steps."),
+                         n_steps, what, format(min_steps)),
+                 n = n_steps, min_steps = min_steps)
   }
   invisible(n_steps < min_steps)
 }
@@ -670,9 +688,11 @@ MFO <- function(step_time,
   if (!is.na(edge)) {
     hint <- if (edge == "first") "the test may have started at too high an intensity"
             else "the test may have stopped too early"
-    warning(sprintf(paste0("Fatmax (%.1f %%VO2max) is at the %s exercise step (%.1f %%VO2max): ",
-                           "the maximum is at the edge of the measured range; %s."),
-                    FAT_MAX, edge, x[nearest], hint), call. = FALSE)
+    .mfo_warning(paste0("fatmax_", edge, "_step"),
+                 sprintf(paste0("Fatmax (%.1f %%VO2max) is at the %s exercise step (%.1f %%VO2max): ",
+                                "the maximum is at the edge of the measured range; %s."),
+                         FAT_MAX, edge, x[nearest], hint),
+                 fatmax = FAT_MAX, step = x[nearest])
   }
   invisible(edge)
 }
@@ -683,14 +703,15 @@ MFO <- function(step_time,
 .warn_missing_HR <- function(HR, porc_VO2) {
   missing_hr <- which(is.na(HR))
   if (length(missing_hr) == length(HR)) {
-    warning("No HR data in db_MFO: FAT_MAX_HR and FAT_MAX_porcHRmax are NA. ",
-            "MFO and Fatmax are not affected.", call. = FALSE)
+    .mfo_warning("no_hr", paste0("No HR data in db_MFO: FAT_MAX_HR and FAT_MAX_porcHRmax are NA. ",
+                                 "MFO and Fatmax are not affected."))
   } else if (length(missing_hr) > 0) {
-    warning(sprintf(paste0("%d exercise step(s) without HR (at %s %%VO2max): kept in ",
-                           "the fit; FAT_MAX_HR is interpolated from the steps with HR."),
-                    length(missing_hr),
-                    paste(sprintf("%.1f", porc_VO2[missing_hr]), collapse = ", ")),
-            call. = FALSE)
+    at <- paste(sprintf("%.1f", porc_VO2[missing_hr]), collapse = ", ")
+    .mfo_warning("missing_hr",
+                 sprintf(paste0("%d exercise step(s) without HR (at %s %%VO2max): kept in ",
+                                "the fit; FAT_MAX_HR is interpolated from the steps with HR."),
+                         length(missing_hr), at),
+                 n = length(missing_hr), at = at)
   }
   invisible(missing_hr)
 }
@@ -706,7 +727,8 @@ MFO <- function(step_time,
 
   # Check for NA coefficients (can happen with insufficient data)
   if (any(is.na(c(a, b, c, d)))) {
-    warning("P3 model has NA coefficients. Falling back to P2.")
+    .mfo_warning("p3_na_coefficients", "P3 model has NA coefficients. Falling back to P2.",
+                 call. = TRUE)
     return(.fit_P2(MFO_db))
   }
 
@@ -716,7 +738,8 @@ MFO <- function(step_time,
 
   if (is.na(discriminant) || discriminant < 0) {
     # No real roots - fall back to P2
-    warning("P3 model has no real critical points. Falling back to P2.")
+    .mfo_warning("p3_no_critical_points",
+                 "P3 model has no real critical points. Falling back to P2.", call. = TRUE)
     return(.fit_P2(MFO_db))
   }
 
@@ -732,7 +755,9 @@ MFO <- function(step_time,
   candidates <- candidates[candidates$x >= x_range[1] & candidates$x <= x_range[2], ]
 
   if (nrow(candidates) == 0) {
-    warning("P3 critical points outside data range. Using point with highest observed FAT.")
+    .mfo_warning("p3_outside_range",
+                 "P3 critical points outside data range. Using point with highest observed FAT.",
+                 call. = TRUE)
     VO2_MFO <- MFO_db$porc_VO2[which.max(MFO_db$FAT)]
     VAR_MFO <- max(MFO_db$FAT)
   } else {
@@ -781,8 +806,8 @@ MFO <- function(step_time,
   # No maximum: NA coefficients or c >= 0 (the vertex would be a minimum,
   # returned as Fatmax up to v0.2.1, #38). Use MV, as MRER does
   if (any(is.na(c(a, b, c))) || c >= 0) {
-    warning("P2: the fitted parabola has no maximum (curvature >= 0). Using MV.",
-            call. = FALSE)
+    .mfo_warning("p2_no_maximum",
+                 "P2: the fitted parabola has no maximum (curvature >= 0). Using MV.")
     return(.fit_MV(MFO_db))
   }
   # Vertex of parabola: x = -b/(2c)
@@ -847,15 +872,16 @@ MFO <- function(step_time,
   fat_predict_fn <- function(x) 1.7 * (a1 + b1 * x) * (a2 + b2 * x) / 1000
 
   if (any(is.na(c(a1, b1, a2, b2))) || b1 * b2 >= 0) {
-    warning("MRER: the product of the (1 - RER) and VO2 lines has no maximum. Using MV.",
-            call. = FALSE)
+    .mfo_warning("mrer_no_maximum",
+                 "MRER: the product of the (1 - RER) and VO2 lines has no maximum. Using MV.")
     return(.fit_MV(MFO_db))
   }
   VO2_MFO <- -(a1 * b2 + a2 * b1) / (2 * b1 * b2)
   if (VO2_MFO < min(x) || VO2_MFO > max(x)) {
-    warning(sprintf(paste0("MRER: vertex at %.1f %%VO2max is outside the measured ",
-                           "range (%.1f-%.1f). Using MV."), VO2_MFO, min(x), max(x)),
-            call. = FALSE)
+    .mfo_warning("mrer_outside_range",
+                 sprintf(paste0("MRER: vertex at %.1f %%VO2max is outside the measured ",
+                                "range (%.1f-%.1f). Using MV."), VO2_MFO, min(x), max(x)),
+                 fatmax = VO2_MFO, lower = min(x), upper = max(x))
     return(.fit_MV(MFO_db))
   }
 
@@ -943,18 +969,18 @@ MFO <- function(step_time,
 
   has_ci <- !is.null(ci) && !anyNA(ci[c("FAT_MAX", "MFO"), c("lower", "upper")])
   subtitle <- if (has_ci) {
-    sprintf("FATmax = %.1f (%.1f-%.1f) %% VO2max \u00b7 MFO = %.3f (%.3f-%.3f) g/min \u00b7 %s, %g %% %s CI",
+    sprintf("Fatmax = %.1f (%.1f-%.1f) %% VO2max \u00b7 MFO = %.3f (%.3f-%.3f) g/min \u00b7 %s, %g %% %s CI",
             VO2_MFO, ci["FAT_MAX", "lower"], ci["FAT_MAX", "upper"],
             VAR_MFO, ci["MFO", "lower"], ci["MFO", "upper"], method, 100 * conf, ci_label)
   } else {
-    sprintf("FATmax = %.1f %% VO2max \u00b7 MFO = %.3f g/min \u00b7 %s",
+    sprintf("Fatmax = %.1f %% VO2max \u00b7 MFO = %.3f g/min \u00b7 %s",
             VO2_MFO, VAR_MFO, method)
   }
 
   has_zone <- !is.na(fatmax_zone$lower) && !is.na(fatmax_zone$upper)
-  caption <- "Dotted line: FATmax."
+  caption <- "Dotted line: Fatmax."
   if (has_ci) {
-    caption <- paste0(caption, sprintf(" Grey band: %g %% %s CI of FATmax.",
+    caption <- paste0(caption, sprintf(" Grey band: %g %% %s CI of Fatmax.",
                                        100 * conf, ci_label))
   }
   if (has_zone) {
@@ -1006,7 +1032,7 @@ MFO <- function(step_time,
     labs(subtitle = subtitle, caption = caption,
          colour = NULL, linetype = NULL, shape = NULL) +
     ylab(expression("Substrate oxidation (g" %.% "min"^{-1} * ")")) +
-    xlab(expression("Exercise intensity (% " * VO[2*max] * ")")) +
+    xlab(expression("Exercise intensity (% " * VO[2] * "max)")) +
     theme_bw() +
     theme(legend.position = "bottom",
           plot.caption = element_text(hjust = 0, colour = "grey30"),

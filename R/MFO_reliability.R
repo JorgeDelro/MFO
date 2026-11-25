@@ -99,6 +99,15 @@
 #'
 #' @seealso [MFOs()], [simulate_MFO_sessions()], [write_MFO_sessions()]
 #'
+#' @section Warnings and messages:
+#' Every warning and message of this function is a classed condition:
+#' `mfo_warning_<id>` and `mfo_warning` (or `mfo_message_<id>` and
+#' `mfo_message`), with the numbers of the text as fields (for example
+#' `mfo_warning_negative_fat` has `n`, the number of steps). The text is
+#' English; the classes let a program, such as [run_app()], handle a given
+#' warning or word it in another language:
+#' `withCallingHandlers(expr, mfo_warning_negative_fat = function(w) w$n)`.
+#'
 #' @export
 #'
 #' @examples
@@ -131,9 +140,10 @@ MFO_reliability <- function(results, sessions = NULL, variables = NULL, conf = 0
   n_part <- length(unique(ids$participant))
   if (n_part < 3) stop("At least 3 participants are needed.", call. = FALSE)
   if (n_part < 30) {
-    warning(sprintf(paste0("%d participants: Koo & Li (2016) recommend at least 30 ",
-                           "heterogeneous participants and, whenever possible, 3 sessions."),
-                    n_part), call. = FALSE)
+    .mfo_warning("rel_few_participants",
+                 sprintf(paste0("%d participants: Koo & Li (2016) recommend at least 30 ",
+                                "heterogeneous participants and, whenever possible, 3 sessions."),
+                         n_part), n = n_part)
   }
 
   default_vars <- c("MFO_g_min", "MFO_FFM", "FAT_MAX_perVO2max", "FAT_MAX_porcHRmax",
@@ -162,13 +172,15 @@ MFO_reliability <- function(results, sessions = NULL, variables = NULL, conf = 0
     Y <- .wide_matrix(long[long$variable == v, ], session_order)
     incomplete <- sum(!stats::complete.cases(Y))
     if (incomplete > 0) {
-      warning(sprintf("%s: %d participant(s) without a value in every session left out.",
-                      v, incomplete), call. = FALSE)
+      .mfo_warning("rel_incomplete",
+                   sprintf("%s: %d participant(s) without a value in every session left out.",
+                           v, incomplete), variable = v, n = incomplete)
     }
     Y <- Y[stats::complete.cases(Y), , drop = FALSE]
     if (nrow(Y) < 3) {
-      warning(sprintf("%s: fewer than 3 complete participants; not analysed.", v),
-              call. = FALSE)
+      .mfo_warning("rel_too_few",
+                   sprintf("%s: fewer than 3 complete participants; not analysed.", v),
+                   variable = v)
       next
     }
     st <- .icc_a1(Y, conf)
@@ -198,8 +210,10 @@ MFO_reliability <- function(results, sessions = NULL, variables = NULL, conf = 0
   }
   if (length(rows) == 0) stop("No variable could be analysed.", call. = FALSE)
   if (length(hetero) > 0) {
-    warning("Differences grow with the mean (Pearson |difference| vs mean, p < 0.05) for: ",
-            paste(unique(hetero), collapse = ", "), ". Consider CV_log.", call. = FALSE)
+    vars <- paste(unique(hetero), collapse = ", ")
+    .mfo_warning("rel_heteroscedastic",
+                 paste0("Differences grow with the mean (Pearson |difference| vs mean, ",
+                        "p < 0.05) for: ", vars, ". Consider CV_log."), variables = vars)
   }
 
   pair_cols <- c("variable", "pair", "n", "bias", "bias_lower", "bias_upper", "sd_diff",

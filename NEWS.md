@@ -24,6 +24,46 @@
 
 ## New features
 
+* Warnings and messages of `MFO()`, `read_cart()`, `MFO_zones()`,
+  `MFO_kinetics()`, `MFO_protocol()` and `MFO_reliability()` are classed
+  conditions (`mfo_warning_<id>`, `mfo_message_<id>`) with their numbers as
+  fields, e.g. `mfo_warning_negative_fat` with `n`. Their English text does
+  not change; the app words them from its own templates (SPEC 10).
+
+* `run_app()` opens the Shiny app of the package (SPEC 10, #24), which only
+  calls the package's functions and runs locally. `shiny` and `bslib` are
+  in Suggests. Interface in English (all strings in `inst/app/i18n.csv`, one
+  column per language, so a translation is one more column). The navbar reads "MFO analysis". The Data tab: example
+  data, csv/xlsx files with column mapping or analyser exports (several
+  files or a zip), phases by table or by cuts dragged on the VO2 plot, and
+  every message and warning of the reading shown as an alert, with two tabs:
+  "Prepare your data" (the three ways to bring data in, with an xlsx template of an individual
+  test and a csv template of results) and "Loaded data" (the VO₂ plot and
+  the tables of each phase). Every plot can be downloaded as
+  PNG at 300 dpi, PDF or SVG (180 mm wide by default). The Protocol
+  and analysis tab sets the arguments of `MFO_protocol()`, `MFO()` and
+  `MFO_kinetics()`; the Results tab shows the curve with the steps of the
+  fit always under it (downloadable; `porc_VO2` shown as %VO₂max), the
+  results table, confidence intervals on demand, the SIN
+  kinetics, the warnings of the run as quality alerts, and adds the
+  participant to the session's group table (the columns of `MFOs()` plus
+  session and analysis date; participant codes only, no names). The Zones
+  and references tab shows `MFO_zones()`: the Fatmax zone in bpm and
+  % HRmax with its HRmax source, the range for obesity, and the percentiles
+  of `reference_MFO` with their group, N and the differences from the
+  reference test. The package's warnings are worded from the templates of
+  the app. The Report and downloads tab
+  writes one self-contained HTML report, with a Save as PDF button that
+  opens the print dialog of the browser (curve, results, steps, intervals, SIN,
+  zones and references, alerts, a methods paragraph with its references,
+  and a footer with version, commit, dates, phase cuts and seed) and the
+  group table as xlsx or csv. The Reliability tab runs `MFO_reliability()`
+  on the group table of the session or on an uploaded results table with
+  the columns id, session, MFO and Fatmax (other columns of `MFOs()`
+  optional). See
+  `vignette("app")`, the section "Using the app" of the README, and the app
+  manual on the website (every option, output and warning).
+
 * `MFO_protocol()` describes the test (SPEC 14): `"step"` (fixed
   durations, as before), `"step_variable"` (a vector of durations whose last
   element is repeated, e.g. `c(300, 180)` for a 5-min first step; the
@@ -176,7 +216,8 @@
   elapsed Time starting above 1 h stops with an error suggesting it),
   records already averaged by the analyser
   (`interval = "none"`, step read from `Time`, which must be regular) and one
-  xlsx sheet per phase (`sheets`, an alternative to `cuts`). Not yet
+  xlsx sheet per phase (`sheets`, an alternative to `cuts`; one unnamed
+  sheet is the recording and can be split by `cuts`). Not yet
   validated with a real export. Cuts now fall on the nearest record boundary
   of `Time`, which gives the same split as before for averaged breaths.
 

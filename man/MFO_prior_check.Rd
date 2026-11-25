@@ -40,7 +40,7 @@ to (Fatmax, 100) (default `c(90, 14)`, SIN only).}
 \value{
 An object of class `MFO_prior_check`: a list with `draws` (prior
   draws of the parameters and derived quantities), `summary` (quantiles 5,
-  50 and 95 \%), `curves` (ndraws curves on 0-100 \% VO2max), `data` and
+  50 and 95 \%), `curves` (ndraws curves on 0-100 \% \VOmax{}), `data` and
   `model`. `plot()` draws the curves.
 }
 \description{

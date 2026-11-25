@@ -69,7 +69,7 @@ same participant are stored in one file but in different sheets)}
 
 \item{method}{method to locate MFO: "P3" (default), "P2", "MV" or "MRER". See [MFO()].}
 
-\item{VO2max}{VO2max can be passed directly (ml/min). Default NULL. If given, it is used for
+\item{VO2max}{\VOmax{} can be passed directly (ml/min). Default NULL. If given, it is used for
 every participant and the graded databases are ignored.}
 
 \item{step_duration}{duration of each exercise step in seconds (default 180).}
@@ -89,9 +89,9 @@ number or "classic", "safe", "sedentary", "trained". See [MFO()].}
 
 \item{remove_rows}{rows to exclude from analysis.}
 
-\item{col_name_VO2}{column name for VO2 in databases. Default "VO2".}
+\item{col_name_VO2}{column name for \VO{} in databases. Default "VO2".}
 
-\item{col_name_VCO2}{column name for VCO2 in databases. Default "VCO2".}
+\item{col_name_VCO2}{column name for \VCO{} in databases. Default "VCO2".}
 
 \item{col_name_RER}{column name for RER in databases. Default "RER".}
 
@@ -105,7 +105,7 @@ number or "classic", "safe", "sedentary", "trained". See [MFO()].}
 
 \item{output_format}{format for results file: "xlsx", "csv", or "rds". Default "xlsx".}
 
-\item{vo2max_window}{averaging window in seconds for VO2max from the graded database
+\item{vo2max_window}{averaging window in seconds for \VOmax{} from the graded database
 (default 30). See [MFO()].}
 
 \item{include_basal}{logical; include the resting row as step 0 in the fit
@@ -126,7 +126,7 @@ steady-state segment (default `FALSE`). See [MFO()].}
 given, `step_duration` and `steady_state_duration` are not used. See [MFO()].}
 
 \item{age}{age in years (optional), the same for every participant, for the
-heart-rate criterion of VO2max. See [MFO()] and [VO2max_from_test()].}
+heart-rate criterion of \VOmax{}. See [MFO()] and [VO2max_from_test()].}
 
 \item{col_name_Load}{column name for the external load (W or km/h) in the
 databases. Default "Load"; the column is optional. See [MFO()].}
@@ -153,25 +153,25 @@ returned (see *Output files*).}
 \item MFO_g_min: Maximal fat oxidation (g/min).
 \item MFO_relative: MFO relative to body mass (mg/kg/min), if body_mass provided.
 \item MFO_FFM: MFO relative to fat-free mass (mg/kgFFM/min), if fat_free_mass provided.
-\item VO2max: VO2max used (ml/min).
-\item VO2max_window: effective averaging window for VO2max (s); NA if VO2max was supplied.
-\item VO2max_type: "VO2max" or "VO2peak" (see [VO2max_from_test()]); NA if VO2max was supplied.
-\item FAT_MAX_perVO2max: FatMax as \% VO2max.
+\item VO2max: \VOmax{} used (ml/min).
+\item VO2max_window: effective averaging window for \VOmax{} (s); NA if \VOmax{} was supplied.
+\item VO2max_type: "VO2max" or "VO2peak" (see [VO2max_from_test()]); NA if \VOmax{} was supplied.
+\item FAT_MAX_perVO2max: Fatmax as \% \VOmax{}.
 \item FAT_MAX_lower, FAT_MAX_upper, MFO_lower, MFO_upper: bootstrap
   confidence limits with `ci = "bootstrap"`, otherwise `NA`.
-\item FAT_MAX_HR: Heart rate at FatMax (bpm).
-\item FAT_MAX_porcHRmax: FatMax as \% HRmax, if HRmax provided.
-\item FatMax_zone_lower: Lower bound of FatMax zone (\% VO2max).
-\item FatMax_zone_upper: Upper bound of FatMax zone (\% VO2max).
+\item FAT_MAX_HR: Heart rate at Fatmax (bpm).
+\item FAT_MAX_porcHRmax: Fatmax as \% HRmax, if HRmax provided.
+\item FatMax_zone_lower: Lower bound of Fatmax zone (\% \VOmax{}).
+\item FatMax_zone_upper: Upper bound of Fatmax zone (\% \VOmax{}).
 \item FatMax_zone_method: "fitted curve", or "linear interpolation" for "MV".
 \item FatMax_zone_lower_HR, FatMax_zone_upper_HR: heart rate at the limits of
   the Fatmax zone (bpm).
 \item HRmax: `HRmax` as given (`NA` if not given).
-\item HR_peak: highest mean HR of the graded test over the VO2max window
+\item HR_peak: highest mean HR of the graded test over the \VOmax{} window
   (bpm); `NA` with a numeric `VO2max`. See [MFO_zones()].
 \item FAT_MAX_load, FatMax_zone_lower_load, FatMax_zone_upper_load: Fatmax and
   Fatmax zone in load units; load_unit and load_source as in [MFO()].
-\item crossover_point: Crossover intensity (\% VO2max).
+\item crossover_point: Crossover intensity (\% \VOmax{}).
 \item R_squared: R-squared of the curve fit.
 \item method: method requested.
 \item method_used: method actually used (differs after a fallback).
@@ -182,8 +182,8 @@ returned (see *Output files*).}
 \item d: SIN dilatation parameter.
 \item t: SIN translation parameter.
 \item s: SIN symmetry parameter.
-\item Fatmin: Fatmin from SIN model (\% VO2max).
-\item FatMax_SIN: FatMax from SIN model (\% VO2max).
+\item Fatmin: Fatmin from SIN model (\% \VOmax{}).
+\item FatMax_SIN: Fatmax from SIN model (\% \VOmax{}).
 \item FatMax_SIN_lower, FatMax_SIN_upper, Fatmin_lower, Fatmin_upper:
   confidence limits of the SIN fit with `ci`, otherwise `NA`.
 \item MFO_SIN: MFO of the SIN curve with `sin_fit = "absolute"`, otherwise `NA`.

@@ -18,6 +18,11 @@ articles:
   navbar: ~
   contents:
   - mfo-workflow
+- title: Using the app
+  navbar: Using the app
+  contents:
+  - app
+  - articles/app-manual
 - title: Bayesian fit
   navbar: Bayesian fit
   contents:
@@ -37,7 +42,7 @@ reference:
 - title: Describe the test
   desc: >
     Protocol of the MFO test (step durations, averaged segment, load and
-    exercise mode) and VO2max of the graded test with maximality criteria.
+    exercise mode) and VO₂max of the graded test with maximality criteria.
   contents:
   - MFO_protocol
   - VO2max_from_test
@@ -47,6 +52,10 @@ reference:
     curve fit (P3, P2, MV, MRER), Fatmax zone and crossover point.
   contents:
   - MFO
+- title: App
+  desc: Shiny app that runs the workflow locally.
+  contents:
+  - run_app
 - title: Zones and reference values
   desc: >
     Fatmax zone in heart rate, range for obesity (Chávez-Guevara et al., 2023)

@@ -17,7 +17,7 @@
 #'     data go on after its last element, that last duration is repeated, so
 #'     `c(300, 180)` means a 5-min first step followed by 3-min steps.
 #'   \item `"relative"`: fixed-duration steps whose load is prescribed relative
-#'     to body mass (W/kg), as in the relative power FATmax test of
+#'     to body mass (W/kg), as in the relative power Fatmax test of
 #'     postmenopausal females (2026,
 #'     \url{https://pmc.ncbi.nlm.nih.gov/articles/PMC13315815/}). Steps are
 #'     cut as in `"step"`; the load unit is `"W/kg"`.
@@ -34,7 +34,7 @@
 #'     maximal test in the same recording (Marin-Galindo et al. 2026, Sports
 #'     Med Health Sci 8(3): 327-334, \doi{10.1016/j.smhs.2025.02.004}). Steps are cut as in
 #'     `"step"` up to `cut_time`; the records after it are the graded test,
-#'     used for VO2max when `db_graded` and `VO2max` are not given. Automatic
+#'     used for \VOmax{} when `db_graded` and `VO2max` are not given. Automatic
 #'     detection of the phases belongs to the importers (SPEC 16).
 #'   }
 #' @param step_duration duration of each step in seconds (default 180). A
@@ -63,6 +63,15 @@
 #' @return An object of class `MFO_protocol`: a list with the arguments above.
 #'
 #' @seealso [MFO()], [MFOs()]
+#'
+#' @section Warnings and messages:
+#' Every warning and message of this function is a classed condition:
+#' `mfo_warning_<id>` and `mfo_warning` (or `mfo_message_<id>` and
+#' `mfo_message`), with the numbers of the text as fields (for example
+#' `mfo_warning_negative_fat` has `n`, the number of steps). The text is
+#' English; the classes let a program, such as [run_app()], handle a given
+#' warning or word it in another language:
+#' `withCallingHandlers(expr, mfo_warning_negative_fat = function(w) w$n)`.
 #'
 #' @export
 #'
@@ -209,8 +218,8 @@ print.MFO_protocol <- function(x, ...) {
     stop("protocol must be built with MFO_protocol().", call. = FALSE)
   }
   if (durations_given) {
-    warning("Both protocol and step_duration/steady_state_duration supplied; ",
-            "using protocol.", call. = FALSE)
+    .mfo_warning("both_protocol", paste0("Both protocol and step_duration/",
+                                         "steady_state_duration supplied; using protocol."))
   }
   protocol
 }
@@ -257,8 +266,11 @@ print.MFO_protocol <- function(x, ...) {
 .ramp_records <- function(seconds, step_time, name) {
   n <- max(1L, as.integer(ceiling(seconds / step_time - 1e-8)))
   if (!isTRUE(all.equal(n * step_time, seconds))) {
-    message(sprintf("%s: %g s is not a multiple of step_time (%g s); using %d record(s) = %g s.",
-                    name, seconds, step_time, n, n * step_time))
+    .mfo_message("not_multiple",
+                 sprintf("%s: %g s is not a multiple of step_time (%g s); using %d record(s) = %g s.",
+                         name, seconds, step_time, n, n * step_time),
+                 name = name, seconds = seconds, step_time = step_time, n = n,
+                 used = n * step_time)
   }
   n
 }

@@ -8,7 +8,7 @@
 #' @section HRmax:
 #' The HRmax used for the percentages is, in this order: `HRmax` given here or
 #' in [MFO()]/[MFOs()]; the peak HR measured in the graded test (`HR_peak`,
-#' the highest mean HR over the same window as VO2max); and, only when
+#' the highest mean HR over the same window as \VOmax{}); and, only when
 #' `predicted_HRmax = TRUE`, the predicted HRmax for `age`: `"tanaka"`
 #' 208 - 0.7 x age (default; Tanaka, Monahan and Seals 2001,
 #' \doi{10.1016/s0735-1097(00)01054-8}) or `"fox"` 220 - age, the equation
@@ -26,7 +26,7 @@
 #' shown, with a warning.
 #'
 #' @section Reference values:
-#' MFO (g/min) and Fatmax (\% VO2max) are placed among the empirical
+#' MFO (g/min) and Fatmax (\% \VOmax{}) are placed among the empirical
 #' percentiles P20, P40, P60 and P80 of Table 1 of Amaro-Gahete,
 #' Sanchez-Delgado and Ruiz (2018, \doi{10.3389/fphys.2018.01460}), 167
 #' sedentary adults, by linear interpolation. Below P20 or above P80 the
@@ -69,7 +69,7 @@
 #' @return A data frame of class `MFO_zones`, one row per result, with `ID`
 #'   (results of [MFOs()]), `HRmax`, `HRmax_source` (`"given"`, `"measured"`,
 #'   `"predicted (Tanaka)"`, `"predicted (Fox)"` or `NA`), `FAT_MAX` and the
-#'   zone (`zone_lower`, `zone_upper`; \% VO2max), `FAT_MAX_HR`,
+#'   zone (`zone_lower`, `zone_upper`; \% \VOmax{}), `FAT_MAX_HR`,
 #'   `zone_lower_HR`, `zone_upper_HR` (bpm), `FAT_MAX_porcHRmax`,
 #'   `zone_lower_porcHRmax`, `zone_upper_porcHRmax`, `obesity_range_lower`,
 #'   `obesity_range_upper` and `obesity_zone` (`NA` unless
@@ -93,6 +93,15 @@
 #' \doi{10.1016/s0735-1097(00)01054-8}
 #'
 #' @seealso [MFO()], [MFOs()], [reference_MFO]
+#'
+#' @section Warnings and messages:
+#' Every warning and message of this function is a classed condition:
+#' `mfo_warning_<id>` and `mfo_warning` (or `mfo_message_<id>` and
+#' `mfo_message`), with the numbers of the text as fields (for example
+#' `mfo_warning_negative_fat` has `n`, the number of steps). The text is
+#' English; the classes let a program, such as [run_app()], handle a given
+#' warning or word it in another language:
+#' `withCallingHandlers(expr, mfo_warning_negative_fat = function(w) w$n)`.
 #'
 #' @export
 #'
@@ -146,16 +155,18 @@ MFO_zones <- function(x,
       stop("predicted_HRmax = TRUE needs age.", call. = FALSE)
     }
     if (!all(need)) {
-      message("An HRmax was given or measured for ", sum(!need), " result(s); it ",
-              "takes precedence over the predicted HRmax.")
+      .mfo_message("hrmax_precedence",
+                   paste0("An HRmax was given or measured for ", sum(!need), " result(s); it ",
+                          "takes precedence over the predicted HRmax."), n = sum(!need))
     }
     pred <- switch(HRmax_formula, tanaka = 208 - 0.7 * age, fox = 220 - age)
     hrmax[need] <- pred[need]
     source[need] <- if (HRmax_formula == "tanaka") "predicted (Tanaka)" else "predicted (Fox)"
   }
   if (all(is.na(hrmax))) {
-    message("No HRmax given, measured or predicted: the zone is given in bpm only. ",
-            "Use HRmax, a db_graded with HR, or predicted_HRmax = TRUE with age.")
+    .mfo_message("no_hrmax",
+                 paste0("No HRmax given, measured or predicted: the zone is given in bpm only. ",
+                        "Use HRmax, a db_graded with HR, or predicted_HRmax = TRUE with age."))
   }
   pct <- function(hr) hr / hrmax * 100
 
@@ -188,18 +199,19 @@ MFO_zones <- function(x,
     high <- body_fat > 35
     covered <- body_fat != 35
     if (any(!covered)) {
-      message("Chavez-Guevara et al. (2023) define > 35 % and < 35 % body fat; ",
-              "35.0 % is not covered, so there is no range for ", sum(!covered),
-              " result(s).")
+      .mfo_message("obesity_35",
+                   paste0("Chavez-Guevara et al. (2023) define > 35 % and < 35 % body fat; ",
+                          "35.0 % is not covered, so there is no range for ", sum(!covered),
+                          " result(s)."), n = sum(!covered))
     }
     out$obesity_range_lower <- ifelse(covered, ifelse(high, 61, 57), NA_real_)
     out$obesity_range_upper <- ifelse(covered, ifelse(high, 66, 64), NA_real_)
     out$obesity_zone <- .zone_overlap(out$zone_lower_porcHRmax, out$zone_upper_porcHRmax,
                                       out$obesity_range_lower, out$obesity_range_upper)
     if (any(grepl("^predicted", source))) {
-      warning("The range of Chavez-Guevara et al. (2023) is in % of the measured ",
-              "HRpeak; with a predicted HRmax the comparison is approximate.",
-              call. = FALSE)
+      .mfo_warning("obesity_predicted_hrmax",
+                   paste0("The range of Chavez-Guevara et al. (2023) is in % of the measured ",
+                          "HRpeak; with a predicted HRmax the comparison is approximate."))
     }
   }
 
@@ -210,11 +222,14 @@ MFO_zones <- function(x,
   }, integer(1))
   comparable <- d$mode %in% c("walking", "running")
   if (any(!comparable)) {
-    message("No percentile for ", sum(!comparable), " result(s) with mode \"",
-            paste(unique(d$mode[!comparable]), collapse = "\", \""), "\": the ",
-            "reference (Amaro-Gahete et al. 2018) was measured walking on a treadmill, ",
-            "and the mode of exercise changes MFO and Fatmax. Set ",
-            "MFO_protocol(mode = ) if the test was walking or running.")
+    modes <- paste(unique(d$mode[!comparable]), collapse = "\", \"")
+    .mfo_message("no_percentile",
+                 paste0("No percentile for ", sum(!comparable), " result(s) with mode \"",
+                        modes, "\": the ",
+                        "reference (Amaro-Gahete et al. 2018) was measured walking on a treadmill, ",
+                        "and the mode of exercise changes MFO and Fatmax. Set ",
+                        "MFO_protocol(mode = ) if the test was walking or running."),
+                 n = sum(!comparable), mode = modes)
   }
   mfo <- .reference_percentile(d$MFO, ref[rows, paste0("MFO_p", c(20, 40, 60, 80))])
   fmx <- .reference_percentile(d$FAT_MAX, ref[rows, paste0("Fatmax_p", c(20, 40, 60, 80))])
@@ -397,7 +412,7 @@ print.MFO_zones <- function(x, digits = 1, ...) {
   if (d$mode %in% "running") {
     out <- c(out, "mode: running (reference: treadmill walking)")
   } else if (!d$mode %in% "walking") {
-    out <- c(out, paste0("mode: ", d$mode, " (reference: treadmill walking; no percentile)"))
+    out <- c(out, paste0("mode: ", d$mode, " (reference: treadmill walking, no percentile)"))
   }
   if (is.na(d$author)) {
     out <- c(out, "equation: not recorded (reference: Frayn without protein)")

@@ -24,7 +24,7 @@ built.
 
 Each simulated test comes from `simulate_MFO_sessions()`: one participant
 from the default population (sedentary adults, Amaro-Gahete et al. 2018),
-VO2max 3000 ± 400 mL/min, fat oxidation following a SIN curve (Chenevière et
+VO₂max 3000 ± 400 mL/min, fat oxidation following a SIN curve (Chenevière et
 al. 2009) and an error on the fat oxidation of each step with standard
 deviation equal to a proportion of MFO (the noise CV, SPEC 17). The grid
 crosses the method (P3, P2, MRER), the number of steps (6, 8, 10) and the
@@ -113,9 +113,9 @@ with 8 steps and independent normal errors (500 tests, B = 500).
 
 | Interval | Coverage of Fatmax | Coverage of MFO | Mean width of Fatmax |
 |---|---|---|---|
-| `"bootstrap"` (modified residuals) | 0.882 | 0.892 | 1.93 %VO2max |
-| `"parametric"`, fixed sigma (first version) | 0.892 | 0.896 | 1.95 %VO2max |
-| `"parametric"`, sigma drawn (current) | 0.944 | 0.954 | 2.54 %VO2max |
+| `"bootstrap"` (modified residuals) | 0.882 | 0.892 | 1.93 %VO₂max |
+| `"parametric"`, fixed sigma (first version) | 0.892 | 0.896 | 1.95 %VO₂max |
+| `"parametric"`, sigma drawn (current) | 0.944 | 0.954 | 2.54 %VO₂max |
 
 The residual bootstrap and a parametric bootstrap with a fixed sigma behave
 like a z interval: with n - p = 5 degrees of freedom their coverage is close
@@ -166,7 +166,7 @@ knitr::kable(tab, row.names = FALSE, digits = 2)
 
 Tests counts below 200 are tests in which the fit fell back to another
 method (P3 to P2, MRER to MV), which gives no interval. The bias is the mean
-estimate minus the truth (%VO2max for Fatmax, % of MFO for MFO).
+estimate minus the truth (%VO₂max for Fatmax, % of MFO for MFO).
 
 ```{r fig-bias, fig.alt = "Model bias of Fatmax (mean estimate minus truth, %VO2max) by method, number of steps and noise CV; MRER is about 3 to 4 %VO2max above the truth."}
 ggplot(cov[cov$ci == "bootstrap", ], aes(steps, bias_fatmax, colour = method)) +
@@ -183,7 +183,7 @@ ggplot(cov[cov$ci == "bootstrap", ], aes(steps, bias_fatmax, colour = method)) +
 `MFO_kinetics()` fits the SIN either normalised to the highest observed step
 (Chenevière et al. 2009) or in g/min with MFO as a fourth parameter
 (`fit = "absolute"`). Same simulated participants for both tables: 8 steps,
-trained shape (d 0.18, s 1.52), MFO 0.4 g/min, Fatmax 45 ± 8 %VO2max.
+trained shape (d 0.18, s 1.52), MFO 0.4 g/min, Fatmax 45 ± 8 %VO₂max.
 
 **Bias and typical error** (`inst/validation/sin_noise.R`; 200 tests per
 noise level; bias = median error, typical error = median absolute error; for
@@ -192,12 +192,12 @@ the normalised fit MFO is the highest observed step):
 | Noise CV | Quantity | Normalised bias | Normalised typical error | Absolute bias | Absolute typical error |
 |---|---|---|---|---|---|
 | 5 % | d | −0.120 | 0.399 | −0.022 | 0.371 |
-| 5 % | Fatmax (%VO2max) | −0.05 | 1.56 | −0.01 | 1.55 |
-| 5 % | Fatmin (%VO2max) | −0.39 | 2.72 | +0.01 | 2.87 |
+| 5 % | Fatmax (%VO₂max) | −0.05 | 1.56 | −0.01 | 1.55 |
+| 5 % | Fatmin (%VO₂max) | −0.39 | 2.72 | +0.01 | 2.87 |
 | 5 % | MFO (g/min) | +0.010 | 0.013 | +0.002 | 0.008 |
 | 10 % | d | −0.135 | 0.527 | +0.000 | 0.506 |
-| 10 % | Fatmax (%VO2max) | +0.36 | 2.82 | +0.44 | 2.61 |
-| 10 % | Fatmin (%VO2max) | −1.18 | 4.09 | −0.19 | 3.27 |
+| 10 % | Fatmax (%VO₂max) | +0.36 | 2.82 | +0.44 | 2.61 |
+| 10 % | Fatmin (%VO₂max) | −1.18 | 4.09 | −0.19 | 3.27 |
 | 10 % | MFO (g/min) | +0.026 | 0.027 | +0.007 | 0.016 |
 
 The absolute fit removes most of the bias of d and Fatmin and improves MFO
@@ -206,7 +206,7 @@ error is two to three times its true value. **d, s and t are not
 interpreted one by one with real data; Fatmax, Fatmin and MFO are.**
 
 **Coverage of the parametric intervals** (`inst/validation/sin_coverage.R`;
-B = 1000; 200 tests per cell; median width in brackets, %VO2max for Fatmax
+B = 1000; 200 tests per cell; median width in brackets, %VO₂max for Fatmax
 and Fatmin, g/min for MFO_SIN):
 
 | Fit | Noise CV | Fatmax | Fatmin | MFO_SIN |
@@ -222,7 +222,7 @@ At 20 % noise 13 of 200 tests could not be fitted. The absolute fit covers
 close to 95 %; the normalised one falls short and gets worse with noise,
 because its intervals are centred on the bias of the normalisation. The
 intervals are wide: even at 5 % noise the SIN locates Fatmax within about
-± 5 %VO2max.
+± 5 %VO₂max.
 
 ## What to use
 
@@ -233,7 +233,7 @@ intervals are wide: even at 5 % noise the SIN locates Fatmax within about
   to 0 and can fall far outside the measured intensities. The warning of a
   vertex outside the measured range is the signal; `MFO()` also flags the
   interval then.
-- **MRER** overestimates Fatmax by 3-4 %VO2max and MFO by 3-7 % against
+- **MRER** overestimates Fatmax by 3-4 %VO₂max and MFO by 3-7 % against
   SIN curves, and its interval is centred on that bias. It is kept for
   comparability with published studies, not as the main method.
 - With 6 steps every interval is less reliable; 8 or more are preferable.

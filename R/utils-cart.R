@@ -94,9 +94,10 @@
   if ("RER" %in% names(binned)) {
     rer_mismatch <- sum(abs(binned$RER - rer) > 0.02, na.rm = TRUE)
     if (rer_mismatch > 0) {
-      warning(sprintf(paste0("The exported RER differs from VCO2/VO2 by more than 0.02 in ",
-                             "%d of %d intervals; RER is recomputed as VCO2/VO2."),
-                      rer_mismatch, nrow(binned)), call. = FALSE)
+      .mfo_warning("rer_mismatch",
+                   sprintf(paste0("The exported RER differs from VCO2/VO2 by more than 0.02 in ",
+                                  "%d of %d intervals; RER is recomputed as VCO2/VO2."),
+                           rer_mismatch, nrow(binned)), n = rer_mismatch, total = nrow(binned))
     }
   }
   binned$RER <- rer
@@ -140,8 +141,10 @@
   rec <- vapply(cuts, function(x) which.min(abs(boundaries - x)) - 1L, integer(1))
   at <- boundaries[rec + 1]
   if (!isTRUE(all.equal(as.numeric(at), as.numeric(cuts)))) {
-    message(sprintf("cuts rounded to the nearest record boundary (%g-s records): %s.",
-                    interval, paste(names(cuts), at, sep = " = ", collapse = ", ")))
+    rounded <- paste(names(cuts), at, sep = " = ", collapse = ", ")
+    .mfo_message("cuts_rounded",
+                 sprintf("cuts rounded to the nearest record boundary (%g-s records): %s.",
+                         interval, rounded), interval = interval, cuts = rounded)
   }
   bounds <- c(0, rec[intersect(c("basal_end", "MFO_end"), names(rec))], nrow(binned))
   if (any(diff(bounds) <= 0)) {

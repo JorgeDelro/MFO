@@ -687,7 +687,7 @@ test_that("ci = 'bootstrap' adds intervals without changing the estimates", {
 test_that("the plot shows the interval in the subtitle and a grey band", {
   r <- .mfo_load(ci = "bootstrap", B = 100, seed = 3)
   expect_match(r$MFO_plot$labels$subtitle,
-               sprintf("FATmax = %.1f \\(%.1f-%.1f\\)", r$FAT_MAX,
+               sprintf("Fatmax = %.1f \\(%.1f-%.1f\\)", r$FAT_MAX,
                        r$ci["FAT_MAX", "lower"], r$ci["FAT_MAX", "upper"]))
   expect_match(r$MFO_plot$labels$caption, "Grey band: 95 % bootstrap CI")
   rects <- Filter(function(l) inherits(l$geom, "GeomRect"), r$MFO_plot$layers)

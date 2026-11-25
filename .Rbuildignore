@@ -7,3 +7,7 @@
 ^cran-comments\.md$
 ^codecov\.yml$
 ^data-raw$
+^MFO\.Rproj$
+^\.Rproj\.user$
+^tools$
+^vignettes/articles$

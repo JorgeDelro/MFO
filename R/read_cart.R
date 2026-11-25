@@ -17,13 +17,13 @@
 #' that interval, not an interpolation. An interval without breaths is kept as
 #' a row of `NA`, so the records stay aligned in time (`MFO()` cuts steps by
 #' counting records). The default of 10 s divides the usual step durations
-#' (60-300 s) and the 30-s windows of VO2max and ramps exactly, so they need no
+#' (60-300 s) and the 30-s windows of \VOmax{} and ramps exactly, so they need no
 #' rounding.
 #'
-#' **Units.** VO2 and VCO2 are returned in mL/min. With `vo2_unit = "auto"` a
-#' median VO2 above 100 is read as mL/min; at or below 100 the unit must be
+#' **Units.** \VO{} and \VCO{} are returned in mL/min. With `vo2_unit = "auto"` a
+#' median \VO{} above 100 is read as mL/min; at or below 100 the unit must be
 #' given, because L/min and mL/kg/min cannot be told apart reliably. RER is
-#' always VCO2/VO2 of the interval means; when the export has its own RER, a
+#' always \VCO{}/\VO{} of the interval means; when the export has its own RER, a
 #' warning counts the intervals where they differ by more than 0.02. Load is
 #' passed through unconverted: declare its unit in [MFO_protocol()].
 #'
@@ -45,7 +45,7 @@
 #'   columns in the file.
 #' \item `skip` lines (e.g. metadata) come before the header; with
 #'   `units_row = TRUE` the line after the header holds the units. A
-#'   recognised VO2 unit there ("mL/min", "L/min", "mL/kg/min") is taken as a
+#'   recognised \VO{} unit there ("mL/min", "L/min", "mL/kg/min") is taken as a
 #'   declaration of the file, with a message; an explicit `vo2_unit` wins.
 #' \item `decimal` is the decimal mark (default "."); the csv field separator
 #'   (tab, ";" or ",") is detected from the header line.
@@ -61,7 +61,8 @@
 #'   breath-by-breath files.
 #' \item `sheets` reads the phases from the sheets of an xlsx file,
 #'   `c(basal = , MFO = , graded = )` (any of them), as an alternative to
-#'   `cuts`; one unnamed sheet is the phase named in `phase`.
+#'   `cuts`; one unnamed sheet is the recording, the phase named in `phase`
+#'   or split by `cuts`.
 #' }
 #'
 #' No personal data from the file are kept: the result holds only the
@@ -79,7 +80,7 @@
 #' @param phase without `cuts`, the phase of the whole recording: `"MFO"`
 #'   (default), `"basal"` or `"graded"`.
 #' @param body_mass body mass in kg, needed only when `vo2_unit = "mL/kg/min"`.
-#' @param vo2_unit unit of VO2 and VCO2 in the export: `"auto"` (default),
+#' @param vo2_unit unit of \VO{} and \VCO{} in the export: `"auto"` (default),
 #'   `"mL/min"`, `"L/min"` or `"mL/kg/min"`.
 #' @param columns,skip,units_row,decimal,sheets,time_origin for
 #'   `device = "generic"` only: column mapping (named character vector), lines
@@ -92,12 +93,21 @@
 #'   `db_graded` (data frames with `Time`, `VO2`, `VCO2`, `RER` and, when the
 #'   export has them, `HR`, `Load`, `VE`; `NULL` for a phase not in the file),
 #'   `step_time` (= `interval`, or the step of `Time` with `interval = "none"`)
-#'   and `info` (device, interval, averaging, VO2 unit, cuts, `time_origin` and
+#'   and `info` (device, interval, averaging, \VO{} unit, cuts, `time_origin` and
 #'   `time_offset` for generic files, number of breaths
 #'   or records, of intervals and of empty intervals, and the RER mismatch
 #'   count, `NA` when the export has no RER).
 #'
 #' @seealso [MFO()], [MFO_protocol()]
+#'
+#' @section Warnings and messages:
+#' Every warning and message of this function is a classed condition:
+#' `mfo_warning_<id>` and `mfo_warning` (or `mfo_message_<id>` and
+#' `mfo_message`), with the numbers of the text as fields (for example
+#' `mfo_warning_negative_fat` has `n`, the number of steps). The text is
+#' English; the classes let a program, such as [run_app()], handle a given
+#' warning or word it in another language:
+#' `withCallingHandlers(expr, mfo_warning_negative_fat = function(w) w$n)`.
 #'
 #' @export
 #'
@@ -224,13 +234,14 @@ print.MFO_cart <- function(x, ...) {
     stop("sheets must be sheet names, e.g. c(basal = \"Rest\", MFO = \"MFO\").",
          call. = FALSE)
   }
-  if (!is.null(cuts)) stop("Use cuts or sheets, not both.", call. = FALSE)
   if (is.null(names(sheets))) {
     if (length(sheets) != 1) {
       stop("Name the sheets by phase: c(basal = , MFO = , graded = ).", call. = FALSE)
     }
-    return(read_one(sheets, phase, NULL))
+    # one sheet is the recording: the phase named in `phase`, or split by cuts
+    return(read_one(sheets, phase, cuts))
   }
+  if (!is.null(cuts)) stop("Use cuts or sheets named by phase, not both.", call. = FALSE)
   if (!all(names(sheets) %in% c("basal", "MFO", "graded")) || anyDuplicated(names(sheets))) {
     stop("sheets must be named basal, MFO and/or graded.", call. = FALSE)
   }

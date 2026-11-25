@@ -274,6 +274,11 @@ test_that("sheets are checked against cuts, names and steps", {
   openxlsx::write.xlsx(list(A = d20, B = d10), f)
   expect_error(read_cart(f, device = "generic", interval = "none",
                          sheets = c(MFO = "A"), cuts = c(MFO_end = 100)), "cuts or sheets")
+  # one unnamed sheet is the recording, split by cuts
+  one <- read_cart(f, device = "generic", interval = "none", sheets = "A",
+                   cuts = c(MFO_end = 100))
+  expect_equal(one$db_MFO$VO2, d20$VO2[1:5])
+  expect_equal(one$db_graded$VO2, d20$VO2[6:10])
   expect_error(read_cart(f, device = "generic", interval = "none",
                          sheets = c(test = "A")), "named basal, MFO")
   expect_error(read_cart(f, device = "generic", interval = "none", sheets = c("A", "B")),

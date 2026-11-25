@@ -1,5 +1,8 @@
 
 utils::globalVariables(c(
+  # app_mod_data.R (recording plot)
+  "Time",
+  "phase",
   # MFO.R variables
   "porc_VO2",
   "FAT",
