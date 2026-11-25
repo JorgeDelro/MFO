@@ -54,6 +54,13 @@ are read there; nothing is sent to any server. Keep it that way:
 
 ### 1. Data
 
+The right side of the tab opens on *Prepare your data*: the three ways to
+bring data in (an individual test, a group table built in the app, a
+results table for Reliability) and two templates, an xlsx of an individual
+test with one sheet per phase and a csv of results. Reading the data
+switches to *Loaded data*: the plot of VO₂ against time and, below it, the
+tables of each phase.
+
 Choose the source: the example data of the package, a csv/xlsx file with
 your own column names, or an export of a metabolic cart read by the spiro
 package (Cortex, Cosmed, Vyntus, ZAN). Upload one or several files, or a

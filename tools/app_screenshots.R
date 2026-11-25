@@ -21,7 +21,7 @@ for (i in 1:90) {
   if (up) break
 }
 
-# A group table with two sessions of 12 simulated participants
+# A results table with two sessions of 12 simulated participants
 devtools::load_all(quiet = TRUE)
 sim <- simulate_MFO_sessions(n_participants = 12, n_sessions = 2,
                              population = list(VO2max = c(3000, 500)), seed = 1)
@@ -32,10 +32,10 @@ group <- do.call(rbind, lapply(seq_len(nrow(sim$truth)), function(i) {
     MFO(step_time = 20, db_MFO = tabs$db_MFO, db_basal = tabs$db_basal,
         db_graded = tabs$db_graded, cv_var = "RER", author = "Frayn",
         energy_equivalents = "classic", age = 30)))
-  data.frame(ID = tr$id, session = tr$session, MFO_g_min = r$MFO,
-             FAT_MAX_perVO2max = r$FAT_MAX)
+  # the required columns of an uploaded results table
+  data.frame(id = tr$id, session = tr$session, MFO = r$MFO, Fatmax = r$FAT_MAX)
 }))
-group_file <- file.path(tempdir(), "MFO_group.csv")
+group_file <- file.path(tempdir(), "MFO_results.csv")
 utils::write.csv(group, group_file, row.names = FALSE)
 
 w <- 1400
@@ -66,6 +66,9 @@ select <- function(id, value, wait = 1) {
 man <- "vignettes/articles/figures"
 dir.create(man, showWarnings = FALSE, recursive = TRUE)
 
+f <- function(name) file.path(man, sprintf("manual-%s.png", name))
+# "Prepare your data" is the tab shown first
+shot(f("prepare"), 1000)
 # Read, analyse, zones, group, reliability
 js("document.getElementById('data-read').click()", 4)
 tab("analysis")
@@ -85,8 +88,7 @@ b$DOM$setFileInputFiles(files = list(normalizePath(group_file)), nodeId = node$n
 Sys.sleep(3)
 js("document.getElementById('reliability-run').click()", 5)
 
-f <- function(name) file.path(man, sprintf("manual-%s.png", name))
-tab("data"); top(); shot(f("data"), 900)
+tab("data"); top(); shot(f("data"), 1000)
 tab("analysis"); top(); shot(f("analysis"))
 tab("results"); top(); shot(f("results"))
 scroll_to("#results-sin_plot"); shot(f("results-sin"))

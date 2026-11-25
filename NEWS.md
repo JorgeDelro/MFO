@@ -26,8 +26,10 @@
   column per language, so a translation is one more column). The navbar reads "MFO analysis". The Data tab: example
   data, csv/xlsx files with column mapping or analyser exports (several
   files or a zip), phases by table or by cuts dragged on the VO2 plot, and
-  every message and warning of the reading shown as an alert, and the tables
-  read shown per phase next to the VO₂ plot. Every plot can be downloaded as
+  every message and warning of the reading shown as an alert, with two tabs:
+  "Prepare your data" (the three ways to bring data in, with an xlsx template of an individual
+  test and a csv template of results) and "Loaded data" (the VO₂ plot and
+  the tables of each phase). Every plot can be downloaded as
   PNG at 300 dpi, PDF or SVG (180 mm wide by default). The Protocol
   and analysis tab sets the arguments of `MFO_protocol()`, `MFO()` and
   `MFO_kinetics()`; the Results tab shows the curve with the steps of the
@@ -46,7 +48,9 @@
   zones and references, alerts, a methods paragraph with its references,
   and a footer with version, commit, dates, phase cuts and seed) and the
   group table as xlsx or csv. The Reliability tab runs `MFO_reliability()`
-  on the group table of the session or on a downloaded one. See
+  on the group table of the session or on an uploaded results table with
+  the columns id, session, MFO and Fatmax (other columns of `MFOs()`
+  optional). See
   `vignette("app")`, the section "Using the app" of the README, and the app
   manual on the website (every option, output and warning).
 

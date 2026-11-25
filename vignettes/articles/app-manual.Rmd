@@ -42,7 +42,38 @@ MFO::run_app()
 
 ## 1. Data
 
-![The Data tab after reading the example data.](figures/manual-data.png)
+The left side holds the options; the right side has two tabs, **Prepare
+your data**, shown when the app opens, and **Loaded data**, selected when the
+data are read.
+
+![The Data tab when the app opens: Prepare your data.](figures/manual-prepare.png)
+
+### Prepare your data
+
+The three ways to bring data into the app:
+
+1. **An individual test**: the example data, a csv or xlsx file, or an
+   export of a metabolic cart, with the three phases as one table each or
+   as one recording to cut (details below). *Template of an individual test*
+   downloads an xlsx with one sheet per phase (Rest, MFO, Graded) and the
+   columns `Time` (s), `VO2` and `VCO2` (mL/min), `RER`, `HR` and `Load`
+   (W): with these names no column mapping is needed. Choose *csv/xlsx file*,
+   upload it and assign one sheet to each phase.
+2. **A group table built in the app**: analyse one test at a time and, in
+   Results, add each one to the group table with a participant code and a
+   session. Download the table in *Report and downloads*; it can be uploaded
+   again in Reliability.
+3. **A results table for Reliability**, when the tests were analysed
+   elsewhere (for instance with `MFOs()`): one row per test with the
+   required columns `id` (participant code), `session`, `MFO` (g/min) and
+   `Fatmax` (% VO₂max); any other column of `MFOs()` (e.g.
+   `FatMax_zone_lower`, `FatMax_zone_upper`, `FAT_MAX_porcHRmax`, `d`, `s`,
+   `t`) is optional and analysed too. *Results template* downloads a csv
+   with 2 participants × 2 sessions of simulated tests (made with
+   `simulate_MFO_sessions()`, written with `write_MFO_sessions()` and
+   analysed with `MFOs()`), to show the format.
+
+![The Data tab after reading the example data: Loaded data.](figures/manual-data.png)
 
 ### Source of the data
 
@@ -89,13 +120,14 @@ VO₂max.
 
 **Read data** reads the tables with `read_cart()`.
 
-### Outputs
+### Loaded data
 
-- **VO₂ over time**: each phase in its colour. Check that the phases are
-  where you expect and, with cuts, that the dashed lines fall where the MFO
-  test starts and ends.
-- **Tables read**, next to the plot: the records of each phase as read
-  (one tab per phase, scrolling), before any analysis. Check the units and
+- **VO₂ over time**, at full width: each phase in its colour. Check that the
+  phases are where you expect and, with cuts, that the dashed lines fall
+  where the MFO test starts and ends. In cuts mode this tab opens as soon as
+  the recording is chosen, so the cuts can be dragged on the plot.
+- Below it, **the tables of each phase** as read (one tab per phase,
+  scrolling), before any analysis. Check the units and
   that the values look like those of the analyser; in cuts mode they show
   the whole recording before it is cut.
 - **Phases read**: records, duration and columns of each phase. A phase
@@ -294,12 +326,20 @@ again in Reliability.
 
 ## 6. Reliability
 
-![The Reliability tab with a group table of 12 simulated participants.](figures/manual-reliability.png)
+![The Reliability tab with an uploaded results table of 12 simulated participants (columns id, session, MFO and Fatmax only).](figures/manual-reliability.png)
 
-`MFO_reliability()` on the group table of this session or on one downloaded
-earlier (xlsx or csv), so that sessions analysed on different days can be
-put together. It needs two or more sessions per participant (column
-`session`) and at least 3 participants; 30 or more heterogeneous participants
+`MFO_reliability()` on one of two tables, chosen under *Table*:
+
+- **The one of this session**: the group table built in Results with *Add to
+  the group table*.
+- **An uploaded results table** (xlsx or csv), one row per test, with the
+  required columns `id`, `session`, `MFO` (g/min) and `Fatmax` (% VO₂max),
+  and optionally other columns of `MFOs()`, each analysed as an outcome. A
+  group table downloaded from the app also works (its columns `ID`,
+  `MFO_g_min` and `FAT_MAX_perVO2max` are recognised). The text on top of the
+  tab links to the results template.
+
+It needs two or more sessions per participant and at least 3 participants; 30 or more heterogeneous participants
 and, whenever possible, 3 sessions are recommended (Koo & Li 2016). Only the
 participants with a value in every session are used for each outcome.
 
