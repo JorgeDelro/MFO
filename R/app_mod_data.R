@@ -145,12 +145,11 @@
   id <- grep("^mfo_(warning|message)_", class(cond), value = TRUE)
   key <- if (length(id) > 0) sub("^mfo_(warning|message)_", "cond.", id[1])
   if (is.null(key) || !key %in% .app_strings()$key) return(trimws(conditionMessage(cond)))
-  .app_fill(.tr(key, lang), cond, lang)
+  .app_fill(.tr(key, lang), cond)
 }
 
-# Fill {field} and {field:format} (a sprintf format); numbers take the
-# decimal mark of the language
-.app_fill <- function(template, fields, lang = "en") {
+# Fill {field} and {field:format} (a sprintf format)
+.app_fill <- function(template, fields) {
   marks <- regmatches(template, gregexpr("\\{[A-Za-z_]+(:[^}]+)?\\}", template))[[1]]
   for (m in unique(marks)) {
     inner <- substr(m, 2, nchar(m) - 1)
@@ -159,7 +158,6 @@
     v <- fields[[name]]
     txt <- if (is.null(v)) m else if (is.numeric(v)) {
       out <- if (is.null(fmt)) format(v) else sprintf(fmt, v)
-      if (lang == "es") out <- chartr(".", ",", out)
       paste(out, collapse = ", ")
     } else {
       paste(as.character(v), collapse = ", ")
@@ -194,12 +192,11 @@
                                   c(t("data.vo2_unit.auto"), "mL/min", "L/min", "mL/kg/min")))
 }
 
-.mod_data_ui <- function(id, lang = "en") {
+.mod_data_ui <- function(id) {
   ns <- shiny::NS(id)
-  t <- function(key) .tr(key, lang)
-  i <- function(key) .i18n(key, lang)
+  t <- function(key) .tr(key)
   radio <- function(id, label, values, keys, ...) {
-    shiny::radioButtons(ns(id), i(label), choiceNames = .app_choice_names(keys, lang),
+    shiny::radioButtons(ns(id), t(label), choiceNames = .app_labels(keys),
                         choiceValues = values, ...)
   }
   sel <- .app_data_selects(t)
@@ -213,94 +210,91 @@
             c("data.source.example", "data.source.generic", "data.source.device")),
       shiny::conditionalPanel(
         sprintf("input['%s'] != 'example'", ns("source")),
-        .app_file_input(ns("files"), "data.files", lang, multiple = TRUE),
-        shiny::helpText(i("data.files.help")),
+        .app_file_input(ns("files"), "data.files", multiple = TRUE),
+        shiny::helpText(t("data.files.help")),
         shiny::conditionalPanel(
           sprintf("input['%s'] == 'device'", ns("source")),
-          shiny::selectInput(ns("device"), i("data.device"), choices = sel$device)
+          shiny::selectInput(ns("device"), t("data.device"), choices = sel$device)
         ),
         radio("assign", "data.assign", c("phases", "cuts"),
               c("data.assign.phases", "data.assign.cuts")),
         shiny::conditionalPanel(
           sprintf("input['%s'] == 'phases'", ns("assign")),
-          shiny::selectInput(ns("tab_basal"), i("data.phase.basal"), choices = character(0)),
-          shiny::selectInput(ns("tab_MFO"), i("data.phase.MFO"), choices = character(0)),
-          shiny::selectInput(ns("tab_graded"), i("data.phase.graded"), choices = character(0))
+          shiny::selectInput(ns("tab_basal"), t("data.phase.basal"), choices = character(0)),
+          shiny::selectInput(ns("tab_MFO"), t("data.phase.MFO"), choices = character(0)),
+          shiny::selectInput(ns("tab_graded"), t("data.phase.graded"), choices = character(0))
         ),
         shiny::conditionalPanel(
           sprintf("input['%s'] == 'cuts'", ns("assign")),
-          shiny::selectInput(ns("tab_recording"), i("data.recording"), choices = character(0)),
-          shiny::numericInput(ns("basal_end"), i("data.basal_end"), value = NA, min = 0),
-          shiny::numericInput(ns("MFO_end"), i("data.MFO_end"), value = NA, min = 0),
-          shiny::helpText(i("data.cuts.help"))
+          shiny::selectInput(ns("tab_recording"), t("data.recording"), choices = character(0)),
+          shiny::numericInput(ns("basal_end"), t("data.basal_end"), value = NA, min = 0),
+          shiny::numericInput(ns("MFO_end"), t("data.MFO_end"), value = NA, min = 0),
+          shiny::helpText(t("data.cuts.help"))
         ),
         bslib::accordion(
           open = FALSE,
           bslib::accordion_panel(
-            i("data.options"), value = "options",
+            t("data.options"), value = "options",
             radio("interval_mode", "data.interval", c("none", "numeric"),
                   c("data.interval.none", "data.interval.numeric")),
             shiny::conditionalPanel(
               sprintf("input['%s'] == 'numeric'", ns("interval_mode")),
-              shiny::numericInput(ns("interval"), i("data.interval.s"), value = 10, min = 1)
+              shiny::numericInput(ns("interval"), t("data.interval.s"), value = 10, min = 1)
             ),
-            shiny::selectInput(ns("vo2_unit"), i("data.vo2_unit"), choices = sel$vo2_unit),
-            shiny::numericInput(ns("body_mass"), i("data.body_mass"), value = NA, min = 0),
+            shiny::selectInput(ns("vo2_unit"), t("data.vo2_unit"), choices = sel$vo2_unit),
+            shiny::numericInput(ns("body_mass"), t("data.body_mass"), value = NA, min = 0),
             shiny::conditionalPanel(
               sprintf("input['%s'] == 'generic'", ns("source")),
-              shiny::numericInput(ns("skip"), i("data.skip"), value = 0, min = 0, step = 1),
-              shiny::checkboxInput(ns("units_row"), i("data.units_row"), value = FALSE),
-              shiny::radioButtons(ns("decimal"), i("data.decimal"), choices = c(".", ","),
+              shiny::numericInput(ns("skip"), t("data.skip"), value = 0, min = 0, step = 1),
+              shiny::checkboxInput(ns("units_row"), t("data.units_row"), value = FALSE),
+              shiny::radioButtons(ns("decimal"), t("data.decimal"), choices = c(".", ","),
                                   inline = TRUE),
               radio("time_origin", "data.time_origin", c("elapsed", "clock"),
                     c("data.time_origin.elapsed", "data.time_origin.clock"))
             )
           ),
           bslib::accordion_panel(
-            i("data.mapping"), value = "mapping",
+            t("data.mapping"), value = "mapping",
             shiny::conditionalPanel(
               sprintf("input['%s'] == 'generic'", ns("source")),
-              shiny::helpText(i("data.mapping.help")),
+              shiny::helpText(t("data.mapping.help")),
               lapply(.app_map_cols, map_input)
             ),
             shiny::conditionalPanel(
               sprintf("input['%s'] != 'generic'", ns("source")),
-              shiny::helpText(i("data.mapping.device"))
+              shiny::helpText(t("data.mapping.device"))
             )
           )
         )
       ),
-      shiny::actionButton(ns("read"), i("data.read"), class = "btn-primary")
+      shiny::actionButton(ns("read"), t("data.read"), class = "btn-primary")
     ),
     shiny::uiOutput(ns("alerts")),
     bslib::card(
-      bslib::card_header(i("data.recording.plot")),
+      bslib::card_header(t("data.recording.plot")),
       shiny::plotOutput(ns("plot"), height = "300px", fill = FALSE,
                         brush = shiny::brushOpts(ns("brush"), direction = "x", resetOnNew = TRUE))
     ),
     bslib::card(
-      bslib::card_header(i("data.summary")),
+      bslib::card_header(t("data.summary")),
       shiny::tableOutput(ns("summary"))
     )
   )
 }
 
 
-.mod_data_server <- function(id, lang = "en") {
-  lang <- .app_lang_reactive(lang)
+.mod_data_server <- function(id) {
   shiny::moduleServer(id, function(input, output, session) {
-    t <- function(key) .tr(key, lang())
-    .app_relabel(session, input, lang, .app_data_selects)
+    t <- function(key) .tr(key)
 
     tables <- shiny::reactive({
       .app_tables(input$files, expand_sheets = identical(input$source, "generic"))
     })
 
-    # Table choices: the MFO test is required, the other phases optional.
-    # New files set the defaults; a new language only relabels "none"
+    # Table choices: the MFO test is required, the other phases optional
     shiny::observe({
       labs <- tables()$label
-      none <- stats::setNames("", shiny::isolate(t("data.none")))
+      none <- stats::setNames("", t("data.none"))
       shiny::updateSelectInput(session, "tab_basal", choices = c(none, labs),
                                selected = if (length(labs) > 1) labs[1] else "")
       shiny::updateSelectInput(session, "tab_MFO", choices = labs,
@@ -309,18 +303,6 @@
                                selected = if (length(labs) > 2) labs[3] else "")
       shiny::updateSelectInput(session, "tab_recording", choices = labs)
     })
-    shiny::observeEvent(lang(), {
-      none <- stats::setNames("", t("data.none"))
-      labs <- tables()$label
-      for (p in c("tab_basal", "tab_graded")) {
-        shiny::updateSelectInput(session, p, choices = c(none, labs), selected = input[[p]])
-      }
-      h <- header()
-      for (col in setdiff(.app_map_cols, c("Time", "VO2", "VCO2"))) {
-        id <- paste0("map_", col)
-        shiny::updateSelectInput(session, id, choices = c(none, h), selected = input[[id]])
-      }
-    }, ignoreInit = TRUE)
 
     # Column mapping from the header of the MFO table (or the recording)
     header <- shiny::reactive({
@@ -338,7 +320,7 @@
       h <- header()
       for (col in .app_map_cols) {
         required <- col %in% c("Time", "VO2", "VCO2")
-        choices <- if (required) h else c(stats::setNames("", shiny::isolate(t("data.none"))), h)
+        choices <- if (required) h else c(stats::setNames("", t("data.none")), h)
         shiny::updateSelectInput(session, paste0("map_", col), choices = choices,
                                  selected = if (col %in% h) col else if (required) h[1] else "")
       }
@@ -401,7 +383,7 @@
     output$alerts <- shiny::renderUI({
       l <- log()
       if (is.null(l)) return(NULL)
-      .app_alerts(l, if (is.null(l$error)) t("data.read.ok"), lang())
+      .app_alerts(l, if (is.null(l$error)) t("data.read.ok"))
     })
 
     output$plot <- shiny::renderPlot({

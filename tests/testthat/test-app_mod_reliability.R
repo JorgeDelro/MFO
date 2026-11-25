@@ -27,7 +27,7 @@ test_that("the Reliability module uses the session table or an uploaded one", {
   group <- shiny::reactiveVal(g)
   f <- withr::local_tempfile(fileext = ".xlsx")
   .app_write_group(g, f, "xlsx")
-  shiny::testServer(.mod_reliability_server, args = list(group = group, lang = "en"), {
+  shiny::testServer(.mod_reliability_server, args = list(group = group), {
     session$setInputs(source = "session", conf = 0.95, pair = 1, run = 1)
     expect_equal(out()$table$variable, c("MFO_g_min", "FAT_MAX_perVO2max"))
     expect_match(log()$warnings[1], "Koo & Li")

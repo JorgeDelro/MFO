@@ -23,9 +23,6 @@ test_that("the zones of the app are MFO_zones() with the options of the tab", {
                                        format = "f", digits = 0))
   expect_equal(tabs$reference$Percentile, c("no percentile", "no percentile"))
   expect_true(any(grepl("^mode: cycling", tabs$differences)))
-  es <- .app_zones_tables(zn, function(k) .tr(k, "es"))
-  expect_equal(es$reference$Percentil, c("sin percentil", "sin percentil"))
-  expect_equal(.app_zones_label("partly overlaps", function(k) .tr(k, "es")), "solapa en parte")
   expect_equal(.app_zones_label("measured"), "measured peak HR")
   expect_equal(.app_zones_label(NA), NA)
 })
@@ -55,7 +52,7 @@ test_that("the Zones module uses the analysis HRmax and shows errors", {
   skip_if_not_installed("shiny")
   a <- .app_test_analysis(HRmax = 190)
   results <- shiny::reactiveVal(NULL)
-  shiny::testServer(.mod_zones_server, args = list(results = results, lang = "en"), {
+  shiny::testServer(.mod_zones_server, args = list(results = results), {
     session$setInputs(run = 1)
     expect_equal(log()$error_key, "res.none")
     expect_match(as.character(.app_alerts(log())), "Run the analysis first")

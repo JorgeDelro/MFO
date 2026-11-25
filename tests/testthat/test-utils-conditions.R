@@ -35,7 +35,7 @@ test_that("MFO() signals its warnings with class and data", {
   expect_true(m$n > 0)
 })
 
-test_that("every classed condition has a template in English and Spanish", {
+test_that("every classed condition has a template whose fields are signalled", {
   files <- list.files(test_path("..", "..", "R"), pattern = "\\.R$", full.names = TRUE)
   skip_if(length(files) == 0, "R sources not available (installed package)")
   code <- paste(unlist(lapply(files, readLines)), collapse = "\n")
@@ -49,31 +49,30 @@ test_that("every classed condition has a template in English and Spanish", {
   s <- .app_strings()
   keys <- grep("^cond\\.", s$key, value = TRUE)
   expect_setequal(paste0("cond.", unique(ids)), keys)
-  marks <- function(x) sort(unique(unlist(regmatches(x, gregexpr("\\{[^}]+\\}", x)))))
-  for (k in keys) {
-    expect_identical(marks(s$es[s$key == k]), marks(s$en[s$key == k]), info = k)
-  }
+  # every {field} of a template is passed as a field somewhere in the code
+  fields <- unique(sub("[{]([A-Za-z_]+).*", "\\1",
+                       unlist(regmatches(s$en[s$key %in% keys],
+                                         gregexpr("[{][A-Za-z_]+", s$en[s$key %in% keys])))))
+  for (f in fields) expect_match(code, paste0("[(, ]", f, " = "), info = f)
 })
 
-test_that("the app words a classed condition in the interface language", {
+test_that("the app words a classed condition from its template", {
   w <- tryCatch(.mfo_warning("p2_extrapolated", "P2 ...", fatmax = 81.234, lower = 30,
                              upper = 75.5), warning = function(w) w)
   expect_equal(.app_condition_text(w, "en"),
                paste0("P2: the vertex (Fatmax 81.2 % VO₂max) lies outside the measured ",
                       "range (30.0-75.5); Fatmax, MFO and their interval are extrapolated."))
-  expect_match(.app_condition_text(w, "es"), "Fatmax 81,2 % VO₂max", fixed = TRUE)
-  expect_match(.app_condition_text(w, "es"), "(30,0-75,5)", fixed = TRUE)
   n <- tryCatch(.mfo_warning("negative_fat", "x", n = 3L), warning = function(w) w)
-  expect_match(.app_condition_text(n, "es"), "^3 escal")
+  expect_match(.app_condition_text(n), "^3 step\\(s\\) with negative fat")
   # conditions without a template keep their message
-  expect_equal(.app_condition_text(simpleWarning("other"), "es"), "other")
-  expect_equal(.app_condition_text("already text", "es"), "already text")
+  expect_equal(.app_condition_text(simpleWarning("other")), "other")
+  expect_equal(.app_condition_text("already text"), "already text")
   l <- .app_capture({
     .mfo_warning("negative_fat", "x", n = 2L)
     message("a note")
     1
   })
-  html <- as.character(.app_alerts(l, lang = "es"))
-  expect_match(html, "2 escal")
+  html <- as.character(.app_alerts(l))
+  expect_match(html, "2 step")
   expect_match(html, "a note")
 })

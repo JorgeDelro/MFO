@@ -4,12 +4,9 @@
 \alias{run_app}
 \title{Run the MFO Shiny app}
 \usage{
-run_app(lang = c("en", "es"), ...)
+run_app(...)
 }
 \arguments{
-\item{lang}{language of the interface: `"en"` (default) or `"es"`; it can
-be changed in the app.}
-
 \item{...}{further arguments to [shiny::runApp()], e.g. `port` or
 `launch.browser`.}
 }

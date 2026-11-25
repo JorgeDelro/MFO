@@ -114,7 +114,6 @@ test_that("the example data run through MFO() and the plot and summary build", {
   s <- .app_phase_summary(cart)
   expect_equal(s$Phase, c("Resting measure", "MFO test", "Graded test (VO\u2082max)"))
   expect_equal(s$Records, c(45, 72, nrow(cart$db_graded)))
-  expect_equal(names(.app_phase_summary(cart, function(k) .tr(k, "es")))[1], "Fase")
   expect_s3_class(.app_recording_plot(cart, c(900, NA)), "ggplot")
 })
 
@@ -122,7 +121,7 @@ test_that("the Data module reads the example and uploaded files", {
   skip_if_not_installed("shiny")
   dir <- withr::local_tempdir()
   x <- .example_files(dir)
-  shiny::testServer(.mod_data_server, args = list(lang = "en"), {
+  shiny::testServer(.mod_data_server, {
     session$setInputs(source = "example", read = 1)
     expect_equal(result()$cart$step_time, 20)
     expect_equal(result()$source, "example")
@@ -156,16 +155,3 @@ test_that("the Data module reads the example and uploaded files", {
 })
 
 
-test_that("the Data module redraws its outputs in a new language", {
-  skip_if_not_installed("shiny")
-  lang <- shiny::reactiveVal("en")
-  shiny::testServer(.mod_data_server, args = list(lang = lang), {
-    session$setInputs(source = "example", read = 1)
-    expect_match(output$summary, "Records")
-    cart <- result()$cart
-    lang("es")
-    session$flushReact()
-    expect_match(output$summary, "Registros")
-    expect_identical(result()$cart, cart)
-  })
-})

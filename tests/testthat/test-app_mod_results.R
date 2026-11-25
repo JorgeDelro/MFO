@@ -16,8 +16,6 @@ test_that("the results table shows MFO() values and, when computed, intervals", 
   expect_equal(tab$upper[tab$key == "FatMax_zone_upper"], r$ci["FatMax_zone_upper", "upper"])
   s <- .app_sin_table(a$kin)
   expect_equal(s$Value[s$Parameter == "d"], format(round(a$kin$d, 3)))
-  es <- .app_results_names(tab, function(k) .tr(k, "es"))
-  expect_equal(names(es), c("Magnitud", "Valor", "Unidad", "Inferior", "Superior"))
 })
 
 test_that("hovering picks the nearest step", {
@@ -58,8 +56,7 @@ test_that("the Results module computes intervals and fills the group table", {
   a <- .app_test_analysis()
   analysis <- shiny::reactiveVal(a)
   group <- shiny::reactiveVal(NULL)
-  shiny::testServer(.mod_results_server, args = list(analysis = analysis, group = group,
-                                                     lang = "en"), {
+  shiny::testServer(.mod_results_server, args = list(analysis = analysis, group = group), {
     expect_identical(current()$res$MFO, a$res$MFO)
     session$setInputs(ci = "parametric", B = 50, conf = 0.9, seed = 1, compute_ci = 1)
     expect_false(is.null(current()$res$ci))

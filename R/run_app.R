@@ -8,8 +8,6 @@
 #'
 #' The app needs the packages \pkg{shiny} and \pkg{bslib} (in Suggests).
 #'
-#' @param lang language of the interface: `"en"` (default) or `"es"`; it can
-#'   be changed in the app.
 #' @param ... further arguments to [shiny::runApp()], e.g. `port` or
 #'   `launch.browser`.
 #'
@@ -20,8 +18,7 @@
 #'
 #' @examples
 #' if (interactive()) run_app()
-run_app <- function(lang = c("en", "es"), ...) {
-  lang <- match.arg(lang)
+run_app <- function(...) {
   missing_pkgs <- c("shiny", "bslib")[!vapply(c("shiny", "bslib"), requireNamespace,
                                               logical(1), quietly = TRUE)]
   if (length(missing_pkgs) > 0) {
@@ -29,14 +26,11 @@ run_app <- function(lang = c("en", "es"), ...) {
          "install.packages(c(", paste0("\"", missing_pkgs, "\"", collapse = ", "), ")).",
          call. = FALSE)
   }
-  shiny::runApp(.app(lang, theme = .app_theme_offline_safe()), ...)
+  shiny::runApp(.app(theme = .app_theme_offline_safe()), ...)
 }
 
 
-# The app object; lang is the default language (?lang= in the URL wins)
-.app <- function(lang = "en", theme = NULL) {
-  shiny::shinyApp(ui = function(request) .app_ui(request, lang, theme),
-                  server = function(input, output, session) {
-                    .app_server(input, output, session, lang)
-                  })
+# The app object
+.app <- function(theme = NULL) {
+  shiny::shinyApp(ui = function(request) .app_ui(request, theme), server = .app_server)
 }

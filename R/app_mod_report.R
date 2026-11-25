@@ -10,36 +10,35 @@
 }
 
 
-.mod_report_ui <- function(id, lang = "en") {
+.mod_report_ui <- function(id) {
   ns <- shiny::NS(id)
-  i <- function(key) .i18n(key, lang)
+  t <- function(key) .tr(key)
   bslib::layout_columns(
     col_widths = c(4, 8),
     bslib::card(
-      bslib::card_header(i("rep.report")),
+      bslib::card_header(t("rep.report")),
       shiny::uiOutput(ns("status")),
-      shiny::textInput(ns("ID"), i("res.ID")),
-      shiny::helpText(i("rep.report.help")),
-      shiny::downloadButton(ns("report"), i("rep.download_report"))
+      shiny::textInput(ns("ID"), t("res.ID")),
+      shiny::helpText(t("rep.report.help")),
+      shiny::downloadButton(ns("report"), t("rep.download_report"))
     ),
     bslib::card(
-      bslib::card_header(i("res.group")),
+      bslib::card_header(t("res.group")),
       shiny::tableOutput(ns("group")),
       bslib::layout_columns(
-        shiny::downloadButton(ns("group_xlsx"), i("rep.download_xlsx")),
-        shiny::downloadButton(ns("group_csv"), i("rep.download_csv")),
-        shiny::actionButton(ns("clear"), i("rep.clear"))
+        shiny::downloadButton(ns("group_xlsx"), t("rep.download_xlsx")),
+        shiny::downloadButton(ns("group_csv"), t("rep.download_csv")),
+        shiny::actionButton(ns("clear"), t("rep.clear"))
       ),
-      shiny::helpText(i("rep.group.help"))
+      shiny::helpText(t("rep.group.help"))
     )
   )
 }
 
 
-.mod_report_server <- function(id, results, zones, group, lang = "en") {
-  lang <- .app_lang_reactive(lang)
+.mod_report_server <- function(id, results, zones, group) {
   shiny::moduleServer(id, function(input, output, session) {
-    t <- function(key) .tr(key, lang())
+    t <- function(key) .tr(key)
 
     current <- shiny::reactive(tryCatch(results(), error = function(e) NULL))
     # zones only if computed for the current run

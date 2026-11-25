@@ -60,7 +60,7 @@ test_that("the Report module lists the group table and empties it", {
   zones <- shiny::reactiveVal(list(zones = NULL, run = 99))
   group <- shiny::reactiveVal(.app_group_row("P01", "1", a))
   shiny::testServer(.mod_report_server, args = list(results = results, zones = zones,
-                                                    group = group, lang = "en"), {
+                                                    group = group), {
     expect_null(current_zones())
     expect_match(output$group, "P01")
     session$setInputs(clear = 1)

@@ -9,8 +9,6 @@ description: >
 knitr::opts_chunk$set(eval = FALSE)
 ```
 
-*[Versión en español](app-manual-es.html)*
-
 This manual describes the app of the package, `MFO::run_app()`, tab by tab:
 what each option does and what it implies for the result, how to read every
 output, and what every warning means and what to do about it. The app does
@@ -25,19 +23,13 @@ The screenshots use the example data of the package.
 
 ```{r}
 install.packages(c("shiny", "bslib"))   # once
-MFO::run_app()        # interface in English
-MFO::run_app("es")    # interface in Spanish
+MFO::run_app()
 ```
 
 - **The app runs on your computer.** The files you upload are read there and
   nothing is sent to any server. The font of the interface (Inter) is
   downloaded the first time and kept on your computer; without network on
   that first run, the app uses the system font and says so.
-- **Language.** The selector at the right of the navigation bar changes the
-  language at any moment. The data read, the results and the group table are
-  kept. Labels, tables and the warnings of the package follow the language;
-  error messages are in English. The report is always in English, as it is
-  meant for a paper.
 - **Use codes, not names.** Participants are identified only by a code of
   letters, digits, `_` and `-` (up to 20 characters). Analyser exports often
   carry the participant's name in their header lines: the app keeps only the
@@ -50,7 +42,7 @@ MFO::run_app("es")    # interface in Spanish
 
 ## 1. Data
 
-![The Data tab after reading the example data.](figures/app-data-en.png)
+![The Data tab after reading the example data.](figures/manual-data.png)
 
 ### Source of the data
 
@@ -109,7 +101,7 @@ VO₂max.
 
 ## 2. Protocol and analysis
 
-![The Protocol and analysis tab.](figures/app-analysis-en.png)
+![The Protocol and analysis tab.](figures/manual-analysis.png)
 
 The arguments of `MFO_protocol()`, `MFO()` and `MFO_kinetics()`. The defaults
 are those of the package.
@@ -155,7 +147,7 @@ appear below the button and in Results.
 
 ## 3. Results
 
-![The Results tab, with the pointer over the plot.](figures/app-results-en.png)
+![The Results tab, with the pointer over the plot.](figures/manual-results.png)
 
 ### Fat and carbohydrate oxidation
 
@@ -195,7 +187,7 @@ the fit within this test, not the day-to-day error (see Reliability), and
 they are dropped when the analysis is run again. They are not available for
 MV.
 
-![SIN kinetics, quality alerts and the group table.](figures/app-results-sin-en.png)
+![SIN kinetics, quality alerts and the group table.](figures/manual-results-sin.png)
 
 ### SIN kinetics
 
@@ -210,8 +202,7 @@ table gives the parameters, Fatmax of the SIN, Fatmin and R². With fewer than
 
 ### Quality alerts
 
-The warnings (yellow) and messages (blue) of the run, in the interface
-language. See *Warnings and messages* below for each one.
+The warnings (yellow) and messages (blue) of the run. See *Warnings and messages* below for each one.
 
 ### Group table of this session
 
@@ -222,7 +213,7 @@ replaces the row.
 
 ## 4. Zones and references
 
-![The Zones and references tab.](figures/app-zones-en.png)
+![The Zones and references tab.](figures/manual-zones.png)
 
 ### Maximal heart rate
 
@@ -266,7 +257,7 @@ is approximate (a warning says so).
 
 ## 5. Report and downloads
 
-![The Report and downloads tab.](figures/app-report-en.png)
+![The Report and downloads tab.](figures/manual-report.png)
 
 **Individual report.** One HTML file, with the plots inside, that opens in
 any browser and can be printed to PDF. It holds the curve and the results
@@ -285,7 +276,7 @@ again in Reliability.
 
 ## 6. Reliability
 
-![The Reliability tab with a group table of 12 simulated participants.](figures/app-reliability-en.png)
+![The Reliability tab with a group table of 12 simulated participants.](figures/manual-reliability.png)
 
 `MFO_reliability()` on the group table of this session or on one downloaded
 earlier (xlsx or csv), so that sessions analysed on different days can be

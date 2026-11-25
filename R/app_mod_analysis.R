@@ -77,91 +77,89 @@
        sin_fit = named(c("normalised", "absolute"), c("an.sin.normalised", "an.sin.absolute")))
 }
 
-.mod_analysis_ui <- function(id, lang = "en") {
+.mod_analysis_ui <- function(id) {
   ns <- shiny::NS(id)
-  i <- function(key) .i18n(key, lang)
-  sel <- .app_analysis_selects(function(key) .tr(key, lang))
+  t <- function(key) .tr(key)
+  sel <- .app_analysis_selects(.tr)
   d <- .app_default_opts()
   shiny::tagList(
     bslib::layout_column_wrap(
       width = "320px",
       bslib::card(
-        bslib::card_header(i("an.protocol")),
-        shiny::selectInput(ns("type"), i("an.type"), choices = sel$type),
-        shiny::selectInput(ns("mode"), i("an.mode"), choices = sel$mode),
+        bslib::card_header(t("an.protocol")),
+        shiny::selectInput(ns("type"), t("an.type"), choices = sel$type),
+        shiny::selectInput(ns("mode"), t("an.mode"), choices = sel$mode),
         shiny::conditionalPanel(
           sprintf("input['%s'] != 'ramp'", ns("type")),
-          shiny::textInput(ns("step_duration"), i("an.step_duration"), d$step_duration),
-          shiny::textInput(ns("steady_state_duration"), i("an.steady_state"),
+          shiny::textInput(ns("step_duration"), t("an.step_duration"), d$step_duration),
+          shiny::textInput(ns("steady_state_duration"), t("an.steady_state"),
                            d$steady_state_duration),
-          shiny::helpText(i("an.step.help"))
+          shiny::helpText(t("an.step.help"))
         ),
         shiny::conditionalPanel(
           sprintf("input['%s'] == 'ramp'", ns("type")),
-          shiny::numericInput(ns("ramp_window"), i("an.ramp_window"), d$ramp_window, min = 1),
-          shiny::numericInput(ns("ramp_step"), i("an.ramp_step"), d$ramp_step, min = 1)
+          shiny::numericInput(ns("ramp_window"), t("an.ramp_window"), d$ramp_window, min = 1),
+          shiny::numericInput(ns("ramp_step"), t("an.ramp_step"), d$ramp_step, min = 1)
         ),
         shiny::conditionalPanel(
           sprintf("input['%s'] != 'relative'", ns("type")),
-          shiny::selectInput(ns("load_unit"), i("an.load_unit"), c("W", "km/h"))
+          shiny::selectInput(ns("load_unit"), t("an.load_unit"), c("W", "km/h"))
         ),
-        shiny::numericInput(ns("load_start"), i("an.load_start"), d$load_start),
-        shiny::numericInput(ns("load_increment"), i("an.load_increment"), d$load_increment),
-        shiny::helpText(i("an.load.help"))
+        shiny::numericInput(ns("load_start"), t("an.load_start"), d$load_start),
+        shiny::numericInput(ns("load_increment"), t("an.load_increment"), d$load_increment),
+        shiny::helpText(t("an.load.help"))
       ),
       bslib::card(
-        bslib::card_header(i("an.calculation")),
-        shiny::selectInput(ns("author"), i("an.author"),
+        bslib::card_header(t("an.calculation")),
+        shiny::selectInput(ns("author"), t("an.author"),
                            c("Frayn", "Jeukendrup", "Peronnet")),
-        shiny::selectInput(ns("energy_equivalents"), i("an.energy"), sel$energy_equivalents),
-        shiny::selectInput(ns("method"), i("an.method"), sel$method),
-        shiny::selectInput(ns("cv_var"), i("an.cv_var"), c("RER", "VO2", "VCO2")),
-        shiny::selectInput(ns("RER_cutoff"), i("an.RER_cutoff"), sel$RER_cutoff),
+        shiny::selectInput(ns("energy_equivalents"), t("an.energy"), sel$energy_equivalents),
+        shiny::selectInput(ns("method"), t("an.method"), sel$method),
+        shiny::selectInput(ns("cv_var"), t("an.cv_var"), c("RER", "VO2", "VCO2")),
+        shiny::selectInput(ns("RER_cutoff"), t("an.RER_cutoff"), sel$RER_cutoff),
         shiny::conditionalPanel(
           sprintf("input['%s'] == 'custom'", ns("RER_cutoff")),
-          shiny::numericInput(ns("RER_custom"), i("an.RER.value"), d$RER_custom,
+          shiny::numericInput(ns("RER_custom"), t("an.RER.value"), d$RER_custom,
                               min = 0.7, max = 1.2, step = 0.01)
         ),
-        shiny::selectInput(ns("negative_FAT"), i("an.negative"), sel$negative_FAT),
-        shiny::checkboxInput(ns("include_basal"), i("an.include_basal"), d$include_basal),
-        shiny::checkboxInput(ns("use_incomplete_step"), i("an.incomplete"),
+        shiny::selectInput(ns("negative_FAT"), t("an.negative"), sel$negative_FAT),
+        shiny::checkboxInput(ns("include_basal"), t("an.include_basal"), d$include_basal),
+        shiny::checkboxInput(ns("use_incomplete_step"), t("an.incomplete"),
                              d$use_incomplete_step),
-        shiny::numericInput(ns("min_steps"), i("an.min_steps"), d$min_steps, min = 1)
+        shiny::numericInput(ns("min_steps"), t("an.min_steps"), d$min_steps, min = 1)
       ),
       bslib::card(
-        bslib::card_header(i("an.participant")),
-        shiny::radioButtons(ns("vo2max_source"), i("an.vo2max"),
-                            choiceNames = .app_choice_names(c("an.vo2max.graded",
-                                                              "an.vo2max.value"), lang),
+        bslib::card_header(t("an.participant")),
+        shiny::radioButtons(ns("vo2max_source"), t("an.vo2max"),
+                            choiceNames = .app_labels(c("an.vo2max.graded",
+                                                              "an.vo2max.value")),
                             choiceValues = c("graded", "value")),
         shiny::conditionalPanel(
           sprintf("input['%s'] == 'graded'", ns("vo2max_source")),
-          shiny::numericInput(ns("vo2max_window"), i("an.vo2max_window"), d$vo2max_window,
+          shiny::numericInput(ns("vo2max_window"), t("an.vo2max_window"), d$vo2max_window,
                               min = 1)
         ),
         shiny::conditionalPanel(
           sprintf("input['%s'] == 'value'", ns("vo2max_source")),
-          shiny::numericInput(ns("VO2max"), i("an.vo2max.ml"), d$VO2max, min = 0)
+          shiny::numericInput(ns("VO2max"), t("an.vo2max.ml"), d$VO2max, min = 0)
         ),
-        shiny::numericInput(ns("age"), i("an.age"), d$age, min = 0),
-        shiny::numericInput(ns("body_mass"), i("an.body_mass"), d$body_mass, min = 0),
-        shiny::numericInput(ns("fat_free_mass"), i("an.ffm"), d$fat_free_mass, min = 0),
-        shiny::numericInput(ns("HRmax"), i("an.HRmax"), d$HRmax, min = 0),
-        shiny::selectInput(ns("sin_fit"), i("an.sin_fit"), sel$sin_fit)
+        shiny::numericInput(ns("age"), t("an.age"), d$age, min = 0),
+        shiny::numericInput(ns("body_mass"), t("an.body_mass"), d$body_mass, min = 0),
+        shiny::numericInput(ns("fat_free_mass"), t("an.ffm"), d$fat_free_mass, min = 0),
+        shiny::numericInput(ns("HRmax"), t("an.HRmax"), d$HRmax, min = 0),
+        shiny::selectInput(ns("sin_fit"), t("an.sin_fit"), sel$sin_fit)
       )
     ),
     shiny::div(class = "my-3",
-               shiny::actionButton(ns("run"), i("an.run"), class = "btn-primary")),
+               shiny::actionButton(ns("run"), t("an.run"), class = "btn-primary")),
     shiny::uiOutput(ns("alerts"))
   )
 }
 
 
-.mod_analysis_server <- function(id, data, lang = "en") {
-  lang <- .app_lang_reactive(lang)
+.mod_analysis_server <- function(id, data) {
   shiny::moduleServer(id, function(input, output, session) {
-    t <- function(key) .tr(key, lang())
-    .app_relabel(session, input, lang, .app_analysis_selects)
+    t <- function(key) .tr(key)
     opts <- shiny::reactive({
       o <- .app_default_opts()
       for (k in names(o)) if (!is.null(input[[k]])) o[[k]] <- input[[k]]
@@ -191,7 +189,7 @@
     output$alerts <- shiny::renderUI({
       l <- log()
       if (is.null(l)) return(NULL)
-      .app_alerts(l, if (is.null(l$error)) t("an.ok"), lang())
+      .app_alerts(l, if (is.null(l$error)) t("an.ok"))
     })
 
     out

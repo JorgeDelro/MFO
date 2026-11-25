@@ -76,65 +76,63 @@
 }
 
 
-.mod_zones_ui <- function(id, lang = "en") {
+.mod_zones_ui <- function(id) {
   ns <- shiny::NS(id)
-  i <- function(key) .i18n(key, lang)
-  sel <- .app_zones_selects(function(key) .tr(key, lang))
+  t <- function(key) .tr(key)
+  sel <- .app_zones_selects(.tr)
   bslib::layout_sidebar(
     sidebar = bslib::sidebar(
       width = 340,
-      shiny::h6(i("zo.hrmax")),
-      shiny::numericInput(ns("HRmax"), i("an.HRmax"), NA, min = 0),
-      shiny::checkboxInput(ns("predicted_HRmax"), i("zo.predicted"), FALSE),
+      shiny::h6(t("zo.hrmax")),
+      shiny::numericInput(ns("HRmax"), t("an.HRmax"), NA, min = 0),
+      shiny::checkboxInput(ns("predicted_HRmax"), t("zo.predicted"), FALSE),
       shiny::conditionalPanel(
         sprintf("input['%s']", ns("predicted_HRmax")),
-        shiny::numericInput(ns("age"), i("an.age"), NA, min = 0),
-        shiny::selectInput(ns("HRmax_formula"), i("zo.formula"), sel$HRmax_formula)
+        shiny::numericInput(ns("age"), t("an.age"), NA, min = 0),
+        shiny::selectInput(ns("HRmax_formula"), t("zo.formula"), sel$HRmax_formula)
       ),
-      shiny::helpText(i("zo.hrmax.help")),
-      shiny::h6(i("zo.reference")),
-      shiny::selectInput(ns("compare_by"), i("zo.compare_by"), sel$compare_by),
+      shiny::helpText(t("zo.hrmax.help")),
+      shiny::h6(t("zo.reference")),
+      shiny::selectInput(ns("compare_by"), t("zo.compare_by"), sel$compare_by),
       shiny::conditionalPanel(
         sprintf("['sex', 'sex_age'].indexOf(input['%s']) >= 0", ns("compare_by")),
-        shiny::selectInput(ns("sex"), i("zo.sex"), sel$sex)
+        shiny::selectInput(ns("sex"), t("zo.sex"), sel$sex)
       ),
       shiny::conditionalPanel(
         sprintf("['age', 'sex_age'].indexOf(input['%s']) >= 0", ns("compare_by")),
-        shiny::selectInput(ns("age_group"), i("zo.age_group"), sel$age_group)
+        shiny::selectInput(ns("age_group"), t("zo.age_group"), sel$age_group)
       ),
       shiny::conditionalPanel(
         sprintf("input['%s'] == 'weight'", ns("compare_by")),
-        shiny::selectInput(ns("weight_status"), i("zo.weight"), sel$weight_status)
+        shiny::selectInput(ns("weight_status"), t("zo.weight"), sel$weight_status)
       ),
-      shiny::helpText(i("zo.groups.help")),
-      shiny::h6(i("zo.obesity")),
-      shiny::checkboxInput(ns("obesity"), i("zo.obesity.check"), FALSE),
+      shiny::helpText(t("zo.groups.help")),
+      shiny::h6(t("zo.obesity")),
+      shiny::checkboxInput(ns("obesity"), t("zo.obesity.check"), FALSE),
       shiny::conditionalPanel(
         sprintf("input['%s']", ns("obesity")),
-        shiny::numericInput(ns("body_fat"), i("zo.body_fat"), NA, min = 0, max = 80)
+        shiny::numericInput(ns("body_fat"), t("zo.body_fat"), NA, min = 0, max = 80)
       ),
-      shiny::actionButton(ns("run"), i("zo.run"), class = "btn-primary")
+      shiny::actionButton(ns("run"), t("zo.run"), class = "btn-primary")
     ),
     shiny::uiOutput(ns("status")),
-    bslib::card(bslib::card_header(i("zo.zones")),
+    bslib::card(bslib::card_header(t("zo.zones")),
                 shiny::tableOutput(ns("zones")),
                 shiny::textOutput(ns("hrmax_source")),
                 shiny::uiOutput(ns("obesity_out"))),
-    bslib::card(bslib::card_header(i("zo.percentiles")),
+    bslib::card(bslib::card_header(t("zo.percentiles")),
                 shiny::textOutput(ns("reference_label")),
                 shiny::tableOutput(ns("reference")),
-                shiny::h6(i("zo.differences")),
+                shiny::h6(t("zo.differences")),
                 shiny::uiOutput(ns("differences"))),
     shiny::uiOutput(ns("alerts"))
   )
 }
 
 
-.mod_zones_server <- function(id, results, lang = "en") {
-  lang <- .app_lang_reactive(lang)
+.mod_zones_server <- function(id, results) {
   shiny::moduleServer(id, function(input, output, session) {
-    t <- function(key) .tr(key, lang())
-    .app_relabel(session, input, lang, .app_zones_selects)
+    t <- function(key) .tr(key)
     out <- shiny::reactiveVal(NULL)
     log <- shiny::reactiveVal(NULL)
 
@@ -200,7 +198,7 @@
     output$alerts <- shiny::renderUI({
       l <- log()
       if (is.null(l)) return(NULL)
-      .app_alerts(l, lang = lang())
+      .app_alerts(l)
     })
 
     out

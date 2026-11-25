@@ -50,7 +50,7 @@ test_that("the Analysis module runs on the data and reports a missing input", {
   skip_if_not_installed("shiny")
   cart <- .app_example_data()
   data <- shiny::reactiveVal(NULL)
-  shiny::testServer(.mod_analysis_server, args = list(data = data, lang = "en"), {
+  shiny::testServer(.mod_analysis_server, args = list(data = data), {
     session$setInputs(run = 1)
     expect_null(out())
     expect_equal(log()$error_key, "an.no_data")

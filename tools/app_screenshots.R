@@ -1,12 +1,10 @@
 # Screenshots of the app for the README, vignette("app") and the manual
-# (vignettes/articles/app-manual-*.Rmd) (#24). Needs chromote and Chrome.
+# (vignettes/articles/app-manual.Rmd) (#24). Needs chromote and Chrome.
 # Run from the package root:
 #   Rscript tools/app_screenshots.R
 # It starts the app on port 8768, loads the example data, runs the analysis,
 # the zones, adds the participant to the group table, runs the reliability
-# on a simulated group table, and saves every tab in English and Spanish.
-# The language is changed in the app itself, so the second round also shows
-# that the state is kept.
+# on a simulated group table, and saves every tab.
 
 port <- 8768
 app <- callr::r_bg(function(port) {
@@ -64,19 +62,11 @@ shot <- function(file, height = 1000) {
 select <- function(id, value, wait = 1) {
   js(sprintf("document.getElementById('%s').selectize.setValue('%s')", id, value), wait)
 }
-hover_plot <- function() {
-  r <- b$Runtime$evaluate(
-    "JSON.stringify(document.querySelector('#results-plot img').getBoundingClientRect())")
-  box <- jsonlite::fromJSON(r$result$value)
-  b$Input$dispatchMouseEvent(type = "mouseMoved", x = box$x + box$width * 0.42,
-                             y = box$y + box$height * 0.45)
-  Sys.sleep(2)
-}
 
 man <- "vignettes/articles/figures"
 dir.create(man, showWarnings = FALSE, recursive = TRUE)
 
-# First pass: read, analyse, zones, group, reliability (English)
+# Read, analyse, zones, group, reliability
 js("document.getElementById('data-read').click()", 4)
 tab("analysis")
 js("document.getElementById('analysis-run').click()", 8)
@@ -95,25 +85,22 @@ b$DOM$setFileInputFiles(files = list(normalizePath(group_file)), nodeId = node$n
 Sys.sleep(3)
 js("document.getElementById('reliability-run').click()", 5)
 
-for (lang in c("en", "es")) {
-  select("lang", lang, 4)
-  f <- function(name) file.path(man, sprintf("app-%s-%s.png", name, lang))
-  tab("data"); top(); shot(f("data"), 900)
-  tab("analysis"); top(); shot(f("analysis"))
-  tab("results"); top(); hover_plot(); shot(f("results"))
-  scroll_to("#results-sin_plot"); shot(f("results-sin"))
-  tab("zones"); top(); shot(f("zones"))
-  tab("report"); top(); shot(f("report"), 700)
-  tab("reliability"); top(); shot(f("reliability"))
-}
+f <- function(name) file.path(man, sprintf("manual-%s.png", name))
+tab("data"); top(); shot(f("data"), 900)
+tab("analysis"); top(); shot(f("analysis"))
+tab("results"); top(); shot(f("results"))
+scroll_to("#results-sin_plot"); shot(f("results-sin"))
+tab("zones"); top(); shot(f("zones"))
+tab("report"); top(); shot(f("report"), 700)
+tab("reliability"); top(); shot(f("reliability"))
 
-# README and vignette("app"): the English screens
-file.copy(file.path(man, "app-results-en.png"), "man/figures/README-app-results.png",
+# README and vignette("app")
+file.copy(file.path(man, "manual-results.png"), "man/figures/README-app-results.png",
           overwrite = TRUE)
-file.copy(file.path(man, "app-results-en.png"), "vignettes/figures/app-results.png",
+file.copy(file.path(man, "manual-results.png"), "vignettes/figures/app-results.png",
           overwrite = TRUE)
-file.copy(file.path(man, "app-data-en.png"), "vignettes/figures/app-data.png",
+file.copy(file.path(man, "manual-data.png"), "vignettes/figures/app-data.png",
           overwrite = TRUE)
-file.copy(file.path(man, "app-zones-en.png"), "vignettes/figures/app-zones.png",
+file.copy(file.path(man, "manual-zones.png"), "vignettes/figures/app-zones.png",
           overwrite = TRUE)
 b$close()

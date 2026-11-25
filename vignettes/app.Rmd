@@ -17,8 +17,7 @@ comes from `read_cart()`, `MFO()`, `MFO_kinetics()`, `MFO_zones()` and
 `MFO_reliability()`, with the same arguments and defaults. The screenshots
 show the example data of the package.
 
-This is a short tour. The [app manual](https://jorgedelro.github.io/MFO/articles/app-manual-en.html)
-([en español](https://jorgedelro.github.io/MFO/articles/app-manual-es.html))
+This is a short tour. The [app manual](https://jorgedelro.github.io/MFO/articles/app-manual.html)
 explains every option, output and warning of each tab.
 
 ## Starting the app
@@ -27,14 +26,10 @@ The app needs two suggested packages, shiny and bslib:
 
 ```{r}
 install.packages(c("shiny", "bslib"))
-MFO::run_app()          # interface in English
-MFO::run_app("es")      # interface in Spanish
+MFO::run_app()
 ```
 
-The language can also be changed in the navigation bar, at any moment: the
-data read, the results and the group table are kept. The interface is
-translated, and so are the warnings and messages of the package shown in the
-alerts; error messages stay in English.
+The interface is in English.
 
 ## Your data stay on your computer
 

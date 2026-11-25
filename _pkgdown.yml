@@ -22,8 +22,7 @@ articles:
   navbar: Using the app
   contents:
   - app
-  - articles/app-manual-en
-  - articles/app-manual-es
+  - articles/app-manual
 - title: Bayesian fit
   navbar: Bayesian fit
   contents:
