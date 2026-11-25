@@ -20,7 +20,7 @@
        method = "P3", cv_var = "RER", RER_cutoff = "none", RER_custom = 1,
        negative_FAT = "truncate", include_basal = FALSE, use_incomplete_step = FALSE,
        min_steps = 6, vo2max_source = "graded", vo2max_window = 30, VO2max = NA, age = NA,
-       body_mass = NA, fat_free_mass = NA, HRmax = NA, sin_fit = "normalised")
+       body_mass = NA, fat_free_mass = NA, HRmax = NA, sin_fit = "absolute")
 }
 
 # The MFO_protocol() of the options
@@ -74,7 +74,7 @@
        negative_FAT = named(c("truncate", "exclude", "keep"),
                             c("an.negative.truncate", "an.negative.exclude",
                               "an.negative.keep")),
-       sin_fit = named(c("normalised", "absolute"), c("an.sin.normalised", "an.sin.absolute")))
+       sin_fit = named(c("absolute", "normalised"), c("an.sin.absolute", "an.sin.normalised")))
 }
 
 .mod_analysis_ui <- function(id) {

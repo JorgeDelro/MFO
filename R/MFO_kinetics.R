@@ -61,12 +61,13 @@
 #' compare those. See `vignette("validation")`.
 #'
 #' @section Normalised or absolute fit:
-#' With `fit = "normalised"` (default, Cheneviere et al. 2009) fat oxidation
-#' is divided by the highest observed step before fitting. Unless a step falls
+#' With `fit = "normalised"` (Cheneviere et al. 2009; the default up to
+#' 0.3.0-alpha.2) fat oxidation is divided by the highest observed step
+#' before fitting. Unless a step falls
 #' exactly on the true Fatmax, that step is below the true MFO and the shape
 #' is distorted even without noise: in noiseless simulated tests with Fatmax
 #' between two steps, d was 0.234 instead of 0.18 (SPEC 13.2, issue #13).
-#' `fit = "absolute"` fits fat oxidation in g/min, FAT = M x SIN, with M (the
+#' `fit = "absolute"` (the default since 0.3.0-beta.1) fits fat oxidation in g/min, FAT = M x SIN, with M (the
 #' MFO of the curve, returned as `MFO_SIN`) as a fourth parameter, and has no
 #' such bias: in noiseless tests it recovered d, s, t, Fatmax, Fatmin and MFO
 #' to 1e-6 whether or not a step fell on Fatmax. It needs at least 5 steps.
@@ -77,8 +78,13 @@
 #' \% \VOmax{}, with similar median absolute errors (d 0.40 and 0.37); MFO
 #' (highest observed step vs `MFO_SIN`) from +0.010 to +0.002 g/min, median
 #' absolute error 0.013 and 0.008. Full table in `vignette("validation")`.
-#' It is started from the normalised estimates. The default is to be reviewed
-#' at 0.3.0-beta.1.
+#' It is started from the normalised estimates. Its intervals covered the
+#' truth 92-97 \% of the time against 74-93 \% for the normalised fit
+#' (`vignette("validation")`), which is why it is the default since
+#' 0.3.0-beta.1 (SPEC 13.2). With 4 steps it cannot be fitted; use
+#' `fit = "normalised"` for a 3-parameter fit, with the warning that 4-5
+#' steps give an unreliable fit. In the plot, an observed step above the
+#' fitted MFO shows above 100 \%.
 #'
 #' @section Fit uncertainty:
 #' `ci = "parametric"` (also `TRUE`) or `"bootstrap"` gives percentile
@@ -97,8 +103,8 @@
 #'        above Fatmax where fat oxidation falls to that fraction of MFO
 #'        (closed form: \[(pi + 2d) ((pi - asin(threshold)) / pi)^(1/s) - d - t\] / K).
 #'        v0.2.0 used a fixed 5 \% threshold searched on a grid.
-#' @param fit `"normalised"` (default) or `"absolute"` (see *Normalised or
-#'        absolute fit*).
+#' @param fit `"absolute"` (default since 0.3.0-beta.1) or `"normalised"`
+#'        (see *Normalised or absolute fit*).
 #' @param ci `"none"` (default), `"parametric"` (also `TRUE`) or `"bootstrap"`
 #'        (see *Fit uncertainty*).
 #' @param B number of replicates (default 2000).
@@ -176,7 +182,7 @@
 #' }
 #'
 MFO_kinetics <- function(MFO_data, fatmin_threshold = NULL,
-                         fit = c("normalised", "absolute"),
+                         fit = c("absolute", "normalised"),
                          ci = c("none", "parametric", "bootstrap"),
                          B = 2000, conf = 0.95, seed = NULL) {
 
@@ -363,7 +369,9 @@ MFO_kinetics <- function(MFO_data, fatmin_threshold = NULL,
     geom_point(data = observed, aes(x = porc_VO2, y = values),
                inherit.aes = FALSE, colour = "black", size = 2) +
     scale_color_manual(values = c("Basic SIN" = "grey60", "Fitted SIN" = "darkorange")) +
-    ylim(0, 1.01) +
+    # with the absolute fit an observed step can lie above the fitted MFO
+    # (> 100 %): the axis extends so that no point is dropped
+    ylim(0, max(1.01, observed$values * 1.02, na.rm = TRUE)) +
     xlim(0, 100) +
     labs(subtitle = subtitle) +
     ylab("Fat oxidation (%MFO)") +

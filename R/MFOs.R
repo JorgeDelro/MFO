@@ -33,8 +33,8 @@
 #' @param steady_state_duration duration of steady-state period within each step in seconds (default 60).
 #' @param age age in years (optional), the same for every participant, for the
 #'        heart-rate criterion of \VOmax{}. See [MFO()] and [VO2max_from_test()].
-#' @param sin_fit `"normalised"` (default) or `"absolute"` fit of the SIN
-#'        model. See [MFO_kinetics()].
+#' @param sin_fit `"absolute"` (default since 0.3.0-beta.1) or `"normalised"`
+#'        fit of the SIN model. See [MFO_kinetics()].
 #' @param sin_ci logical; if `TRUE`, `ci` is also computed for the SIN model
 #'        (default `FALSE`, as it doubles the run time).
 #' @param ci,B,conf,seed confidence intervals of the fit, passed to [MFO_kinetics()] (only with `sin_ci = TRUE`) and
@@ -199,7 +199,7 @@ MFOs <- function(from = c("folder", "files"),
                  B = 2000,
                  conf = 0.95,
                  seed = NULL,
-                 sin_fit = c("normalised", "absolute"),
+                 sin_fit = c("absolute", "normalised"),
                  sin_ci = FALSE,
                  output_dir = NULL) {
 

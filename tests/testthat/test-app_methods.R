@@ -25,7 +25,7 @@ test_that("the default analysis gives the approved paragraph", {
   expect_true(.has(m, "determined from a third-degree polynomial fitted to fat oxidation against % VO\u2082max."))
   expect_true(.has(m, "at least 90 % of MFO (Achten et al., 2002)"))
   expect_true(.has(m, "(Brooks and Mercier, 1994)"))
-  expect_true(.has(m, "SIN model (Chenevière et al., 2009), fitted to fat oxidation normalised to MFO"))
+  expect_true(.has(m, "SIN model (Chenevière et al., 2009), fitted to absolute fat oxidation"))
   expect_false(.has(m, "Energy expenditure"))
   expect_false(.has(m, "confidence intervals"))
   expect_false(grepl("seed|commit", m$text))

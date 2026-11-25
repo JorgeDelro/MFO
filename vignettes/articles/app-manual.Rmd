@@ -184,7 +184,7 @@ are those of the package.
 | Age | For the heart-rate criterion of VO₂max, and as the default age for the predicted HRmax in Zones. |
 | Body mass, Fat-free mass | Give MFO in mg/kg/min and mg/kg FFM/min. Body mass is also needed for steps in W/kg. |
 | HRmax | Gives Fatmax as % HRmax. In Zones it takes precedence over the peak heart rate of the graded test. |
-| SIN fit | *Normalised* (default, as Chenevière et al. 2009): fat oxidation divided by the highest step before fitting. *Absolute*: fitted in g/min with MFO as a fourth parameter; less biased in simulations, needs at least 5 steps. |
+| SIN fit | *Absolute* (default): fitted in g/min with MFO as a fourth parameter; less biased in simulations, and its intervals cover the truth better; needs at least 5 steps. *Normalised* (as Chenevière et al. 2009): fat oxidation divided by the highest step before fitting; possible with 4 steps. |
 
 **Run analysis** runs `MFO()` and `MFO_kinetics()`; the alerts of the run
 appear below the button and in Results.
