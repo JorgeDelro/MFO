@@ -116,7 +116,7 @@
 "an.ok","Analysis done. See Results."
 "res.none","Run the analysis first, in Protocol and analysis."
 "res.curve","Fat and carbohydrate oxidation"
-"res.hover","Move the pointer over the plot to see the nearest step."
+"res.steps","Steps of the fit"
 "res.values","Results"
 "res.ci","Confidence intervals"
 "res.ci.parametric","Parametric bootstrap"

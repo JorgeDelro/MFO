@@ -12,7 +12,7 @@ test_that("the report holds every part, the footer and no external files", {
   .app_write_report(f, a = a, zones = z, id = "P01",
                     generated = as.POSIXct("2026-11-20 12:00"))
   html <- paste(readLines(f, encoding = "UTF-8"), collapse = "\n")
-  for (x in c("<title>MFO report: P01</title>", "Fat oxidation curve", "Results",
+  for (x in c("<title>MFO report: P01</title>", "Fat oxidation curve", "Results", "Steps of the fit",
               "SIN kinetics", "Heart-rate zones", "Reference values",
               "How this test differs from the reference test", "Quality alerts", "a warning",
               "a note", "Methods", "References", "Obesity range", "HRmax 190 bpm (given)",

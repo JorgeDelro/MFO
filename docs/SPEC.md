@@ -333,6 +333,8 @@ Cada punto de la hoja de ruta responde a una limitación identificada en §4–�
 
 **Idioma.** Todas las cadenas de la interfaz están en un único fichero (`inst/app/i18n.csv`, clave → texto, una columna por idioma). Decisión de Jorge del 25 nov 2026: **la app es solo en inglés**; se quitan el selector y la columna `es`, y se revocan el español como segunda lengua (19 nov) y el cambio de idioma sin recarga (24 nov). Se conservan la búsqueda clave → texto, de modo que otro idioma sería otra columna, y las condiciones con clase: los avisos y mensajes de `MFO()`, `read_cart()`, `MFO_zones()`, `MFO_kinetics()`, `MFO_protocol()` y `MFO_reliability()` son `mfo_warning_<id>`/`mfo_message_<id>` con sus números como campos (p. ej. `mfo_warning_negative_fat` con `n`), y la app los redacta con las plantillas `cond.<id>`. Los errores salen con su texto de R.
 
+**Resultados y nombres de columnas** (decisiones de Jorge, 25 nov 2026). La gráfica de Resultados no es interactiva y debajo aparece siempre la tabla de escalones (`MFO_db`), que se descarga en csv/xlsx y entra en el informe. En la app, el informe y las descargas, `porc_VO2` se muestra como «%VO₂max» (y `VO2`, `VCO2` como VO₂, VCO₂ con unidades); la columna del paquete no cambia por compatibilidad. **Candidato a renombrado en la 1.0:** `porc_VO2` → un nombre que diga % VO₂max (cambio incompatible, solo con versión mayor).
+
 **Despliegue.** La beta.1 es solo local, con `MFO::run_app()`. Una demo pública, si se hace, solo con datos simulados o de ejemplo y sin subida de ficheros (los datos de participantes no se suben a servidores de terceros). Escritorio y Docker, en la 0.3.x.
 
 **Arquitectura de la app** (decisiones de Claude, una línea cada una):

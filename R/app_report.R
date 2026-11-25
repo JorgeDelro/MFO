@@ -128,6 +128,8 @@ img { max-width: 100%; height: auto; }
     .app_plot_tag(.app_style_plot(res$MFO_plot), "Fat and carbohydrate oxidation against % VO\u2082max"),
     tags$h2("Results"),
     .app_html_table(results),
+    tags$h2("Steps of the fit"),
+    .app_html_table(.app_step_table(res)),
     sin_part,
     zones_part,
     tags$h2("Quality alerts"),

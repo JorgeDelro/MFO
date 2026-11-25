@@ -55,14 +55,27 @@
   tab
 }
 
-# The step nearest to a hover on the MFO plot (x = % VO2max, y = g/min)
-.app_hover_step <- function(MFO_db, hover) {
-  if (is.null(hover) || is.null(hover$x)) return(NULL)
-  ex <- MFO_db[!is.na(MFO_db$porc_VO2), , drop = FALSE]
-  if (nrow(ex) == 0) return(NULL)
-  i <- which.min(abs(ex$porc_VO2 - hover$x))
-  ex[i, intersect(c("Step", "Load", "porc_VO2", "VO2", "VCO2", "RER", "HR", "FAT", "CHO"),
-                  names(ex)), drop = FALSE]
+# Display names of MFO_db columns in the app, the report and the downloads.
+# The columns of the package keep their names (porc_VO2 is a candidate to be
+# renamed in 1.0; Jorge, 2026-11-25)
+.app_display_names <- function(cols, load_unit = NA) {
+  map <- c(Step = "Step", Load = if (is.na(load_unit)) "Load" else paste0("Load (", load_unit, ")"),
+           porc_VO2 = "%VO\u2082max", VO2 = "VO\u2082 (mL/min)", VCO2 = "VCO\u2082 (mL/min)",
+           RER = "RER", HR = "HR (bpm)", FAT = "FAT (g/min)", CHO = "CHO (g/min)",
+           Kcal = "Kcal (kcal/min)")
+  out <- map[cols]
+  unname(ifelse(is.na(out), cols, out))
+}
+
+# The steps of the fit (MFO_db) as shown and downloaded
+.app_step_table <- function(res) {
+  db <- as.data.frame(res$MFO_db)
+  cols <- intersect(c("Step", "Load", "porc_VO2", "VO2", "VCO2", "RER", "HR", "FAT", "CHO",
+                      "Kcal"), names(db))
+  out <- db[, cols, drop = FALSE]
+  names(out) <- .app_display_names(cols, res$load_unit)
+  rownames(out) <- NULL
+  out
 }
 
 
@@ -75,10 +88,13 @@
       col_widths = c(7, 5),
       bslib::card(
         bslib::card_header(t("res.curve")),
-        shiny::plotOutput(ns("plot"), height = "380px", fill = FALSE,
-                          hover = shiny::hoverOpts(ns("hover"), delay = 100)),
-        shiny::helpText(t("res.hover")),
-        shiny::tableOutput(ns("hover_step"))
+        shiny::plotOutput(ns("plot"), height = "380px", fill = FALSE),
+        shiny::h6(t("res.steps")),
+        .app_scroll_table(ns("steps"), "300px"),
+        bslib::layout_columns(
+          shiny::downloadButton(ns("steps_xlsx"), t("rep.download_xlsx")),
+          shiny::downloadButton(ns("steps_csv"), t("rep.download_csv"))
+        )
       ),
       bslib::card(
         bslib::card_header(t("res.values")),
@@ -163,8 +179,13 @@
       if (is.null(analysis())) shiny::div(class = "alert alert-secondary", t("res.none"))
     })
     output$plot <- shiny::renderPlot(.app_style_plot(current()$res$MFO_plot))
-    output$hover_step <- shiny::renderTable(.app_hover_step(current()$res$MFO_db, input$hover),
-                                            digits = 2)
+    output$steps <- shiny::renderTable(.app_step_table(current()$res), digits = 2, na = "")
+    output$steps_xlsx <- shiny::downloadHandler(
+      filename = function() "MFO_steps.xlsx",
+      content = function(file) .app_write_group(.app_step_table(current()$res), file, "xlsx"))
+    output$steps_csv <- shiny::downloadHandler(
+      filename = function() "MFO_steps.csv",
+      content = function(file) .app_write_group(.app_step_table(current()$res), file, "csv"))
     output$values <- shiny::renderTable({
       .app_results_names(.app_results_table(current()$res, t), t)
     }, digits = 3, na = "")

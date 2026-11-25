@@ -18,12 +18,16 @@ test_that("the results table shows MFO() values and, when computed, intervals", 
   expect_equal(s$Value[s$Parameter == "d"], format(round(a$kin$d, 3)))
 })
 
-test_that("hovering picks the nearest step", {
+test_that("the steps table shows MFO_db with %VO\u2082max for porc_VO2", {
   a <- .app_test_analysis()
-  db <- a$res$MFO_db
-  st <- .app_hover_step(db, list(x = db$porc_VO2[3] + 0.1, y = 0.2))
-  expect_equal(st$Step, db$Step[3])
-  expect_null(.app_hover_step(db, NULL))
+  st <- .app_step_table(a$res)
+  expect_equal(nrow(st), nrow(a$res$MFO_db))
+  expect_true("%VO\u2082max" %in% names(st))
+  expect_false("porc_VO2" %in% names(st))
+  expect_equal(st[["%VO\u2082max"]], a$res$MFO_db$porc_VO2)
+  expect_equal(.app_display_names(c("porc_VO2", "other")), c("%VO\u2082max", "other"))
+  # the package column keeps its name
+  expect_true("porc_VO2" %in% names(a$res$MFO_db))
 })
 
 test_that("participant codes, not names", {
@@ -58,6 +62,10 @@ test_that("the Results module computes intervals and fills the group table", {
   group <- shiny::reactiveVal(NULL)
   shiny::testServer(.mod_results_server, args = list(analysis = analysis, group = group), {
     expect_identical(current()$res$MFO, a$res$MFO)
+    expect_match(output$steps, "%VO\u2082max", fixed = TRUE)
+    f <- output$steps_csv
+    expect_equal(names(utils::read.csv(f, check.names = FALSE, encoding = "UTF-8"))[3],
+                 "%VO\u2082max")
     session$setInputs(ci = "parametric", B = 50, conf = 0.9, seed = 1, compute_ci = 1)
     expect_false(is.null(current()$res$ci))
     expect_equal(current()$ci_settings$B, 50)
