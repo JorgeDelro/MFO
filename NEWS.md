@@ -23,13 +23,16 @@
 * `run_app()` opens the Shiny app of the package (SPEC 10, #24), which only
   calls the package's functions and runs locally. `shiny` and `bslib` are
   in Suggests. Interface in English (all strings in `inst/app/i18n.csv`, one
-  column per language, so a translation is one more column). This first step has the Data tab: example
+  column per language, so a translation is one more column). The navbar reads "MFO analysis". The Data tab: example
   data, csv/xlsx files with column mapping or analyser exports (several
   files or a zip), phases by table or by cuts dragged on the VO2 plot, and
-  every message and warning of the reading shown as an alert. The Protocol
+  every message and warning of the reading shown as an alert, and the tables
+  read shown per phase next to the VO₂ plot. Every plot can be downloaded as
+  PNG at 300 dpi, PDF or SVG (180 mm wide by default). The Protocol
   and analysis tab sets the arguments of `MFO_protocol()`, `MFO()` and
-  `MFO_kinetics()`; the Results tab shows the curve (hover for the nearest
-  step), the results table, confidence intervals on demand, the SIN
+  `MFO_kinetics()`; the Results tab shows the curve with the steps of the
+  fit always under it (downloadable; `porc_VO2` shown as %VO₂max), the
+  results table, confidence intervals on demand, the SIN
   kinetics, the warnings of the run as quality alerts, and adds the
   participant to the session's group table (the columns of `MFOs()` plus
   session and analysis date; participant codes only, no names). The Zones
@@ -38,7 +41,8 @@
   of `reference_MFO` with their group, N and the differences from the
   reference test. The package's warnings are worded from the templates of
   the app. The Report and downloads tab
-  writes one self-contained HTML report (curve, results, intervals, SIN,
+  writes one self-contained HTML report, with a Save as PDF button that
+  opens the print dialog of the browser (curve, results, steps, intervals, SIN,
   zones and references, alerts, a methods paragraph with its references,
   and a footer with version, commit, dates, phase cuts and seed) and the
   group table as xlsx or csv. The Reliability tab runs `MFO_reliability()`

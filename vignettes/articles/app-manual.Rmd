@@ -94,10 +94,21 @@ VO₂max.
 - **VO₂ over time**: each phase in its colour. Check that the phases are
   where you expect and, with cuts, that the dashed lines fall where the MFO
   test starts and ends.
+- **Tables read**, next to the plot: the records of each phase as read
+  (one tab per phase, scrolling), before any analysis. Check the units and
+  that the values look like those of the analyser; in cuts mode they show
+  the whole recording before it is cut.
 - **Phases read**: records, duration and columns of each phase. A phase
   shorter than expected usually means a wrong cut or a wrong table.
 - Alerts of the reading (see *Warnings and messages* below), then a green
   box when the data are ready.
+
+**Downloading a figure.** Under every plot of the app (VO₂ over time, the
+oxidation curve, the SIN kinetics and the Bland-Altman plots) choose the
+*Figure format* (PNG at 300 dpi, PDF or SVG), the *Width* (default 180 mm, the
+full width of a journal page) and the *Height* in mm, and press *Download
+figure*. The figure has the colours of the app. PDF and SVG are vector
+formats, best for journals; PNG at 300 dpi for slides and documents.
 
 ## 2. Protocol and analysis
 
@@ -147,7 +158,7 @@ appear below the button and in Results.
 
 ## 3. Results
 
-![The Results tab, with the pointer over the plot.](figures/manual-results.png)
+![The Results tab.](figures/manual-results.png)
 
 ### Fat and carbohydrate oxidation
 
@@ -156,8 +167,13 @@ lines the fitted curves, against % VO₂max. The shaded band is the **Fatmax
 zone**, the intensities where fat oxidation is at least 90 % of MFO. The
 dotted line is **Fatmax**; the dot-dash line, the **crossover point**, where
 carbohydrate oxidation exceeds fat oxidation. The subtitle gives Fatmax, MFO
-and the method. **Move the pointer over the plot** to see the nearest step
-(load, VO₂, VCO₂, RER, heart rate, fat and carbohydrate) below it.
+and the method. The figure can be downloaded (see *Downloading a figure* in
+Data).
+
+Under the plot, always, the **steps of the fit**: for each step, its number,
+load, intensity (%VO₂max), VO₂, VCO₂, RER, heart rate, fat and carbohydrate
+oxidation and energy expenditure. These are the points of the plot. The
+table can be downloaded as xlsx or csv; it is also in the report.
 
 How to read it: a good test shows fat oxidation rising, peaking and falling,
 with Fatmax well inside the measured steps. A maximum on the first or last
@@ -259,9 +275,11 @@ is approximate (a warning says so).
 
 ![The Report and downloads tab.](figures/manual-report.png)
 
-**Individual report.** One HTML file, with the plots inside, that opens in
-any browser and can be printed to PDF. It holds the curve and the results
-(with their intervals if computed), the SIN kinetics, the heart-rate zones
+**Individual report.** *Download report (HTML)* saves one HTML file, with
+the plots inside, that opens in any browser. *Save as PDF* opens the print
+dialog of the browser with the report: choose *Save as PDF* as the printer
+(the downloaded HTML has the same button). It holds the curve, the results
+(with their intervals if computed), the steps of the fit, the SIN kinetics, the heart-rate zones
 and reference values (if computed for this analysis), the quality alerts, a
 **methods paragraph** ready to adapt for a paper, its references, and a
 footer with the package version and commit, the dates of the analysis and of

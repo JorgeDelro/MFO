@@ -85,8 +85,10 @@ are those of `MFO()`.
 ### 3. Results
 
 The fat and carbohydrate curve with MFO, Fatmax, the Fatmax zone and the
-crossover point (move the pointer over the plot to see the nearest step),
-the table of results, and the SIN kinetics. Confidence intervals are computed
+crossover point, the steps of the fit under it (downloadable as xlsx or csv,
+with porc_VO2 shown as %VO₂max), the table of results, and the SIN kinetics.
+Every plot of the app can be downloaded as PNG at 300 dpi, PDF or SVG, 180 mm
+wide by default. Confidence intervals are computed
 on demand (parametric or residual bootstrap, number of replicates, level and
 seed); they are dropped when the analysis is run again.
 
@@ -120,7 +122,8 @@ knitr::include_graphics("figures/app-zones.png")
 ### 5. Report and downloads
 
 The individual report is a single HTML file, with the plots inside, that
-opens in any browser and can be printed to PDF. It holds the curve and the
+opens in any browser; *Save as PDF* opens the print dialog of the browser
+with it. It holds the curve and the
 results (with their intervals if computed), the SIN kinetics, the heart-rate
 zones and reference values, the quality alerts, a methods paragraph ready to
 adapt for a paper, its references, and a footer with the package version and

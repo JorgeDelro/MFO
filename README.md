@@ -117,8 +117,7 @@ the package. It needs two suggested packages:
 
 ``` r
 install.packages(c("shiny", "bslib"))
-MFO::run_app()          # English
-MFO::run_app("es")      # Spanish
+MFO::run_app()
 ```
 
 The app runs on your computer and does not send your data anywhere. It
