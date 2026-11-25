@@ -71,7 +71,8 @@
       shiny::numericInput(ns(paste0(id, "_height")), t("fig.height"), height_mm, min = 20,
                           max = 500, step = 5),
       shiny::div(class = "d-flex align-items-end h-100 pb-3",
-                 shiny::downloadButton(ns(paste0(id, "_download")), t("fig.download")))
+                 .app_outline(shiny::downloadButton(ns(paste0(id, "_download")),
+                                                    t("fig.download"))))
     )
   )
 }

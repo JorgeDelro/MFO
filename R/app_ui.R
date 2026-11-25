@@ -16,6 +16,9 @@
     bslib::nav_panel(t("tab.report"), .mod_report_ui("report"), value = "report"),
     bslib::nav_panel(t("tab.reliability"), .mod_reliability_ui("reliability"),
                      value = "reliability"),
+    bslib::nav_spacer(),
+    # Dark mode, as in the ACWR app (Jorge, 2026-11-25)
+    bslib::nav_item(bslib::input_dark_mode(id = "dark_mode", mode = "light")),
     footer = shiny::div(class = "text-muted small p-2",
                         sprintf("MFO %s. %s", utils::packageVersion("MFO"), t("app.local")))
   )

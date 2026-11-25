@@ -317,12 +317,12 @@
     shiny::p(t("prep.intro")),
     case("prep.a", c("prep.a.example", "prep.a.file", "prep.a.device", "prep.a.phases",
                      "prep.a.records"),
-         shiny::downloadButton(ns("template_test"), t("prep.template.test"),
-                               class = "btn-outline-primary btn-sm")),
+         .app_outline(shiny::downloadButton(ns("template_test"), t("prep.template.test")),
+                      small = TRUE)),
     case("prep.b", c("prep.b.add", "prep.b.download")),
     case("prep.c", c("prep.c.when", "prep.c.columns", "prep.c.n"),
-         shiny::downloadButton(ns("template_results"), t("prep.template.results"),
-                               class = "btn-outline-primary btn-sm"))
+         .app_outline(shiny::downloadButton(ns("template_results"), t("prep.template.results")),
+                      small = TRUE))
   )
 }
 
@@ -347,7 +347,7 @@
 }
 
 
-.mod_data_server <- function(id) {
+.mod_data_server <- function(id, plot_theme = function() .app_plot_theme(FALSE)) {
   shiny::moduleServer(id, function(input, output, session) {
     t <- function(key) .tr(key)
 
@@ -476,8 +476,11 @@
       shiny::req(cart)
       .app_recording_plot(cart, c(input$basal_end, input$MFO_end), t)
     })
-    output$plot <- shiny::renderPlot(recording_plot())
-    .app_figure_download(input, output, "fig_recording", recording_plot, "recording")
+    output$plot <- shiny::renderPlot(.app_theme_plot(recording_plot(), plot_theme()),
+                                     bg = "transparent")
+    # downloaded figures are always light
+    .app_figure_download(input, output, "fig_recording",
+                         function() .app_theme_plot(recording_plot()), "recording")
     for (p in c("basal", "MFO", "graded")) local({
       phase <- p
       output[[paste0("view_", phase)]] <- shiny::renderTable({

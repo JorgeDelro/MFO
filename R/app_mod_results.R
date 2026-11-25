@@ -93,8 +93,8 @@
         shiny::h6(t("res.steps")),
         .app_scroll_table(ns("steps"), "300px"),
         bslib::layout_columns(
-          shiny::downloadButton(ns("steps_xlsx"), t("rep.download_xlsx")),
-          shiny::downloadButton(ns("steps_csv"), t("rep.download_csv"))
+          .app_outline(shiny::downloadButton(ns("steps_xlsx"), t("rep.download_xlsx"))),
+          .app_outline(shiny::downloadButton(ns("steps_csv"), t("rep.download_csv")))
         )
       ),
       bslib::card(
@@ -111,7 +111,7 @@
                               step = 0.01),
           shiny::numericInput(ns("seed"), t("res.seed"), 1)
         ),
-        shiny::actionButton(ns("compute_ci"), t("res.compute_ci")),
+        .app_outline(shiny::actionButton(ns("compute_ci"), t("res.compute_ci"))),
         shiny::helpText(t("res.ci.help"))
       )
     ),
@@ -137,14 +137,14 @@
         shiny::textInput(ns("ID"), t("res.ID")),
         shiny::textInput(ns("session_id"), t("res.session"), "1")
       ),
-      shiny::actionButton(ns("add"), t("res.add")),
+      .app_outline(shiny::actionButton(ns("add"), t("res.add"))),
       shiny::textOutput(ns("group_n"))
     )
   )
 }
 
 
-.mod_results_server <- function(id, analysis, group) {
+.mod_results_server <- function(id, analysis, group, plot_theme = function() .app_plot_theme(FALSE)) {
   shiny::moduleServer(id, function(input, output, session) {
     t <- function(key) .tr(key)
 
@@ -180,11 +180,13 @@
     output$status <- shiny::renderUI({
       if (is.null(analysis())) shiny::div(class = "alert alert-secondary", t("res.none"))
     })
-    curve_plot <- shiny::reactive(.app_style_plot(current()$res$MFO_plot))
-    sin_plot <- shiny::reactive(.app_style_plot(current()$kin$MFO_kinetics_plot))
-    output$plot <- shiny::renderPlot(curve_plot())
-    .app_figure_download(input, output, "fig_curve", curve_plot, "curve")
-    .app_figure_download(input, output, "fig_sin", sin_plot, "SIN")
+    # on screen in the mode of the app; downloaded figures always light
+    output$plot <- shiny::renderPlot(.app_style_plot(current()$res$MFO_plot, plot_theme()),
+                                     bg = "transparent")
+    .app_figure_download(input, output, "fig_curve",
+                         function() .app_style_plot(current()$res$MFO_plot), "curve")
+    .app_figure_download(input, output, "fig_sin",
+                         function() .app_style_plot(current()$kin$MFO_kinetics_plot), "SIN")
     output$steps <- shiny::renderTable(.app_step_table(current()$res), digits = 2, na = "")
     output$steps_xlsx <- shiny::downloadHandler(
       filename = function() "MFO_steps.xlsx",
@@ -195,7 +197,8 @@
     output$values <- shiny::renderTable({
       .app_results_names(.app_results_table(current()$res, t), t)
     }, digits = 3, na = "")
-    output$sin_plot <- shiny::renderPlot(sin_plot())
+    output$sin_plot <- shiny::renderPlot(
+      .app_style_plot(current()$kin$MFO_kinetics_plot, plot_theme()), bg = "transparent")
     output$sin_values <- shiny::renderTable(.app_sin_table(current()$kin, t))
     output$alerts <- shiny::renderUI({
       a <- current()

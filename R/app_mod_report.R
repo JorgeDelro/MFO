@@ -40,18 +40,25 @@ Shiny.addCustomMessageHandler('mfo-print', function(m) {
         shiny::textInput(ns("ID"), t("res.ID")),
         shiny::helpText(t("rep.report.help")),
         bslib::layout_columns(
-          shiny::downloadButton(ns("report"), t("rep.download_report")),
-          shiny::actionButton(ns("print"), t("rep.print"), icon = shiny::icon("print"))
+          .app_outline(shiny::downloadButton(ns("report"), t("rep.download_report"))),
+          .app_outline(shiny::actionButton(ns("print"), t("rep.print"),
+                                           icon = shiny::icon("print")))
         ),
-        shiny::helpText(t("rep.print.help"))
+        shiny::helpText(t("rep.print.help")),
+        # Word, with officer in Suggests (Jorge, 2026-11-25)
+        if (requireNamespace("officer", quietly = TRUE)) {
+          .app_outline(shiny::downloadButton(ns("report_docx"), t("rep.download_docx")))
+        } else {
+          shiny::helpText(t("rep.docx.missing"))
+        }
       ),
       bslib::card(
         bslib::card_header(t("res.group")),
         shiny::tableOutput(ns("group")),
         bslib::layout_columns(
-          shiny::downloadButton(ns("group_xlsx"), t("rep.download_xlsx")),
-          shiny::downloadButton(ns("group_csv"), t("rep.download_csv")),
-          shiny::actionButton(ns("clear"), t("rep.clear"))
+          .app_outline(shiny::downloadButton(ns("group_xlsx"), t("rep.download_xlsx"))),
+          .app_outline(shiny::downloadButton(ns("group_csv"), t("rep.download_csv"))),
+          .app_outline(shiny::actionButton(ns("clear"), t("rep.clear")))
         ),
         shiny::helpText(t("rep.group.help"))
       )
@@ -105,6 +112,17 @@ Shiny.addCustomMessageHandler('mfo-print', function(m) {
         a <- current()
         shiny::req(a)
         .app_write_report(file, a = a, zones = current_zones(), id = report_id())
+      })
+
+    output$report_docx <- shiny::downloadHandler(
+      filename = function() {
+        id <- trimws(input$ID)
+        paste0("MFO_report", if (.app_valid_id(id)) paste0("_", id), ".docx")
+      },
+      content = function(file) {
+        a <- current()
+        shiny::req(a)
+        .app_report_docx(file, a = a, zones = current_zones(), id = report_id())
       })
 
     output$group <- shiny::renderTable({
